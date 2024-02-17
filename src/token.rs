@@ -34,9 +34,11 @@ where
         }
     }
 
-    pub fn eat_whitespace(&mut self) -> crate::Result<Option<(Position, u8)>> {
-        while let Some((pos, c)) = self.eat()? {
-            if !c.is_ascii_whitespace() {
+    pub fn skip_whitespace(&mut self) -> crate::Result<Option<(Position, u8)>> {
+        while let Some((pos, c)) = self.find()? {
+            if c.is_ascii_whitespace() {
+                self.eat()?;
+            } else {
                 return Ok(Some((pos, c)));
             }
         }

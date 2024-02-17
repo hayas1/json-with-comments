@@ -28,21 +28,16 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (start, ate) = match self.tokenizer.eat()? {
-            Some(t) => t,
-            None => {
-                return Err(SyntaxError::EofWhileParsingValue.into());
-            }
-        };
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileParsingValue.into()))?;
 
-        match ate {
+        match found {
             b'n' => self.deserialize_unit(visitor),
             b'f' | b't' => self.deserialize_bool(visitor),
             b'-' | b'0'..=b'9' => todo!("u64, i64, f64 and so on..."),
             b'"' => self.deserialize_str(visitor),
             b'[' => self.deserialize_seq(visitor),
             b'{' => self.deserialize_map(visitor),
-            _ => Err(SyntaxError::UnexpectedTokenWhileParsingValue { pos: start, found: ate }.into()),
+            _ => Err(SyntaxError::UnexpectedTokenWhileParsingValue { pos, found }.into()),
         }
     }
 
