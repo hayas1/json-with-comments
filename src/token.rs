@@ -1,25 +1,29 @@
-use std::io;
+use std::{io, iter::Peekable};
 
 pub struct Tokenizer<R>
 where
     R: io::Read,
 {
-    iter: RowColIterator<io::Bytes<R>>,
+    iter: Peekable<RowColIterator<io::Bytes<R>>>,
 }
 impl<R> Tokenizer<R>
 where
     R: io::Read,
 {
     pub fn new(reader: R) -> Self {
-        Tokenizer { iter: RowColIterator::new(reader.bytes()) }
+        Tokenizer { iter: RowColIterator::new(reader.bytes()).peekable() }
     }
 }
 impl<R> Tokenizer<R>
 where
     R: io::Read,
 {
-    pub fn pos(&self) -> Position {
-        self.iter.pos()
+    pub fn pos(&mut self) -> Option<Position> {
+        self.iter.peek().map(|&(p, _)| p)
+    }
+
+    pub fn peek(&mut self) -> Option<&(Position, io::Result<u8>)> {
+        self.iter.peek()
     }
 }
 
