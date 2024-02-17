@@ -1,11 +1,27 @@
 use std::io;
 
+pub struct Tokenizer<I> {
+    iter: RowColIterator<I>,
+}
+impl<I> Tokenizer<I> {
+    pub fn new(iter: RowColIterator<I>) -> Self {
+        Tokenizer { iter: iter }
+    }
+}
+impl<I> Tokenizer<I>
+where
+    I: Iterator<Item = io::Result<u8>>,
+{
+    pub fn pos(&self) -> (usize, usize) {
+        self.iter.pos()
+    }
+}
+
 pub struct RowColIterator<I> {
     iter: I,
     row: usize,
     col: usize,
 }
-
 impl<I> RowColIterator<I> {
     pub fn new(iter: I) -> Self {
         RowColIterator { iter, row: 0, col: 0 }
@@ -15,7 +31,6 @@ impl<I> RowColIterator<I> {
         (self.row, self.col)
     }
 }
-
 impl<I> Iterator for RowColIterator<I>
 where
     I: Iterator<Item = io::Result<u8>>,
