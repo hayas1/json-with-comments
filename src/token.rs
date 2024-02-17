@@ -1,16 +1,16 @@
 use std::io;
 
-pub struct Tokenizer<I> {
-    iter: RowColIterator<I>,
+pub struct Tokenizer<R> {
+    iter: RowColIterator<R>,
 }
-impl<I> Tokenizer<I> {
-    pub fn new(iter: RowColIterator<I>) -> Self {
-        Tokenizer { iter: iter }
+impl<R> Tokenizer<R> {
+    pub fn new(iter: RowColIterator<R>) -> Self {
+        Tokenizer { iter }
     }
 }
-impl<I> Tokenizer<I>
+impl<R> Tokenizer<R>
 where
-    I: Iterator<Item = io::Result<u8>>,
+    R: io::Read,
 {
     pub fn pos(&self) -> (usize, usize) {
         self.iter.pos()

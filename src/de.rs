@@ -4,17 +4,17 @@ use serde::de;
 
 use crate::{error::Error, token::Tokenizer};
 
-pub struct Deserializer<I> {
-    tokenizer: Tokenizer<I>,
+pub struct Deserializer<R> {
+    tokenizer: Tokenizer<R>,
 }
-impl<I> Deserializer<I> {
-    pub fn new(tokenizer: Tokenizer<I>) -> Self {
+impl<R> Deserializer<R> {
+    pub fn new(tokenizer: Tokenizer<R>) -> Self {
         Deserializer { tokenizer }
     }
 }
-impl<'de, 'a, I> de::Deserializer<'de> for &'a mut Deserializer<I>
+impl<'de, 'a, R> de::Deserializer<'de> for &'a mut Deserializer<R>
 where
-    I: Iterator<Item = io::Result<u8>>,
+    R: io::Read,
 {
     type Error = Error;
 
