@@ -1,4 +1,6 @@
-use std::{io, iter::Peekable};
+use std::{io, iter::Peekable, process::id};
+
+use crate::error::SyntaxError;
 
 pub struct Tokenizer<R>
 where
@@ -44,9 +46,33 @@ where
         }
         Ok(None)
     }
+
+    pub fn parse_like<F: Fn(u8) -> bool>(&mut self, f: F) -> crate::Result<(PosRange, Vec<u8>)> {
+        let (start, _) = self.skip_whitespace()?.ok_or(SyntaxError::EofWhileParsingIdent)?;
+        let (mut end, mut buff) = (start, Vec::new());
+        while let Some((_pos, c)) = self.find()? {
+            if f(c) {
+                (end, _) = self.eat()?.expect("previous peek ensure this is not None");
+                buff.push(c)
+            } else {
+                break;
+            }
+        }
+        Ok(((start, end), buff))
+    }
+
+    pub fn parse_ident<T>(&mut self, ident: &[u8], value: T) -> crate::Result<T> {
+        let (pos, parsed) = self.parse_like(|c| c.is_ascii_alphanumeric())?;
+        if &parsed == ident {
+            Ok(value)
+        } else {
+            Err(SyntaxError::UnexpectedIdent { pos, expected: ident.into(), found: parsed })?
+        }
+    }
 }
 
 pub type Position = (usize, usize);
+pub type PosRange = (Position, Position); // TODO RangeBound
 pub struct RowColIterator<I> {
     iter: I,
     row: usize,

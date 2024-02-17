@@ -28,8 +28,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileParsingValue.into()))?;
-
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileParsingValue)?)?;
         match found {
             b'n' => self.deserialize_unit(visitor),
             b'f' | b't' => self.deserialize_bool(visitor),
@@ -37,7 +36,7 @@ where
             b'"' => self.deserialize_str(visitor),
             b'[' => self.deserialize_seq(visitor),
             b'{' => self.deserialize_map(visitor),
-            _ => Err(SyntaxError::UnexpectedTokenWhileParsingValue { pos, found }.into()),
+            _ => Err(SyntaxError::UnexpectedTokenWhileParsingValue { pos, found })?,
         }
     }
 
@@ -45,7 +44,12 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileParsingValue)?)?;
+        match found {
+            b't' => visitor.visit_bool(self.tokenizer.parse_ident(b"true", true)?),
+            b'f' => visitor.visit_bool(self.tokenizer.parse_ident(b"false", false)?),
+            _ => Err(SyntaxError::UnexpectedTokenWhileParsingBool { pos, found })?,
+        }
     }
 
     fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -164,14 +168,21 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileParsingValue.into()))?;
+        match found {
+            b'n' => {
+                self.tokenizer.parse_ident(b"null", ())?;
+                visitor.visit_unit()
+            }
+            _ => Err(SyntaxError::UnexpectedTokenWhileParsingNull { pos, found })?,
+        }
     }
 
-    fn deserialize_unit_struct<V>(self, name: &'static str, visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_unit_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_unit(visitor)
     }
 
     fn deserialize_newtype_struct<V>(self, name: &'static str, visitor: V) -> Result<V::Value, Self::Error>

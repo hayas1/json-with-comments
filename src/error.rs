@@ -3,7 +3,7 @@ use std::fmt;
 use std::{error, fmt::Display};
 use thiserror::Error;
 
-use crate::token::Position;
+use crate::token::{PosRange, Position};
 
 pub type Result<T> = std::result::Result<T, JsonWithCommentError>;
 #[derive(Error, Debug)]
@@ -37,6 +37,18 @@ pub enum SyntaxError {
 
     #[error("{pos:?}: Expected value, but found {found:?}")]
     UnexpectedTokenWhileParsingValue { pos: Position, found: u8 },
+
+    #[error("{pos:?}: Expected bool, but found {found:?}")]
+    UnexpectedTokenWhileParsingBool { pos: Position, found: u8 },
+
+    #[error("{pos:?}: Expected null, but found {found:?}")]
+    UnexpectedTokenWhileParsingNull { pos: Position, found: u8 },
+
+    #[error("Expected ident, but got EOF")]
+    EofWhileParsingIdent,
+
+    #[error("{pos:?}: Expected ident {expected:?}, but found {found:?}")]
+    UnexpectedIdent { pos: PosRange, expected: Vec<u8>, found: Vec<u8> },
 }
 impl From<SyntaxError> for JsonWithCommentError {
     fn from(err: SyntaxError) -> Self {
