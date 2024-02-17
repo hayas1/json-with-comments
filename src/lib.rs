@@ -2,4 +2,4 @@ pub mod de;
 pub mod error;
 pub mod token;
 
-pub use error::{Error, Result};
+pub use error::{JsonWithCommentError as Error, Result};

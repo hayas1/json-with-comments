@@ -1,34 +1,40 @@
-use std::{error, fmt::Display};
-
 use serde::de;
+use std::fmt;
+use std::{error, fmt::Display};
+use thiserror::Error;
 
-use crate::token::Position;
-
-pub type Result<T> = std::result::Result<T, Error>;
-#[derive(Debug)]
-pub struct Error {
-    pos: Option<Position>,
+pub type Result<T> = std::result::Result<T, JsonWithCommentError>;
+#[derive(Error, Debug)]
+pub struct JsonWithCommentError {
+    #[from]
     inner: Box<dyn error::Error + Send + Sync + 'static>,
 }
-impl Error {
+impl JsonWithCommentError {
     pub fn new<E: Into<Box<dyn error::Error + Send + Sync + 'static>>>(err: E) -> Self {
-        Self { pos: None, inner: err.into() }
-    }
-    pub fn with_pos<E: Into<Box<dyn error::Error + Send + Sync + 'static>>>(pos: Position, err: E) -> Self {
-        Self { pos: Some(pos), inner: err.into() }
+        Self { inner: err.into() }
     }
 }
-impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+impl fmt::Display for JsonWithCommentError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.inner.fmt(f)
     }
 }
-impl error::Error for Error {}
-impl de::Error for Error {
+impl de::Error for JsonWithCommentError {
     fn custom<T>(msg: T) -> Self
     where
         T: Display,
     {
         todo!()
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum SyntaxError {
+    #[error("Expected JSON value, but got EOF")]
+    EofWhileParsingValue,
+}
+impl From<SyntaxError> for JsonWithCommentError {
+    fn from(err: SyntaxError) -> Self {
+        JsonWithCommentError::new(err)
     }
 }
