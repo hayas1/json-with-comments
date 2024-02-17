@@ -28,7 +28,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileParsingValue)?)?;
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing)?)?;
         match found {
             b'n' => self.deserialize_unit(visitor),
             b'f' | b't' => self.deserialize_bool(visitor),
@@ -44,7 +44,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileParsingValue)?)?;
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing)?)?;
         match found {
             b't' => visitor.visit_bool(self.tokenizer.parse_ident(b"true", true)?),
             b'f' => visitor.visit_bool(self.tokenizer.parse_ident(b"false", false)?),
@@ -168,7 +168,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileParsingValue.into()))?;
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing.into()))?;
         match found {
             b'n' => {
                 self.tokenizer.parse_ident(b"null", ())?;

@@ -33,7 +33,7 @@ impl de::Error for JsonWithCommentError {
 #[derive(Error, Debug)]
 pub enum SyntaxError {
     #[error("Expected value, but got EOF")]
-    EofWhileParsingValue,
+    EofWhileWhileStartParsing,
 
     #[error("{pos:?}: Expected value, but found {found:?}")]
     UnexpectedTokenWhileParsingValue { pos: Position, found: u8 },
