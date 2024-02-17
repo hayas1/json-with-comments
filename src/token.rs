@@ -1,4 +1,4 @@
-use std::{io, iter::Peekable, process::id};
+use std::{io, iter::Peekable};
 
 use crate::error::SyntaxError;
 
