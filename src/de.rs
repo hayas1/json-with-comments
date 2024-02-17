@@ -2,7 +2,7 @@ use std::io;
 
 use serde::de;
 
-use crate::{error::Error, token::Tokenizer};
+use crate::{error::SyntaxError, token::Tokenizer};
 
 pub struct Deserializer<R>
 where
@@ -22,13 +22,28 @@ impl<'de, 'a, R> de::Deserializer<'de> for &'a mut Deserializer<R>
 where
     R: io::Read,
 {
-    type Error = Error;
+    type Error = crate::Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        let (start, ate) = match self.tokenizer.eat()? {
+            Some(t) => t,
+            None => {
+                return Err(SyntaxError::EofWhileParsingValue.into());
+            }
+        };
+
+        match ate {
+            b'n' => self.deserialize_unit(visitor),
+            b'f' | b't' => self.deserialize_bool(visitor),
+            b'-' | b'0'..=b'9' => todo!("u64, i64, f64 and so on..."),
+            b'"' => self.deserialize_str(visitor),
+            b'[' => self.deserialize_seq(visitor),
+            b'{' => self.deserialize_map(visitor),
+            _ => Err(SyntaxError::UnexpectedTokenWhileParsingValue { pos: start, found: ate }.into()),
+        }
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>

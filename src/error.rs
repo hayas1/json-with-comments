@@ -3,6 +3,8 @@ use std::fmt;
 use std::{error, fmt::Display};
 use thiserror::Error;
 
+use crate::token::Position;
+
 pub type Result<T> = std::result::Result<T, JsonWithCommentError>;
 #[derive(Error, Debug)]
 pub struct JsonWithCommentError {
@@ -30,8 +32,11 @@ impl de::Error for JsonWithCommentError {
 
 #[derive(Error, Debug)]
 pub enum SyntaxError {
-    #[error("Expected JSON value, but got EOF")]
+    #[error("Expected value, but got EOF")]
     EofWhileParsingValue,
+
+    #[error("{pos:?}: Expected value, but found {found:?}")]
+    UnexpectedTokenWhileParsingValue { pos: Position, found: u8 },
 }
 impl From<SyntaxError> for JsonWithCommentError {
     fn from(err: SyntaxError) -> Self {
