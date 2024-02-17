@@ -1,11 +1,17 @@
 use std::io;
 
-pub struct Tokenizer<R> {
-    iter: RowColIterator<R>,
+pub struct Tokenizer<R>
+where
+    R: io::Read,
+{
+    iter: RowColIterator<io::Bytes<R>>,
 }
-impl<R> Tokenizer<R> {
-    pub fn new(iter: RowColIterator<R>) -> Self {
-        Tokenizer { iter }
+impl<R> Tokenizer<R>
+where
+    R: io::Read,
+{
+    pub fn new(reader: R) -> Self {
+        Tokenizer { iter: RowColIterator::new(reader.bytes()) }
     }
 }
 impl<R> Tokenizer<R>

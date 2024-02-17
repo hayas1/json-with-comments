@@ -4,10 +4,16 @@ use serde::de;
 
 use crate::{error::Error, token::Tokenizer};
 
-pub struct Deserializer<R> {
+pub struct Deserializer<R>
+where
+    R: io::Read,
+{
     tokenizer: Tokenizer<R>,
 }
-impl<R> Deserializer<R> {
+impl<R> Deserializer<R>
+where
+    R: io::Read,
+{
     pub fn new(tokenizer: Tokenizer<R>) -> Self {
         Deserializer { tokenizer }
     }
