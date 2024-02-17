@@ -18,12 +18,29 @@ impl<R> Tokenizer<R>
 where
     R: io::Read,
 {
-    pub fn pos(&mut self) -> Option<Position> {
-        self.iter.peek().map(|&(p, _)| p)
+    pub fn eat(&mut self) -> crate::Result<Option<(Position, u8)>> {
+        match self.iter.next() {
+            Some((pos, Ok(c))) => Ok(Some((pos, c))),
+            Some((_, Err(e))) => Err(crate::Error::new(e.to_string())), // TODO handling io error
+            None => Ok(None),
+        }
     }
 
-    pub fn peek(&mut self) -> Option<&(Position, io::Result<u8>)> {
-        self.iter.peek()
+    pub fn find(&mut self) -> crate::Result<Option<(Position, u8)>> {
+        match self.iter.peek() {
+            Some(&(pos, Ok(c))) => Ok(Some((pos, c))),
+            Some((_, Err(e))) => Err(crate::Error::new(e.to_string())), // TODO handling io error
+            None => Ok(None),
+        }
+    }
+
+    pub fn eat_whitespace(&mut self) -> crate::Result<Option<(Position, u8)>> {
+        while let Some((pos, c)) = self.eat()? {
+            if !c.is_ascii_whitespace() {
+                return Ok(Some((pos, c)));
+            }
+        }
+        Ok(None)
     }
 }
 
