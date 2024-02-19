@@ -2,6 +2,8 @@ use std::{io, iter::Peekable};
 
 use crate::error::SyntaxError;
 
+use super::position::{PosRange, Position};
+
 pub struct Tokenizer<R>
 where
     R: io::Read,
@@ -71,8 +73,6 @@ where
     }
 }
 
-pub type Position = (usize, usize);
-pub type PosRange = (Position, Position); // TODO RangeBound
 pub struct RowColIterator<I> {
     iter: I,
     row: usize,

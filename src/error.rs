@@ -3,7 +3,7 @@ use std::fmt;
 use std::{error, fmt::Display};
 use thiserror::Error;
 
-use crate::token::{PosRange, Position};
+use crate::de::position::{PosRange, Position};
 
 pub type Result<T> = std::result::Result<T, JsonWithCommentError>;
 #[derive(Error, Debug)]

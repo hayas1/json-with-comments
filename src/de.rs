@@ -1,8 +1,13 @@
+pub mod position;
+pub mod token;
+
 use std::io;
 
 use serde::de;
 
-use crate::{error::SyntaxError, token::Tokenizer};
+use crate::error::SyntaxError;
+
+use self::token::Tokenizer;
 
 pub struct Deserializer<R>
 where
