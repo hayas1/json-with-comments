@@ -120,54 +120,52 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        fs::File,
-        io::{BufReader, Read},
-    };
+    use std::io::{BufReader, Read};
 
     use super::*;
 
     #[test]
     fn behavior_row_col_iterator() {
-        let reader = BufReader::new(File::open("tests/data/list.json").unwrap());
+        // [
+        //   "foo",
+        //   "bar",
+        //   "baz"
+        // ]
+        //
+        let raw = vec!["[", r#"  "foo","#, r#"  "bar","#, r#"  "baz""#, "]", ""].join("\n");
+        let reader = BufReader::new(raw.as_bytes());
         let mut iter = RowColIterator::new(reader.bytes());
         assert!(matches!(iter.next(), Some(((0, 0), Ok(b'[')))));
         assert!(matches!(iter.next(), Some(((0, 1), Ok(b'\n')))));
 
         assert!(matches!(iter.next(), Some(((1, 0), Ok(b' ')))));
         assert!(matches!(iter.next(), Some(((1, 1), Ok(b' ')))));
-        assert!(matches!(iter.next(), Some(((1, 2), Ok(b' ')))));
-        assert!(matches!(iter.next(), Some(((1, 3), Ok(b' ')))));
-        assert!(matches!(iter.next(), Some(((1, 4), Ok(b'"')))));
-        assert!(matches!(iter.next(), Some(((1, 5), Ok(b'f')))));
-        assert!(matches!(iter.next(), Some(((1, 6), Ok(b'o')))));
-        assert!(matches!(iter.next(), Some(((1, 7), Ok(b'o')))));
-        assert!(matches!(iter.next(), Some(((1, 8), Ok(b'"')))));
-        assert!(matches!(iter.next(), Some(((1, 9), Ok(b',')))));
-        assert!(matches!(iter.next(), Some(((1, 10), Ok(b'\n')))));
+        assert!(matches!(iter.next(), Some(((1, 2), Ok(b'"')))));
+        assert!(matches!(iter.next(), Some(((1, 3), Ok(b'f')))));
+        assert!(matches!(iter.next(), Some(((1, 4), Ok(b'o')))));
+        assert!(matches!(iter.next(), Some(((1, 5), Ok(b'o')))));
+        assert!(matches!(iter.next(), Some(((1, 6), Ok(b'"')))));
+        assert!(matches!(iter.next(), Some(((1, 7), Ok(b',')))));
+        assert!(matches!(iter.next(), Some(((1, 8), Ok(b'\n')))));
 
         assert!(matches!(iter.next(), Some(((2, 0), Ok(b' ')))));
         assert!(matches!(iter.next(), Some(((2, 1), Ok(b' ')))));
-        assert!(matches!(iter.next(), Some(((2, 2), Ok(b' ')))));
-        assert!(matches!(iter.next(), Some(((2, 3), Ok(b' ')))));
-        assert!(matches!(iter.next(), Some(((2, 4), Ok(b'"')))));
-        assert!(matches!(iter.next(), Some(((2, 5), Ok(b'b')))));
-        assert!(matches!(iter.next(), Some(((2, 6), Ok(b'a')))));
-        assert!(matches!(iter.next(), Some(((2, 7), Ok(b'r')))));
-        assert!(matches!(iter.next(), Some(((2, 8), Ok(b'"')))));
-        assert!(matches!(iter.next(), Some(((2, 9), Ok(b',')))));
-        assert!(matches!(iter.next(), Some(((2, 10), Ok(b'\n')))));
+        assert!(matches!(iter.next(), Some(((2, 2), Ok(b'"')))));
+        assert!(matches!(iter.next(), Some(((2, 3), Ok(b'b')))));
+        assert!(matches!(iter.next(), Some(((2, 4), Ok(b'a')))));
+        assert!(matches!(iter.next(), Some(((2, 5), Ok(b'r')))));
+        assert!(matches!(iter.next(), Some(((2, 6), Ok(b'"')))));
+        assert!(matches!(iter.next(), Some(((2, 7), Ok(b',')))));
+        assert!(matches!(iter.next(), Some(((2, 8), Ok(b'\n')))));
 
         assert!(matches!(iter.next(), Some(((3, 0), Ok(b' ')))));
         assert!(matches!(iter.next(), Some(((3, 1), Ok(b' ')))));
-        assert!(matches!(iter.next(), Some(((3, 2), Ok(b' ')))));
-        assert!(matches!(iter.next(), Some(((3, 3), Ok(b' ')))));
-        assert!(matches!(iter.next(), Some(((3, 4), Ok(b'"')))));
-        assert!(matches!(iter.next(), Some(((3, 5), Ok(b'b')))));
-        assert!(matches!(iter.next(), Some(((3, 6), Ok(b'a')))));
-        assert!(matches!(iter.next(), Some(((3, 7), Ok(b'z')))));
-        assert!(matches!(iter.next(), Some(((3, 8), Ok(b'"')))));
-        assert!(matches!(iter.next(), Some(((3, 9), Ok(b'\n')))));
+        assert!(matches!(iter.next(), Some(((3, 2), Ok(b'"')))));
+        assert!(matches!(iter.next(), Some(((3, 3), Ok(b'b')))));
+        assert!(matches!(iter.next(), Some(((3, 4), Ok(b'a')))));
+        assert!(matches!(iter.next(), Some(((3, 5), Ok(b'z')))));
+        assert!(matches!(iter.next(), Some(((3, 6), Ok(b'"')))));
+        assert!(matches!(iter.next(), Some(((3, 7), Ok(b'\n')))));
 
         assert!(matches!(iter.next(), Some(((4, 0), Ok(b']')))));
         assert!(matches!(iter.next(), Some(((4, 1), Ok(b'\n')))));
