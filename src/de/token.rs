@@ -58,11 +58,11 @@ where
         Ok(None)
     }
 
-    pub fn parse_like<F: Fn(u8) -> bool>(&mut self, f: F) -> crate::Result<(PosRange, Vec<u8>)> {
+    pub fn parse_like<F: Fn(u8) -> bool>(&mut self, max: usize, f: F) -> crate::Result<(PosRange, Vec<u8>)> {
         let (start, _) = self.skip_whitespace()?.ok_or(SyntaxError::EofWhileParsingIdent)?;
         let (mut end, mut buff) = (start, Vec::new());
         while let Some((_pos, c)) = self.find()? {
-            if f(c) {
+            if f(c) && buff.len() < max {
                 (end, _) = self.eat()?.expect("previous peek ensure this is not None");
                 buff.push(c)
             } else {
@@ -73,7 +73,8 @@ where
     }
 
     pub fn parse_ident<T>(&mut self, ident: &[u8], value: T) -> crate::Result<T> {
-        let (pos, parsed) = self.parse_like(|c| c.is_ascii_alphanumeric())?;
+        let max = 10; // prevent from parsing too long token. longest json ident is `false`, that has length 5.
+        let (pos, parsed) = self.parse_like(max, |c| c.is_ascii_alphanumeric() || ident.contains(&c))?;
         if &parsed == ident {
             Ok(value)
         } else {
@@ -173,5 +174,55 @@ mod tests {
         assert!(matches!(iter.next(), None));
         assert!(matches!(iter.next(), None));
         assert!(matches!(iter.next(), None));
+    }
+
+    #[test]
+    fn behavior_tokenizer() {
+        let raw = r#"
+            [
+                "jsonc",
+                123,
+                true,
+                false,
+                null,
+            ]
+        "#;
+        let reader = BufReader::new(raw.as_bytes());
+        let mut tokenizer = Tokenizer::new(reader);
+
+        assert_eq!(tokenizer.find().unwrap(), Some(((0, 0), b'\n')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((0, 0), b'\n')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 0), b'\n')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((1, 0), b' ')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((1, 0), b' ')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((1, 0), b' ')));
+
+        assert_eq!(tokenizer.eat_whitespace().unwrap(), Some(((1, 12), b'[')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((1, 13), b'\n')));
+        assert_eq!(tokenizer.skip_whitespace().unwrap(), Some(((2, 16), b'"')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((2, 16), b'"')));
+
+        assert!(matches!(tokenizer.parse_ident(br#""jsonc""#, "jsonc"), Ok("jsonc")));
+        assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
+
+        assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b'1')))));
+        assert!(matches!(tokenizer.parse_ident(b"123", 123), Ok(123)));
+        assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
+
+        assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b't')))));
+        assert!(matches!(tokenizer.parse_ident(b"true", true), Ok(true)));
+        assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
+
+        assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b'f')))));
+        assert!(matches!(tokenizer.parse_ident(b"false", false), Ok(false)));
+        assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
+
+        assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b'n')))));
+        assert!(matches!(tokenizer.parse_ident(b"null", ()), Ok(())));
+        assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
+
+        assert_eq!(tokenizer.eat_whitespace().unwrap(), Some(((7, 12), b']')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((7, 13), b'\n')));
+        assert_eq!(tokenizer.eat_whitespace().unwrap(), None);
     }
 }
