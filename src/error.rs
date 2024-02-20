@@ -44,6 +44,12 @@ pub enum SyntaxError {
     #[error("{pos:?}: Expected null, but found {found:?}")]
     UnexpectedTokenWhileParsingNull { pos: Position, found: u8 },
 
+    #[error("{pos:?}: Expected object start `{{`, but found {found:?}")]
+    UnexpectedTokenWhiteStartingObject { pos: Position, found: u8 },
+
+    #[error("{pos:?}: Expected object end `}}`, but found {found:?}")]
+    UnexpectedTokenWhiteEndingObject { pos: Position, found: u8 },
+
     #[error("Expected ident, but got EOF")]
     EofWhileParsingIdent,
 

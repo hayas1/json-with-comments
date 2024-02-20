@@ -38,6 +38,15 @@ where
         }
     }
 
+    pub fn eat_whitespace(&mut self) -> crate::Result<Option<(Position, u8)>> {
+        while let Some((pos, c)) = self.eat()? {
+            if !c.is_ascii_whitespace() {
+                return Ok(Some((pos, c)));
+            }
+        }
+        Ok(None)
+    }
+
     pub fn skip_whitespace(&mut self) -> crate::Result<Option<(Position, u8)>> {
         while let Some((pos, c)) = self.find()? {
             if c.is_ascii_whitespace() {

@@ -173,7 +173,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing.into()))?;
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing)?)?;
         match found {
             b'n' => {
                 self.tokenizer.parse_ident(b"null", ())?;
@@ -222,7 +222,18 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        let (pos, found) = self.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing)?)?;
+        match found {
+            b'{' => {
+                let value = visitor.visit_map(MapDeserializer::new(self))?;
+                let (pos, found) = self.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing)?)?;
+                match found {
+                    b'}' => Ok(value),
+                    _ => Err(SyntaxError::UnexpectedTokenWhiteEndingObject { pos, found })?,
+                }
+            }
+            _ => Err(SyntaxError::UnexpectedTokenWhiteStartingObject { pos, found })?,
+        }
     }
 
     fn deserialize_struct<V>(
@@ -263,6 +274,44 @@ where
         todo!()
     }
 }
+
+struct MapDeserializer<'a, R: 'a>
+where
+    R: io::Read,
+{
+    deserializer: &'a mut Deserializer<R>,
+}
+
+impl<'a, R: 'a> MapDeserializer<'a, R>
+where
+    R: io::Read,
+{
+    fn new(de: &'a mut Deserializer<R>) -> Self {
+        MapDeserializer { deserializer: de }
+    }
+}
+
+impl<'de, 'a, R: io::Read> de::MapAccess<'de> for MapDeserializer<'a, R>
+where
+    R: io::Read + 'a,
+{
+    type Error = crate::Error;
+
+    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
+    where
+        K: de::DeserializeSeed<'de>,
+    {
+        todo!()
+    }
+
+    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
+    where
+        V: de::DeserializeSeed<'de>,
+    {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
