@@ -1,6 +1,6 @@
 use std::{io, iter::Peekable};
 
-use crate::error::SyntaxError;
+use crate::error::{NeverFail, SyntaxError};
 
 use super::position::{PosRange, Position};
 
@@ -77,7 +77,7 @@ where
             match c {
                 b'\\' => unimplemented!("escape sequence"), // TODO implement escape sequence
                 b'"' => return Ok(buff),
-                _ => buff.push(self.eat()?.expect("previous peek ensure this eat does not return None").1),
+                _ => buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1),
             }
         }
         Err(SyntaxError::EofWhileEndParsingString)? // TODO contain tokenized string?
@@ -88,7 +88,7 @@ where
         let (mut end, mut buff) = (start, Vec::new());
         while let Some((_pos, c)) = self.find()? {
             if f(c) && buff.len() < max {
-                (end, _) = self.eat()?.expect("previous peek ensure this eat does not return None");
+                (end, _) = self.eat()?.ok_or(NeverFail::EatAfterFind)?;
                 buff.push(c)
             } else {
                 break;

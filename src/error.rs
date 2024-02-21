@@ -106,3 +106,14 @@ impl From<SyntaxError> for JsonWithCommentError {
         JsonWithCommentError::new(err)
     }
 }
+
+#[derive(Error, Debug)]
+pub enum NeverFail {
+    #[error("previous peek ensure this eat does not return None")]
+    EatAfterFind,
+}
+impl From<NeverFail> for JsonWithCommentError {
+    fn from(err: NeverFail) -> Self {
+        JsonWithCommentError::new(err)
+    }
+}

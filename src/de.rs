@@ -5,7 +5,7 @@ use std::io;
 
 use serde::de;
 
-use crate::error::SyntaxError;
+use crate::error::{NeverFail, SyntaxError};
 
 use self::token::Tokenizer;
 
@@ -317,7 +317,7 @@ where
             };
         match self.deserializer.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileEndParsingValue)?)? {
             (_, b',') => {
-                self.deserializer.tokenizer.eat()?.expect("previous peek ensure this eat does not return None");
+                self.deserializer.tokenizer.eat()?.ok_or(NeverFail::EatAfterFind)?;
             }
             (_, b'}') => (),
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingObjectValue { pos, found })?,
