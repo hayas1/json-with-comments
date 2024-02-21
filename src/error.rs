@@ -56,6 +56,15 @@ pub enum SyntaxError {
     #[error("{pos:?}: Expected object end `}}`, but found {found:?}")]
     UnexpectedTokenWhileEndingObject { pos: Position, found: u8 },
 
+    #[error("{pos:?}: Expected object key, but found {found:?}")]
+    UnexpectedTokenWhileParsingObjectKey { pos: Position, found: u8 },
+
+    #[error("{pos:?}: Expected object value, but found {found:?}")]
+    UnexpectedTokenWhileStartParsingObjectValue { pos: Position, found: u8 },
+
+    #[error("{pos:?}: Expected object value, but found {found:?}")]
+    UnexpectedTokenWhileEndParsingObjectValue { pos: Position, found: u8 },
+
     #[error("Expected value, but got EOF")]
     EofWhileStartParsingValue,
 
@@ -79,6 +88,15 @@ pub enum SyntaxError {
 
     #[error("Expected ident, but got EOF")]
     EofWhileParsingIdent,
+
+    #[error("Expected object key, but got EOF")]
+    EofWhileParsingObjectKey,
+
+    #[error("Expected object value, but got EOF")]
+    EofWhileParsingObjectValue,
+
+    #[error("Expected value, but got EOF")]
+    EofWhileEndParsingValue,
 
     #[error("{pos:?}: Expected ident {expected:?}, but found {found:?}")]
     UnexpectedIdent { pos: PosRange, expected: Vec<u8>, found: Vec<u8> },

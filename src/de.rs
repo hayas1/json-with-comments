@@ -299,14 +299,30 @@ where
     where
         K: de::DeserializeSeed<'de>,
     {
-        todo!()
+        match self.deserializer.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileParsingObjectKey)?)? {
+            (_, b'"') => seed.deserialize(&mut *self.deserializer).map(Some),
+            (_, b'}') => Ok(None),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingObjectKey { pos, found })?,
+        }
     }
 
     fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
     where
         V: de::DeserializeSeed<'de>,
     {
-        todo!()
+        let value =
+            match self.deserializer.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileParsingObjectValue)?)? {
+                (_, b':') => seed.deserialize(&mut *self.deserializer),
+                (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingObjectValue { pos, found })?,
+            };
+        match self.deserializer.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileEndParsingValue)?)? {
+            (_, b',') => {
+                self.deserializer.tokenizer.eat()?.expect("previous peek ensure this eat does not return None");
+            }
+            (_, b'}') => (),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingObjectValue { pos, found })?,
+        };
+        value
     }
 }
 
