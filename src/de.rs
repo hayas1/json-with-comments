@@ -49,11 +49,11 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingBoolean)?)?;
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingBool)?)?;
         match found {
             b't' => visitor.visit_bool(self.tokenizer.parse_ident(b"true", true)?),
             b'f' => visitor.visit_bool(self.tokenizer.parse_ident(b"false", false)?),
-            _ => Err(SyntaxError::UnexpectedTokenWhileParsingBoolean { pos, found })?,
+            _ => Err(SyntaxError::UnexpectedTokenWhileParsingBool { pos, found })?,
         }
     }
 
