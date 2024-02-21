@@ -45,3 +45,13 @@ where
 
     Ok(value)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn behavior_from_str() {
+        // TODO
+    }
+}
