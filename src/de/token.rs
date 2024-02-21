@@ -58,6 +58,22 @@ where
         Ok(None)
     }
 
+    pub fn parse_str(&mut self) -> crate::Result<String> {
+        let (start, quote) = self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)?;
+
+        match quote {
+            b'"' => {
+                let string = todo!("parse_str");
+                let (start, quote) = self.eat()?.ok_or(SyntaxError::EofWhileEndParsingString)?;
+                match quote {
+                    b'"' => Ok(string),
+                    _ => Err(SyntaxError::UnexpectedTokenWhileEndParsingString { pos: start, found: quote })?,
+                }
+            }
+            _ => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos: start, found: quote })?,
+        }
+    }
+
     pub fn parse_like<F: Fn(u8) -> bool>(&mut self, max: usize, f: F) -> crate::Result<(PosRange, Vec<u8>)> {
         let (start, _) = self.skip_whitespace()?.ok_or(SyntaxError::EofWhileParsingIdent)?;
         let (mut end, mut buff) = (start, Vec::new());

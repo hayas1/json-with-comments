@@ -131,21 +131,25 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_str(visitor)
     }
 
     fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingString)?)?;
+        match found {
+            b'"' => visitor.visit_str(&self.tokenizer.parse_str()?),
+            _ => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
+        }
     }
 
     fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_str(visitor)
     }
 
     fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
