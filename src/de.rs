@@ -340,7 +340,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use from::from_str;
+    use self::from::from_str;
     use serde::Deserialize;
 
     use super::*;
