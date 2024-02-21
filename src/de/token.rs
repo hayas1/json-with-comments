@@ -75,7 +75,7 @@ where
         let mut buff = Vec::new();
         while let Some((_pos, c)) = self.find()? {
             match c {
-                b'\\' => unimplemented!("escape sequence"),
+                b'\\' => unimplemented!("escape sequence"), // TODO implement escape sequence
                 b'"' => return Ok(buff),
                 _ => buff.push(self.eat()?.expect("previous peek ensure this is not None").1),
             }
