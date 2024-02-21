@@ -58,10 +58,10 @@ where
         Ok(None)
     }
 
-    pub fn parse_str(&mut self) -> crate::Result<String> {
+    pub fn parse_str(&mut self) -> crate::Result<Vec<u8>> {
         match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
             (_, b'"') => {
-                let string = todo!("parse_str");
+                let string = self.tokenize_str()?;
                 match self.eat()?.ok_or(SyntaxError::EofWhileEndParsingString)? {
                     (_, b'"') => Ok(string),
                     (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingString { pos, found })?,
@@ -69,6 +69,18 @@ where
             }
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
         }
+    }
+
+    pub fn tokenize_str(&mut self) -> crate::Result<Vec<u8>> {
+        let mut buff = Vec::new();
+        while let Some((_pos, c)) = self.find()? {
+            match c {
+                b'\\' => unimplemented!("escape sequence"),
+                b'"' => return Ok(buff),
+                _ => buff.push(self.eat()?.expect("previous peek ensure this is not None").1),
+            }
+        }
+        Err(SyntaxError::EofWhileEndParsingString)? // TODO contain tokenized string?
     }
 
     pub fn parse_like<F: Fn(u8) -> bool>(&mut self, max: usize, f: F) -> crate::Result<(PosRange, Vec<u8>)> {
@@ -215,7 +227,7 @@ mod tests {
         assert_eq!(tokenizer.skip_whitespace().unwrap(), Some(((2, 16), b'"')));
         assert_eq!(tokenizer.find().unwrap(), Some(((2, 16), b'"')));
 
-        assert!(matches!(tokenizer.parse_ident(br#""jsonc""#, "jsonc"), Ok("jsonc")));
+        assert_eq!(tokenizer.parse_str().unwrap(), b"jsonc");
         assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
 
         assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b'1')))));
