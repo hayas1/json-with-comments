@@ -77,7 +77,7 @@ where
             match c {
                 b'\\' => unimplemented!("escape sequence"), // TODO implement escape sequence
                 b'"' => return Ok(buff),
-                _ => buff.push(self.eat()?.expect("previous peek ensure this is not None").1),
+                _ => buff.push(self.eat()?.expect("previous peek ensure this eat does not return None").1),
             }
         }
         Err(SyntaxError::EofWhileEndParsingString)? // TODO contain tokenized string?
@@ -88,7 +88,7 @@ where
         let (mut end, mut buff) = (start, Vec::new());
         while let Some((_pos, c)) = self.find()? {
             if f(c) && buff.len() < max {
-                (end, _) = self.eat()?.expect("previous peek ensure this is not None");
+                (end, _) = self.eat()?.expect("previous peek ensure this eat does not return None");
                 buff.push(c)
             } else {
                 break;
