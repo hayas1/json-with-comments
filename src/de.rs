@@ -244,14 +244,18 @@ where
 
     fn deserialize_struct<V>(
         self,
-        name: &'static str,
-        fields: &'static [&'static str],
+        _name: &'static str,
+        _fields: &'static [&'static str],
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        match self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingValue)?)? {
+            (_, b'{') => self.deserialize_map(visitor),
+            (_, b'[') => self.deserialize_seq(visitor),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartingObject { pos, found })?,
+        }
     }
 
     fn deserialize_enum<V>(

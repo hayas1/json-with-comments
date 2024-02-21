@@ -111,6 +111,17 @@ impl From<SyntaxError> for JsonWithCommentError {
 }
 
 #[derive(Error, Debug)]
+pub enum SemanticError {
+    #[error("{pos:?}: Expected struct start with `{{` or `[`, but found {found:?}")]
+    ExpectStruct { pos: Position, found: u8 },
+}
+impl From<SemanticError> for JsonWithCommentError {
+    fn from(err: SemanticError) -> Self {
+        JsonWithCommentError::new(err)
+    }
+}
+
+#[derive(Error, Debug)]
 pub enum NeverFail {
     #[error("previous peek ensure this eat does not return None")]
     EatAfterFind,
