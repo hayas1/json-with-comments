@@ -73,7 +73,7 @@ where
     }
 
     pub fn parse_ident<T>(&mut self, ident: &[u8], value: T) -> crate::Result<T> {
-        let max = 10; // prevent from parsing too long token. longest json ident is `false`, that has length 5.
+        let max = 10; // to prevent from parsing tokens that are too long. the longest json ident is `false` of 5.
         let (pos, parsed) = self.parse_like(max, |c| c.is_ascii_alphanumeric() || ident.contains(&c))?;
         if &parsed == ident {
             Ok(value)
