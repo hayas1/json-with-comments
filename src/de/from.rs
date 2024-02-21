@@ -1,4 +1,8 @@
-use std::io::{self, BufReader};
+use std::{
+    fs::File,
+    io::{self, BufReader},
+    path::Path,
+};
 
 use serde::de;
 
@@ -10,6 +14,23 @@ where
     T: de::Deserialize<'de>,
 {
     from_read(BufReader::new(s.as_bytes()))
+}
+
+/// TODO doc
+pub fn from_path<'de, T>(p: &'de Path) -> crate::Result<T>
+where
+    T: de::Deserialize<'de>,
+{
+    // TODO handling io error
+    from_read(File::open(p).or_else(|e| Err(crate::Error::new(e.to_string())))?)
+}
+
+/// TODO doc
+pub fn from_file<'de, T>(f: &'de File) -> crate::Result<T>
+where
+    T: de::Deserialize<'de>,
+{
+    from_read(f)
 }
 
 /// TODO doc
