@@ -100,6 +100,9 @@ pub enum SyntaxError {
 
     #[error("{pos:?}: Expected ident {expected:?}, but found {found:?}")]
     UnexpectedIdent { pos: PosRange, expected: Vec<u8>, found: Vec<u8> },
+
+    #[error("{pos:?}: Expected EOF, but found trailing {found:?}")]
+    ExpectedEof { pos: Position, found: u8 },
 }
 impl From<SyntaxError> for JsonWithCommentError {
     fn from(err: SyntaxError) -> Self {

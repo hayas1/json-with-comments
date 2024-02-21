@@ -1,3 +1,4 @@
+pub mod from;
 pub mod position;
 pub mod token;
 
@@ -21,6 +22,13 @@ where
 {
     pub fn new(tokenizer: Tokenizer<R>) -> Self {
         Deserializer { tokenizer }
+    }
+
+    pub fn end(&mut self) -> crate::Result<()> {
+        match self.tokenizer.eat_whitespace()? {
+            Some((pos, found)) => Err(SyntaxError::ExpectedEof { pos, found })?,
+            None => Ok(()),
+        }
     }
 }
 impl<'de, 'a, R> de::Deserializer<'de> for &'a mut Deserializer<R>
@@ -328,10 +336,30 @@ where
 
 #[cfg(test)]
 mod tests {
+    use from::from_str;
+    use serde::Deserialize;
+
     use super::*;
 
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+    fn test_deserialize_basic_map() {
+        #[derive(Deserialize)]
+        struct Data {
+            schema: String,
+            phantom: (),
+            trailing_comma: bool,
+        }
+        let raw = r#"
+            {
+                "schema": "jsonc",
+                "phantom": null,
+                "trailing_comma": true,
+            }
+        "#;
+
+        let data: Data = from_str(raw).unwrap();
+        assert_eq!(data.schema, "jsonc");
+        assert_eq!(data.phantom, ());
+        assert_eq!(data.trailing_comma, true);
     }
 }
