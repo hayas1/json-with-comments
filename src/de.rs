@@ -229,10 +229,10 @@ where
                 let (pos, found) = self.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileEndParsingObject)?)?;
                 match found {
                     b'}' => Ok(value),
-                    _ => Err(SyntaxError::UnexpectedTokenWhiteEndingObject { pos, found })?,
+                    _ => Err(SyntaxError::UnexpectedTokenWhileEndingObject { pos, found })?,
                 }
             }
-            _ => Err(SyntaxError::UnexpectedTokenWhiteStartingObject { pos, found })?,
+            _ => Err(SyntaxError::UnexpectedTokenWhileStartingObject { pos, found })?,
         }
     }
 

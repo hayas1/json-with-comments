@@ -42,10 +42,10 @@ pub enum SyntaxError {
     UnexpectedTokenWhileParsingNull { pos: Position, found: u8 },
 
     #[error("{pos:?}: Expected object start `{{`, but found {found:?}")]
-    UnexpectedTokenWhiteStartingObject { pos: Position, found: u8 },
+    UnexpectedTokenWhileStartingObject { pos: Position, found: u8 },
 
     #[error("{pos:?}: Expected object end `}}`, but found {found:?}")]
-    UnexpectedTokenWhiteEndingObject { pos: Position, found: u8 },
+    UnexpectedTokenWhileEndingObject { pos: Position, found: u8 },
 
     #[error("Expected value, but got EOF")]
     EofWhileStartParsingValue,
