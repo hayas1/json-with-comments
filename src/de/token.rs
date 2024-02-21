@@ -59,18 +59,15 @@ where
     }
 
     pub fn parse_str(&mut self) -> crate::Result<String> {
-        let (start, quote) = self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)?;
-
-        match quote {
-            b'"' => {
+        match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
+            (_, b'"') => {
                 let string = todo!("parse_str");
-                let (start, quote) = self.eat()?.ok_or(SyntaxError::EofWhileEndParsingString)?;
-                match quote {
-                    b'"' => Ok(string),
-                    _ => Err(SyntaxError::UnexpectedTokenWhileEndParsingString { pos: start, found: quote })?,
+                match self.eat()?.ok_or(SyntaxError::EofWhileEndParsingString)? {
+                    (_, b'"') => Ok(string),
+                    (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingString { pos, found })?,
                 }
             }
-            _ => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos: start, found: quote })?,
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
         }
     }
 

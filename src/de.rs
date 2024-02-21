@@ -33,15 +33,14 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingValue)?)?;
-        match found {
-            b'n' => self.deserialize_unit(visitor),
-            b'f' | b't' => self.deserialize_bool(visitor),
-            b'-' | b'0'..=b'9' => todo!("u64, i64, f64 and so on..."),
-            b'"' => self.deserialize_str(visitor),
-            b'[' => self.deserialize_seq(visitor),
-            b'{' => self.deserialize_map(visitor),
-            _ => Err(SyntaxError::UnexpectedTokenWhileParsingValue { pos, found })?,
+        match self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingValue)?)? {
+            (_, b'n') => self.deserialize_unit(visitor),
+            (_, b'f' | b't') => self.deserialize_bool(visitor),
+            (_, b'-' | b'0'..=b'9') => todo!("u64, i64, f64 and so on..."),
+            (_, b'"') => self.deserialize_str(visitor),
+            (_, b'[') => self.deserialize_seq(visitor),
+            (_, b'{') => self.deserialize_map(visitor),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingValue { pos, found })?,
         }
     }
 
@@ -49,11 +48,10 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingBool)?)?;
-        match found {
-            b't' => visitor.visit_bool(self.tokenizer.parse_ident(b"true", true)?),
-            b'f' => visitor.visit_bool(self.tokenizer.parse_ident(b"false", false)?),
-            _ => Err(SyntaxError::UnexpectedTokenWhileParsingBool { pos, found })?,
+        match self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingBool)?)? {
+            (_, b't') => visitor.visit_bool(self.tokenizer.parse_ident(b"true", true)?),
+            (_, b'f') => visitor.visit_bool(self.tokenizer.parse_ident(b"false", false)?),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingBool { pos, found })?,
         }
     }
 
@@ -138,10 +136,9 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingString)?)?;
-        match found {
-            b'"' => visitor.visit_str(&self.tokenizer.parse_str()?),
-            _ => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
+        match self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingString)?)? {
+            (_, b'"') => visitor.visit_str(&self.tokenizer.parse_str()?),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
         }
     }
 
@@ -177,13 +174,12 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingNull)?)?;
-        match found {
-            b'n' => {
+        match self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingNull)?)? {
+            (_, b'n') => {
                 self.tokenizer.parse_ident(b"null", ())?;
                 visitor.visit_unit()
             }
-            _ => Err(SyntaxError::UnexpectedTokenWhileParsingNull { pos, found })?,
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingNull { pos, found })?,
         }
     }
 
@@ -226,17 +222,15 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileStartParsingObject)?)?;
-        match found {
-            b'{' => {
-                let value = visitor.visit_map(MapDeserializer::new(self))?;
-                let (pos, found) = self.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileEndParsingObject)?)?;
-                match found {
-                    b'}' => Ok(value),
-                    _ => Err(SyntaxError::UnexpectedTokenWhileEndingObject { pos, found })?,
+        match self.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileStartParsingObject)?)? {
+            (_, b'{') => {
+                let map = visitor.visit_map(MapDeserializer::new(self))?;
+                match self.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileEndParsingObject)?)? {
+                    (_, b'}') => Ok(map),
+                    (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndingObject { pos, found })?,
                 }
             }
-            _ => Err(SyntaxError::UnexpectedTokenWhileStartingObject { pos, found })?,
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartingObject { pos, found })?,
         }
     }
 
