@@ -33,7 +33,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing)?)?;
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingValue)?)?;
         match found {
             b'n' => self.deserialize_unit(visitor),
             b'f' | b't' => self.deserialize_bool(visitor),
@@ -49,7 +49,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing)?)?;
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingBool)?)?;
         match found {
             b't' => visitor.visit_bool(self.tokenizer.parse_ident(b"true", true)?),
             b'f' => visitor.visit_bool(self.tokenizer.parse_ident(b"false", false)?),
@@ -173,7 +173,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing)?)?;
+        let (pos, found) = self.tokenizer.skip_whitespace().and(Err(SyntaxError::EofWhileStartParsingNull)?)?;
         match found {
             b'n' => {
                 self.tokenizer.parse_ident(b"null", ())?;
@@ -222,11 +222,11 @@ where
     where
         V: de::Visitor<'de>,
     {
-        let (pos, found) = self.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing)?)?;
+        let (pos, found) = self.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileStartParsingObject)?)?;
         match found {
             b'{' => {
                 let value = visitor.visit_map(MapDeserializer::new(self))?;
-                let (pos, found) = self.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileWhileStartParsing)?)?;
+                let (pos, found) = self.tokenizer.eat_whitespace().and(Err(SyntaxError::EofWhileEndParsingObject)?)?;
                 match found {
                     b'}' => Ok(value),
                     _ => Err(SyntaxError::UnexpectedTokenWhiteEndingObject { pos, found })?,

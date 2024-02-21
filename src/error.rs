@@ -32,9 +32,6 @@ impl de::Error for JsonWithCommentError {
 
 #[derive(Error, Debug)]
 pub enum SyntaxError {
-    #[error("Expected value, but got EOF")]
-    EofWhileWhileStartParsing,
-
     #[error("{pos:?}: Expected value, but found {found:?}")]
     UnexpectedTokenWhileParsingValue { pos: Position, found: u8 },
 
@@ -49,6 +46,21 @@ pub enum SyntaxError {
 
     #[error("{pos:?}: Expected object end `}}`, but found {found:?}")]
     UnexpectedTokenWhiteEndingObject { pos: Position, found: u8 },
+
+    #[error("Expected value, but got EOF")]
+    EofWhileStartParsingValue,
+
+    #[error("Expected bool, but got EOF")]
+    EofWhileStartParsingBool,
+
+    #[error("Expected null, but got EOF")]
+    EofWhileStartParsingNull,
+
+    #[error("Expected object start `{{`, but got EOF")]
+    EofWhileStartParsingObject,
+
+    #[error("Expected object end `}}`, but got EOF")]
+    EofWhileEndParsingObject,
 
     #[error("Expected ident, but got EOF")]
     EofWhileParsingIdent,
