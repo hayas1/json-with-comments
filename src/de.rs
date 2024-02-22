@@ -232,9 +232,9 @@ where
     {
         match self.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingObject)? {
             (_, b'{') => {
-                let map = visitor.visit_map(MapDeserializer::new(self))?;
+                let object = visitor.visit_map(MapDeserializer::new(self))?;
                 match self.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingObject)? {
-                    (_, b'}') => Ok(map),
+                    (_, b'}') => Ok(object),
                     (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndingObject { pos, found })?,
                 }
             }
