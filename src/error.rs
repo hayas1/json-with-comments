@@ -71,6 +71,9 @@ pub enum SyntaxError {
     #[error("{pos:?}: Expected array end `]`, but found {found:?}")]
     UnexpectedTokenWhileEndParsingArray { pos: Position, found: u8 },
 
+    #[error("{pos:?}: Expected array value, but found {found:?}")]
+    UnexpectedTokenWhileParsingArrayValue { pos: Position, found: u8 },
+
     #[error("Expected value, but got EOF")]
     EofWhileStartParsingValue,
 

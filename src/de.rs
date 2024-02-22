@@ -369,7 +369,19 @@ where
     where
         T: de::DeserializeSeed<'de>,
     {
-        todo!()
+        let value =
+            match self.deserializer.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingArray)? {
+                (_, b']') => Ok(None),
+                _ => seed.deserialize(&mut *self.deserializer).map(Some),
+            };
+        match self.deserializer.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingValue)? {
+            (_, b',') => {
+                self.deserializer.tokenizer.eat()?.ok_or(NeverFail::EatAfterFind)?;
+            }
+            (_, b']') => (),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingArrayValue { pos, found })?,
+        }
+        value
     }
 }
 
@@ -400,5 +412,12 @@ mod tests {
         assert_eq!(data.schema, "jsonc");
         assert_eq!(data.phantom, ());
         assert_eq!(data.trailing_comma, true);
+    }
+
+    #[test]
+    fn test_deserialize_basic_vec() {
+        let raw = r#"["foo", "bar", "baz"]"#;
+        let data: Vec<String> = from_str(raw).unwrap();
+        assert_eq!(data, ["foo", "bar", "baz"]);
     }
 }
