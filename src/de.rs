@@ -209,21 +209,30 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        match self.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingArray)? {
+            (_, b'[') => {
+                let seq = visitor.visit_seq(SeqDeserializer::new(self))?;
+                match self.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingArray)? {
+                    (_, b']') => Ok(seq),
+                    (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingArray { pos, found })?,
+                }
+            }
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingArray { pos, found })?,
+        }
     }
 
-    fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_tuple<V>(self, _len: usize, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_seq(visitor)
     }
 
-    fn deserialize_tuple_struct<V>(self, name: &'static str, len: usize, visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_tuple_struct<V>(self, _name: &'static str, _len: usize, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_seq(visitor)
     }
 
     fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -291,7 +300,6 @@ where
 {
     deserializer: &'a mut Deserializer<R>,
 }
-
 impl<'a, R: 'a> MapDeserializer<'a, R>
 where
     R: io::Read,
@@ -300,7 +308,6 @@ where
         MapDeserializer { deserializer: de }
     }
 }
-
 impl<'de, 'a, R: io::Read> de::MapAccess<'de> for MapDeserializer<'a, R>
 where
     R: io::Read + 'a,
@@ -335,6 +342,34 @@ where
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingObjectValue { pos, found })?,
         };
         value
+    }
+}
+
+struct SeqDeserializer<'a, R: 'a>
+where
+    R: io::Read,
+{
+    deserializer: &'a mut Deserializer<R>,
+}
+impl<'a, R: 'a> SeqDeserializer<'a, R>
+where
+    R: io::Read,
+{
+    fn new(de: &'a mut Deserializer<R>) -> Self {
+        SeqDeserializer { deserializer: de }
+    }
+}
+impl<'de, 'a, R: io::Read> de::SeqAccess<'de> for SeqDeserializer<'a, R>
+where
+    R: io::Read + 'a,
+{
+    type Error = crate::Error;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
+    where
+        T: de::DeserializeSeed<'de>,
+    {
+        todo!()
     }
 }
 

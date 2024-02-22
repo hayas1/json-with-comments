@@ -65,6 +65,12 @@ pub enum SyntaxError {
     #[error("{pos:?}: Expected object value, but found {found:?}")]
     UnexpectedTokenWhileEndParsingObjectValue { pos: Position, found: u8 },
 
+    #[error("{pos:?}: Expected array start `[`, but found {found:?}")]
+    UnexpectedTokenWhileStartParsingArray { pos: Position, found: u8 },
+
+    #[error("{pos:?}: Expected array end `]`, but found {found:?}")]
+    UnexpectedTokenWhileEndParsingArray { pos: Position, found: u8 },
+
     #[error("Expected value, but got EOF")]
     EofWhileStartParsingValue,
 
@@ -85,6 +91,12 @@ pub enum SyntaxError {
 
     #[error("Expected object end `}}`, but got EOF")]
     EofWhileEndParsingObject,
+
+    #[error("Expected array start `[`, but got EOF")]
+    EofWhileStartParsingArray,
+
+    #[error("Expected array end `]`, but got EOF")]
+    EofWhileEndParsingArray,
 
     #[error("Expected ident, but got EOF")]
     EofWhileParsingIdent,
