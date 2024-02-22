@@ -59,10 +59,10 @@ pub enum SyntaxError {
     #[error("{pos:?}: Expected object key, but found {found:?}")]
     UnexpectedTokenWhileParsingObjectKey { pos: Position, found: u8 },
 
-    #[error("{pos:?}: Expected object value, but found {found:?}")]
+    #[error("{pos:?}: Expected object value start `:`, but found {found:?}")]
     UnexpectedTokenWhileStartParsingObjectValue { pos: Position, found: u8 },
 
-    #[error("{pos:?}: Expected object value, but found {found:?}")]
+    #[error("{pos:?}: Expected object value end `,` or `}}`, but found {found:?}")]
     UnexpectedTokenWhileEndParsingObjectValue { pos: Position, found: u8 },
 
     #[error("{pos:?}: Expected array start `[`, but found {found:?}")]
