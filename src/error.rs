@@ -15,6 +15,10 @@ impl JsonWithCommentError {
     pub fn new<E: Into<Box<dyn error::Error + Send + Sync + 'static>>>(err: E) -> Self {
         Self { inner: err.into() }
     }
+    // TODO downcast
+    pub fn into_inner(self) -> Box<dyn error::Error + Send + Sync + 'static> {
+        self.inner
+    }
 }
 impl fmt::Display for JsonWithCommentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -118,6 +122,9 @@ pub enum SyntaxError {
 
     #[error("{pos:?}: Expected EOF, but found trailing {found:?}")]
     ExpectedEof { pos: Position, found: u8 },
+
+    #[error("{pos:?}: control character U+{c:04X} must be escaped in string")]
+    ControlCharacterWhileParsingString { pos: Position, c: u8 },
 }
 impl From<SyntaxError> for JsonWithCommentError {
     fn from(err: SyntaxError) -> Self {

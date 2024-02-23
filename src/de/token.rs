@@ -73,10 +73,11 @@ where
 
     pub fn parse_string_content(&mut self) -> crate::Result<Vec<u8>> {
         let mut buff = Vec::new();
-        while let Some((_pos, c)) = self.find()? {
-            match c {
+        while let Some((pos, found)) = self.find()? {
+            match found {
                 b'\\' => buff.push(self.parse_escape_sequence()?),
                 b'"' => return Ok(buff),
+                c if c.is_ascii_control() => Err(SyntaxError::ControlCharacterWhileParsingString { pos, c })?,
                 _ => buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1),
             }
         }
@@ -257,5 +258,21 @@ mod tests {
         assert_eq!(tokenizer.eat_whitespace().unwrap(), Some(((7, 12), b']')));
         assert_eq!(tokenizer.find().unwrap(), Some(((7, 13), b'\n')));
         assert_eq!(tokenizer.eat_whitespace().unwrap(), None);
+    }
+
+    #[test]
+    fn test_parse_string() {
+        let parse = |s: &str| Tokenizer::new(s.as_bytes()).parse_string();
+        let parse_content = |s: &str| Tokenizer::new(s.as_bytes()).parse_string_content();
+
+        // ok
+        assert_eq!(parse(r#""""#).unwrap(), b"");
+        assert_eq!(parse(r#""rust""#).unwrap(), b"rust");
+
+        // err
+        assert!(matches!(
+            parse_content("line\nfeed").unwrap_err().into_inner().downcast_ref().unwrap(),
+            SyntaxError::ControlCharacterWhileParsingString { c: b'\n', .. }
+        ));
     }
 }
