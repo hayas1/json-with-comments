@@ -57,8 +57,8 @@ where
         V: de::Visitor<'de>,
     {
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingBool)? {
-            (_, b't') => visitor.visit_bool(self.tokenizer.parse_ident(b"true", true)?),
-            (_, b'f') => visitor.visit_bool(self.tokenizer.parse_ident(b"false", false)?),
+            (_, b't') => self.tokenizer.parse_ident(b"true", visitor.visit_bool(true))?,
+            (_, b'f') => self.tokenizer.parse_ident(b"false", visitor.visit_bool(false))?,
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingBool { pos, found })?,
         }
     }
@@ -176,10 +176,7 @@ where
         V: de::Visitor<'de>,
     {
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingValue)? {
-            (_, b'n') => {
-                self.tokenizer.parse_ident(b"null", ())?;
-                visitor.visit_unit()
-            }
+            (_, b'n') => self.tokenizer.parse_ident(b"null", visitor.visit_unit())?,
             _ => visitor.visit_some(self),
         }
     }
@@ -189,10 +186,7 @@ where
         V: de::Visitor<'de>,
     {
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNull)? {
-            (_, b'n') => {
-                self.tokenizer.parse_ident(b"null", ())?;
-                visitor.visit_unit()
-            }
+            (_, b'n') => self.tokenizer.parse_ident(b"null", visitor.visit_unit())?,
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingNull { pos, found })?,
         }
     }
