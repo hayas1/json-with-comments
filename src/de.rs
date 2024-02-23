@@ -294,7 +294,7 @@ where
     }
 }
 
-struct MapDeserializer<'a, R: 'a>
+pub struct MapDeserializer<'a, R: 'a>
 where
     R: io::Read,
 {
@@ -345,7 +345,7 @@ where
     }
 }
 
-struct SeqDeserializer<'a, R: 'a>
+pub struct SeqDeserializer<'a, R: 'a>
 where
     R: io::Read,
 {
