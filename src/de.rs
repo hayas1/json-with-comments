@@ -175,7 +175,13 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingValue)? {
+            (_, b'n') => {
+                self.tokenizer.parse_ident(b"null", ())?;
+                visitor.visit_unit()
+            }
+            _ => visitor.visit_some(self),
+        }
     }
 
     fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
