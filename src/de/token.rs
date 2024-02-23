@@ -59,11 +59,12 @@ where
     }
 
     pub fn parse_string(&mut self) -> crate::Result<Vec<u8>> {
+        let mut buff = Vec::new();
         match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
             (_, b'"') => {
-                let string = self.parse_string_content()?;
+                self.parse_string_content(&mut buff)?;
                 match self.eat()?.ok_or(SyntaxError::EofWhileEndParsingString)? {
-                    (_, b'"') => Ok(string),
+                    (_, b'"') => Ok(buff),
                     (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingString { pos, found })?,
                 }
             }
@@ -71,12 +72,11 @@ where
         }
     }
 
-    pub fn parse_string_content(&mut self) -> crate::Result<Vec<u8>> {
-        let mut buff = Vec::new();
+    pub fn parse_string_content(&mut self, buff: &mut Vec<u8>) -> crate::Result<()> {
         while let Some((pos, found)) = self.find()? {
             match found {
-                b'\\' => buff.extend(self.parse_escape_sequence()?),
-                b'"' => return Ok(buff),
+                b'\\' => self.parse_escape_sequence(buff)?,
+                b'"' => return Ok(()),
                 c if c.is_ascii_control() => Err(SyntaxError::ControlCharacterWhileParsingString { pos, c })?,
                 _ => buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1),
             }
@@ -84,36 +84,36 @@ where
         Err(SyntaxError::EofWhileEndParsingString)? // TODO contain parsed string?
     }
 
-    pub fn parse_escape_sequence(&mut self) -> crate::Result<Vec<u8>> {
+    pub fn parse_escape_sequence(&mut self, buff: &mut Vec<u8>) -> crate::Result<()> {
         match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
             (_, b'\\') => match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
-                (_, b'"') => Ok(vec![b'"']),
-                (_, b'\\') => Ok(vec![b'\\']),
-                (_, b'/') => Ok(vec![b'/']),
-                (_, b'b') => Ok(vec![b'\x08']),
-                (_, b'f') => Ok(vec![b'\x0C']),
-                (_, b'n') => Ok(vec![b'\n']),
-                (_, b'r') => Ok(vec![b'\r']),
-                (_, b't') => Ok(vec![b'\t']),
-                (_, b'u') => Ok(self.parse_unicode()?.into()),
+                (_, b'"') => Ok(buff.push(b'"')),
+                (_, b'\\') => Ok(buff.push(b'\\')),
+                (_, b'/') => Ok(buff.push(b'/')),
+                (_, b'b') => Ok(buff.push(b'\x08')),
+                (_, b'f') => Ok(buff.push(b'\x0C')),
+                (_, b'n') => Ok(buff.push(b'\n')),
+                (_, b'r') => Ok(buff.push(b'\r')),
+                (_, b't') => Ok(buff.push(b'\t')),
+                (_, b'u') => Ok(self.parse_unicode(buff)?),
                 (pos, found) => Err(SyntaxError::InvalidEscapeSequence { pos, found })?,
             },
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingEscapeSequence { pos, found })?,
         }
     }
 
-    pub fn parse_unicode(&mut self) -> crate::Result<Vec<u8>> {
-        let mut buff: u32 = 0;
+    pub fn parse_unicode(&mut self, buff: &mut Vec<u8>) -> crate::Result<()> {
+        let mut hex: u32 = 0;
         for i in 0..4 {
             match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
-                (_, hex @ b'0'..=b'9') => buff += ((hex - b'0' + 0) as u32) << (3 - i) * 4,
-                (_, hex @ b'a'..=b'f') => buff += ((hex - b'a' + 10) as u32) << (3 - i) * 4,
-                (_, hex @ b'A'..=b'F') => buff += ((hex - b'A' + 10) as u32) << (3 - i) * 4,
+                (_, c @ b'0'..=b'9') => hex += ((c - b'0' + 0) as u32) << (3 - i) * 4,
+                (_, c @ b'a'..=b'f') => hex += ((c - b'a' + 10) as u32) << (3 - i) * 4,
+                (_, c @ b'A'..=b'F') => hex += ((c - b'A' + 10) as u32) << (3 - i) * 4,
                 (pos, found) => return Err(SyntaxError::InvalidUnicodeEscape { pos, found })?,
             }
         }
-        let c = unsafe { char::from_u32_unchecked(buff) }; // TODO maybe safe
-        Ok(c.encode_utf8(&mut [0_u8; 4]).as_bytes().to_vec())
+        let ch = unsafe { char::from_u32_unchecked(hex) }; // TODO maybe safe
+        Ok(buff.extend_from_slice(ch.encode_utf8(&mut [0; 4]).as_bytes()))
     }
 
     pub fn parse_like<F: Fn(u8) -> bool>(&mut self, max: usize, f: F) -> crate::Result<(PosRange, Vec<u8>)> {
