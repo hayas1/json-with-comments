@@ -1,6 +1,6 @@
 use serde::de;
 use std::fmt;
-use std::{error, fmt::Display};
+use std::fmt::Display;
 use thiserror::Error;
 
 use crate::de::position::{PosRange, Position};
@@ -9,14 +9,14 @@ pub type Result<T> = std::result::Result<T, JsonWithCommentError>;
 #[derive(Error, Debug)]
 pub struct JsonWithCommentError {
     #[from]
-    inner: Box<dyn error::Error + Send + Sync + 'static>,
+    inner: Box<dyn std::error::Error + Send + Sync + 'static>,
 }
 impl JsonWithCommentError {
-    pub fn new<E: Into<Box<dyn error::Error + Send + Sync + 'static>>>(err: E) -> Self {
+    pub fn new<E: Into<Box<dyn std::error::Error + Send + Sync + 'static>>>(err: E) -> Self {
         Self { inner: err.into() }
     }
     // TODO downcast
-    pub fn into_inner(self) -> Box<dyn error::Error + Send + Sync + 'static> {
+    pub fn into_inner(self) -> Box<dyn std::error::Error + Send + Sync + 'static> {
         self.inner
     }
 }
