@@ -1,4 +1,4 @@
-use std::{io, iter::Peekable};
+use std::{io, iter::Peekable, str::FromStr};
 
 use crate::error::{NeverFail, SyntaxError};
 
@@ -75,7 +75,7 @@ where
     pub fn parse_ident<T>(&mut self, ident: &[u8], value: T) -> crate::Result<T> {
         let max = 10; // to prevent from parsing tokens that are too long. the longest json ident is `false` of 5.
         let (pos, parsed) =
-            self.fold_token(|b, c| b.len() < max && (c.is_ascii_alphanumeric() || ident.contains(&c)))?;
+            self.fold_token(|t, c| t.len() < max && (c.is_ascii_alphanumeric() || ident.contains(&c)))?;
         if &parsed == ident {
             Ok(value)
         } else {
@@ -139,6 +139,44 @@ where
         }
         let ch = unsafe { char::from_u32_unchecked(hex) }; // TODO maybe safe
         Ok(buff.extend_from_slice(ch.encode_utf8(&mut [0; 4]).as_bytes()))
+    }
+
+    pub fn parse_number<T: FromStr>(&mut self) -> crate::Result<T> {
+        let mut buff = Vec::new(); // TODO performance optimization (do not use string buffer)
+        let (pos, _) = self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)?;
+        match self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)? {
+            (_, b'-') => buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1),
+            (pos, b'+') => Err(SyntaxError::InvalidLeadingPlus { pos })?,
+            _ => (),
+        }
+        match self.eat()?.ok_or(SyntaxError::EofWhileParsingNumber)? {
+            (_, c @ b'0') => buff.push(c),
+            (_, c @ b'1'..=b'9') => {
+                buff.push(c);
+                buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
+            }
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingNumber { pos, found })?,
+        }
+        match self.find()? {
+            Some((_, b'.')) => {
+                buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1);
+                buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
+            }
+            _ => (),
+        }
+        match self.find()? {
+            Some((_, b'e' | b'E')) => {
+                buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1);
+                match self.eat()?.ok_or(SyntaxError::EofWhileParsingNumber)? {
+                    (_, b'+' | b'-' | b'0'..=b'9') => buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1),
+                    (pos, found) => Err(SyntaxError::MissingExponent { pos, found })?,
+                }
+                buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
+            }
+            _ => (),
+        }
+        let representation = String::from_utf8(buff)?;
+        Ok(representation.parse().or(Err(SyntaxError::InvalidNumber { pos, rep: representation }))?)
     }
 }
 
@@ -265,7 +303,7 @@ mod tests {
         assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
 
         assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b'1')))));
-        assert!(matches!(tokenizer.parse_ident(b"123", 123), Ok(123)));
+        assert!(matches!(tokenizer.parse_number(), Ok(123)));
         assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
 
         assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b't')))));

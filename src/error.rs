@@ -30,7 +30,7 @@ impl de::Error for JsonWithCommentError {
     where
         T: Display,
     {
-        todo!()
+        JsonWithCommentError::new(msg.to_string()) // TODO
     }
 }
 
@@ -56,6 +56,9 @@ pub enum SyntaxError {
 
     #[error("{pos:?}: Expected escape sequence start `\\`, but found {found:?}")]
     UnexpectedTokenWhileStartParsingEscapeSequence { pos: Position, found: u8 },
+
+    #[error("{pos:?}: Expected number start `-` or 0-9 , but found {found:?}")]
+    UnexpectedTokenWhileStartParsingNumber { pos: Position, found: u8 },
 
     #[error("{pos:?}: Expected bool, but found {found:?}")]
     UnexpectedTokenWhileParsingBool { pos: Position, found: u8 },
@@ -98,6 +101,12 @@ pub enum SyntaxError {
 
     #[error("Expected escape sequence starts with `\\`, but got EOF")]
     EofWhileParsingEscapeSequence,
+
+    #[error("Expected number start, but got EOF")]
+    EofWhileStartParsingNumber,
+
+    #[error("Expected number, but got EOF")]
+    EofWhileParsingNumber,
 
     #[error("Expected bool, but got EOF")]
     EofWhileStartParsingBool,
@@ -143,6 +152,18 @@ pub enum SyntaxError {
 
     #[error("{pos:?}: cannot convert {char:08X} to char")]
     CannotConvertChar { pos: Position, char: u32 },
+
+    #[error("{pos:?}: json number does not start from `+`")]
+    InvalidLeadingPlus { pos: Position },
+
+    #[error("{pos:?}: json number is forbidden leading `0`")]
+    InvalidLeadingZeros { pos: Position },
+
+    #[error("{pos:?}: expect exponent part, but found {found:?}")]
+    MissingExponent { pos: Position, found: u8 },
+
+    #[error("{pos:?}: cannot convert {rep:?} to number")]
+    InvalidNumber { pos: Position, rep: String },
 }
 impl From<SyntaxError> for JsonWithCommentError {
     fn from(err: SyntaxError) -> Self {

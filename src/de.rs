@@ -44,7 +44,7 @@ where
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingValue)? {
             (_, b'n') => self.deserialize_unit(visitor),
             (_, b'f' | b't') => self.deserialize_bool(visitor),
-            (_, b'-' | b'0'..=b'9') => todo!("u64, i64, f64 and so on..."),
+            (_, b'-' | b'0'..=b'9') => todo!("u64, i64, f64 and so on..."), // TODO number
             (_, b'"') => self.deserialize_str(visitor),
             (_, b'[') => self.deserialize_seq(visitor),
             (_, b'{') => self.deserialize_map(visitor),
@@ -67,70 +67,70 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        visitor.visit_i8(self.tokenizer.parse_number()?)
     }
 
     fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        visitor.visit_i16(self.tokenizer.parse_number()?)
     }
 
     fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        visitor.visit_i32(self.tokenizer.parse_number()?)
     }
 
     fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        visitor.visit_i64(self.tokenizer.parse_number()?)
     }
 
     fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        visitor.visit_u64(self.tokenizer.parse_number()?)
     }
 
     fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        visitor.visit_u16(self.tokenizer.parse_number()?)
     }
 
     fn deserialize_u32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        visitor.visit_u32(self.tokenizer.parse_number()?)
     }
 
     fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        visitor.visit_u64(self.tokenizer.parse_number()?)
     }
 
     fn deserialize_f32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        visitor.visit_f32(self.tokenizer.parse_number()?)
     }
 
     fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        visitor.visit_f64(self.tokenizer.parse_number()?)
     }
 
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
