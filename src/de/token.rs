@@ -85,7 +85,21 @@ where
     }
 
     pub fn parse_escape_sequence(&mut self) -> crate::Result<u8> {
-        unimplemented!("escape sequence")
+        match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
+            (_, b'\\') => match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
+                (_, b'"') => Ok(b'"'),
+                (_, b'\\') => Ok(b'\\'),
+                (_, b'/') => Ok(b'/'),
+                (_, b'b') => Ok(b'\x08'),
+                (_, b'f') => Ok(b'\x0C'),
+                (_, b'n') => Ok(b'\n'),
+                (_, b'r') => Ok(b'\r'),
+                (_, b't') => Ok(b'\t'),
+                (_, b'u') => self.parse_unicode(),
+                (pos, found) => Err(SyntaxError::InvalidEscapeSequence { pos, found })?,
+            },
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingEscapeSequence { pos, found })?,
+        }
     }
 
     pub fn parse_unicode(&mut self) -> crate::Result<u8> {
@@ -263,16 +277,29 @@ mod tests {
     #[test]
     fn test_parse_string() {
         let parse = |s: &str| Tokenizer::new(s.as_bytes()).parse_string();
-        let parse_content = |s: &str| Tokenizer::new(s.as_bytes()).parse_string_content();
 
         // ok
         assert_eq!(parse(r#""""#).unwrap(), b"");
         assert_eq!(parse(r#""rust""#).unwrap(), b"rust");
+        assert_eq!(parse(r#""\"quote\"""#).unwrap(), b"\"quote\"");
+        assert_eq!(parse(r#""back\\slash""#).unwrap(), b"back\\slash");
+        assert_eq!(parse(r#""escaped\/slash""#).unwrap(), b"escaped/slash");
+        assert_eq!(parse(r#""unescaped/slash""#).unwrap(), b"unescaped/slash");
+        assert_eq!(parse(r#""line\nfeed""#).unwrap(), b"line\nfeed");
+        assert_eq!(parse(r#""white\tspace""#).unwrap(), b"white\tspace");
 
         // err
         assert!(matches!(
-            parse_content("line\nfeed").unwrap_err().into_inner().downcast_ref().unwrap(),
+            parse(r#""ending..."#).unwrap_err().into_inner().downcast_ref().unwrap(),
+            SyntaxError::EofWhileEndParsingString,
+        ));
+        assert!(matches!(
+            parse("\"line\nfeed\"").unwrap_err().into_inner().downcast_ref().unwrap(),
             SyntaxError::ControlCharacterWhileParsingString { c: b'\n', .. }
+        ));
+        assert!(matches!(
+            parse(r#""invalid escape sequence \a""#).unwrap_err().into_inner().downcast_ref().unwrap(),
+            SyntaxError::InvalidEscapeSequence { found: b'a', .. }
         ));
     }
 }

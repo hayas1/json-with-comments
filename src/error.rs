@@ -48,6 +48,9 @@ pub enum SyntaxError {
     #[error("{pos:?}: Expected string end `\"`, but found {found:?}")]
     UnexpectedTokenWhileEndParsingString { pos: Position, found: u8 },
 
+    #[error("{pos:?}: Expected escape sequence start `\\`, but found {found:?}")]
+    UnexpectedTokenWhileStartParsingEscapeSequence { pos: Position, found: u8 },
+
     #[error("{pos:?}: Expected bool, but found {found:?}")]
     UnexpectedTokenWhileParsingBool { pos: Position, found: u8 },
 
@@ -87,6 +90,9 @@ pub enum SyntaxError {
     #[error("Expected string end `\"`, but got EOF")]
     EofWhileEndParsingString,
 
+    #[error("Expected escape sequence starts with `\\`, but got EOF")]
+    EofWhileParsingEscapeSequence,
+
     #[error("Expected bool, but got EOF")]
     EofWhileStartParsingBool,
 
@@ -125,6 +131,9 @@ pub enum SyntaxError {
 
     #[error("{pos:?}: control character U+{c:04X} must be escaped in string")]
     ControlCharacterWhileParsingString { pos: Position, c: u8 },
+
+    #[error("{pos:?}: invalid escape sequence \\{found:?}")]
+    InvalidEscapeSequence { pos: Position, found: u8 },
 }
 impl From<SyntaxError> for JsonWithCommentError {
     fn from(err: SyntaxError) -> Self {
