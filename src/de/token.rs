@@ -58,8 +58,10 @@ where
         Ok(None)
     }
 
-    pub fn fold_token<F: Fn(&[u8], u8) -> bool>(&mut self, f: F) -> crate::Result<(PosRange, Vec<u8>)> {
-        let (start, _) = self.skip_whitespace()?.ok_or(SyntaxError::EofWhileParsingIdent)?;
+    pub fn fold_token<F: Fn(&[u8], u8) -> bool>(&mut self, f: F) -> crate::Result<(Option<PosRange>, Vec<u8>)> {
+        let Some((start, _)) = self.skip_whitespace()? else {
+            return Ok((None, Vec::new()));
+        };
         let (mut end, mut buff) = (start, Vec::new());
         while let Some((_pos, c)) = self.find()? {
             if f(&buff, c) {
@@ -69,7 +71,7 @@ where
                 break;
             }
         }
-        Ok(((start, end), buff))
+        Ok((Some((start, end)), buff))
     }
 
     pub fn parse_ident<T>(&mut self, ident: &[u8], value: T) -> crate::Result<T> {
@@ -79,7 +81,10 @@ where
         if &parsed == ident {
             Ok(value)
         } else {
-            Err(SyntaxError::UnexpectedIdent { pos, expected: ident.into(), found: parsed })?
+            match pos {
+                Some(pos) => Err(SyntaxError::UnexpectedIdent { pos, expected: ident.into(), found: parsed })?,
+                None => Err(SyntaxError::EofWhileParsingIdent)?,
+            }
         }
     }
 
@@ -150,7 +155,10 @@ where
             _ => (),
         }
         match self.eat()?.ok_or(SyntaxError::EofWhileParsingNumber)? {
-            (_, c @ b'0') => buff.push(c),
+            (_, c @ b'0') => match self.find()? {
+                Some((pos, b'0'..=b'9')) => Err(SyntaxError::InvalidLeadingZeros { pos })?,
+                _ => buff.push(c),
+            },
             (_, c @ b'1'..=b'9') => {
                 buff.push(c);
                 buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
@@ -160,15 +168,18 @@ where
         match self.find()? {
             Some((_, b'.')) => {
                 buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1);
-                buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
+                match self.find()?.ok_or(SyntaxError::EofWhileStartParsingFraction)? {
+                    (_, b'0'..=b'9') => buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1),
+                    (pos, found) => Err(SyntaxError::MissingFraction { pos, found })?,
+                }
             }
             _ => (),
         }
         match self.find()? {
             Some((_, b'e' | b'E')) => {
                 buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1);
-                match self.eat()?.ok_or(SyntaxError::EofWhileParsingNumber)? {
-                    (_, b'+' | b'-' | b'0'..=b'9') => buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1),
+                match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingExponent)? {
+                    (_, c @ (b'+' | b'-' | b'0'..=b'9')) => buff.push(c),
                     (pos, found) => Err(SyntaxError::MissingExponent { pos, found })?,
                 }
                 buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
@@ -369,5 +380,55 @@ mod tests {
             parse_err(r#""invalid unicode \uXXXX""#).downcast_ref().unwrap(),
             SyntaxError::InvalidUnicodeEscape { found: b'X', .. }
         ))
+    }
+
+    #[test]
+    fn test_parse_number() {
+        // ok
+        fn parse<T: FromStr>(s: &str) -> T {
+            Tokenizer::new(s.as_bytes()).parse_number().unwrap()
+        }
+        assert_eq!(parse::<u8>("255"), 255);
+        assert_eq!(parse::<u16>("16"), 16);
+        assert_eq!(parse::<u32>("32"), 32);
+        assert_eq!(parse::<u64>("9999999999999999999"), 9999999999999999999);
+        assert_eq!(parse::<u128>("340282366920938463463374607431768211455"), 340282366920938463463374607431768211455);
+        assert_eq!(parse::<i8>("-127"), -127);
+        assert_eq!(parse::<i16>("16"), 16);
+        assert_eq!(parse::<i32>("-32"), -32);
+        assert_eq!(parse::<i64>("-999999999999999999"), -999999999999999999);
+        assert_eq!(parse::<i128>("-170141183460469231731687303715884105728"), -170141183460469231731687303715884105728);
+        assert_eq!(parse::<f32>("0.000000000000000e00000000000000000"), 0.);
+        assert_eq!(parse::<f32>("3.1415926535"), 3.1415926535);
+        assert_eq!(parse::<f32>("2.7"), 2.7);
+        assert_eq!(parse::<f64>("8.314462618"), 8.314462618);
+        assert_eq!(parse::<f64>("6.674e-11"), 0.00000000006674);
+        assert_eq!(parse::<f64>("6.02214076e23"), 6.02214076E23);
+
+        // err
+        fn parse_err<T: FromStr + std::fmt::Debug>(s: &str) -> Box<dyn std::error::Error + Send + Sync> {
+            Tokenizer::new(s.as_bytes()).parse_number::<T>().unwrap_err().into_inner()
+        }
+        assert!(matches!(parse_err::<u32>("000").downcast_ref().unwrap(), SyntaxError::InvalidLeadingZeros { .. }));
+        assert!(matches!(parse_err::<u32>("012").downcast_ref().unwrap(), SyntaxError::InvalidLeadingZeros { .. }));
+        assert!(matches!(parse_err::<u32>("+12").downcast_ref().unwrap(), SyntaxError::InvalidLeadingPlus { .. }));
+        assert!(matches!(parse_err::<u8>("256").downcast_ref().unwrap(), SyntaxError::InvalidNumber { .. }));
+        assert!(matches!(parse_err::<i32>("-999999999999").downcast_ref().unwrap(), SyntaxError::InvalidNumber { .. }));
+        assert!(matches!(
+            parse_err::<f32>("0.").downcast_ref().unwrap(),
+            SyntaxError::EofWhileStartParsingFraction { .. },
+        ));
+        assert!(matches!(
+            parse_err::<f32>("0.e").downcast_ref().unwrap(),
+            SyntaxError::MissingFraction { found: b'e', .. },
+        ));
+        assert!(matches!(
+            parse_err::<f64>("0e").downcast_ref().unwrap(),
+            SyntaxError::EofWhileStartParsingExponent { .. },
+        ));
+        assert!(matches!(
+            parse_err::<f64>("1e.").downcast_ref().unwrap(),
+            SyntaxError::MissingExponent { found: b'.', .. },
+        ));
     }
 }

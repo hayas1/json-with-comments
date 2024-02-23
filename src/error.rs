@@ -105,6 +105,12 @@ pub enum SyntaxError {
     #[error("Expected number start, but got EOF")]
     EofWhileStartParsingNumber,
 
+    #[error("Expected fraction, but got EOF")]
+    EofWhileStartParsingFraction,
+
+    #[error("Expected exponent, but got EOF")]
+    EofWhileStartParsingExponent,
+
     #[error("Expected number, but got EOF")]
     EofWhileParsingNumber,
 
@@ -161,6 +167,9 @@ pub enum SyntaxError {
 
     #[error("{pos:?}: expect exponent part, but found {found:?}")]
     MissingExponent { pos: Position, found: u8 },
+
+    #[error("{pos:?}: expect fraction part, but found {found:?}")]
+    MissingFraction { pos: Position, found: u8 },
 
     #[error("{pos:?}: cannot convert {rep:?} to number")]
     InvalidNumber { pos: Position, rep: String },
