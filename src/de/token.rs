@@ -131,9 +131,9 @@ where
         let mut hex: u32 = 0;
         for i in 0..4 {
             match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
-                (_, c @ b'0'..=b'9') => hex += ((c - b'0' + 0) as u32) << (3 - i) * 4,
-                (_, c @ b'a'..=b'f') => hex += ((c - b'a' + 10) as u32) << (3 - i) * 4,
-                (_, c @ b'A'..=b'F') => hex += ((c - b'A' + 10) as u32) << (3 - i) * 4,
+                (_, c @ b'0'..=b'9') => hex += ((c - b'0' + 0) as u32) << 4 * (3 - i),
+                (_, c @ b'a'..=b'f') => hex += ((c - b'a' + 10) as u32) << 4 * (3 - i),
+                (_, c @ b'A'..=b'F') => hex += ((c - b'A' + 10) as u32) << 4 * (3 - i),
                 (pos, found) => return Err(SyntaxError::InvalidUnicodeEscape { pos, found })?,
             }
         }
