@@ -325,49 +325,48 @@ mod tests {
 
     #[test]
     fn test_parse_string() {
-        let parse = |s: &str| Tokenizer::new(s.as_bytes()).parse_string();
-
         // ok
-        assert_eq!(parse(r#""""#).unwrap(), b"");
-        assert_eq!(parse(r#""rust""#).unwrap(), b"rust");
-        assert_eq!(parse(r#""\"quote\"""#).unwrap(), b"\"quote\"");
-        assert_eq!(parse(r#""back\\slash""#).unwrap(), b"back\\slash");
-        assert_eq!(parse(r#""escaped\/slash""#).unwrap(), b"escaped/slash");
-        assert_eq!(parse(r#""unescaped/slash""#).unwrap(), b"unescaped/slash");
-        assert_eq!(parse(r#""backspace\b formfeed\f""#).unwrap(), b"backspace\x08 formfeed\x0C");
-        assert_eq!(parse(r#""line\nfeed""#).unwrap(), b"line\nfeed");
-        assert_eq!(parse(r#""white\tspace""#).unwrap(), b"white\tspace");
-        assert_eq!(String::from_utf8(parse(r#""line\u000Afeed""#).unwrap()).unwrap(), "line\u{000A}feed");
-        assert_eq!(parse(r#""line\u000Afeed""#).unwrap(), "line\nfeed".bytes().collect::<Vec<_>>());
-        assert_eq!(parse(r#""epsilon \u03b5""#).unwrap(), "epsilon ε".bytes().collect::<Vec<_>>());
-        assert_eq!(parse(r#""💯""#).unwrap(), "💯".bytes().collect::<Vec<_>>());
+        fn parse(s: &str) -> Vec<u8> {
+            Tokenizer::new(s.as_bytes()).parse_string().unwrap()
+        }
+        assert_eq!(parse(r#""""#), b"");
+        assert_eq!(parse(r#""rust""#), b"rust");
+        assert_eq!(parse(r#""\"quote\"""#), b"\"quote\"");
+        assert_eq!(parse(r#""back\\slash""#), b"back\\slash");
+        assert_eq!(parse(r#""escaped\/slash""#), b"escaped/slash");
+        assert_eq!(parse(r#""unescaped/slash""#), b"unescaped/slash");
+        assert_eq!(parse(r#""backspace\b formfeed\f""#), b"backspace\x08 formfeed\x0C");
+        assert_eq!(parse(r#""line\nfeed""#), b"line\nfeed");
+        assert_eq!(parse(r#""white\tspace""#), b"white\tspace");
+        assert_eq!(String::from_utf8(parse(r#""line\u000Afeed""#)).unwrap(), "line\u{000A}feed");
+        assert_eq!(parse(r#""line\u000Afeed""#), "line\nfeed".bytes().collect::<Vec<_>>());
+        assert_eq!(parse(r#""epsilon \u03b5""#), "epsilon ε".bytes().collect::<Vec<_>>());
+        assert_eq!(parse(r#""💯""#), "💯".bytes().collect::<Vec<_>>());
 
         // err
+        fn parse_err(s: &str) -> Box<dyn std::error::Error> {
+            Tokenizer::new(s.as_bytes()).parse_string().unwrap_err().into_inner()
+        }
+        assert!(matches!(parse_err(r#""ending..."#).downcast_ref().unwrap(), SyntaxError::EofWhileEndParsingString,));
         assert!(matches!(
-            parse(r#""ending..."#).unwrap_err().into_inner().downcast_ref().unwrap(),
-            SyntaxError::EofWhileEndParsingString,
-        ));
-        assert!(matches!(
-            parse(
+            parse_err(
                 r#""line
                     feed""#
             )
-            .unwrap_err()
-            .into_inner()
             .downcast_ref()
             .unwrap(),
             SyntaxError::ControlCharacterWhileParsingString { c: b'\n', .. }
         ));
         assert!(matches!(
-            parse(r#""escape EoF \"#).unwrap_err().into_inner().downcast_ref().unwrap(),
+            parse_err(r#""escape EoF \"#).downcast_ref().unwrap(),
             SyntaxError::EofWhileParsingEscapeSequence,
         ));
         assert!(matches!(
-            parse(r#""invalid escape sequence \a""#).unwrap_err().into_inner().downcast_ref().unwrap(),
+            parse_err(r#""invalid escape sequence \a""#).downcast_ref().unwrap(),
             SyntaxError::InvalidEscapeSequence { found: b'a', .. }
         ));
         assert!(matches!(
-            parse(r#""invalid unicode \uXXXX""#).unwrap_err().into_inner().downcast_ref().unwrap(),
+            parse_err(r#""invalid unicode \uXXXX""#).downcast_ref().unwrap(),
             SyntaxError::InvalidUnicodeEscape { found: b'X', .. }
         ))
     }
