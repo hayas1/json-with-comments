@@ -58,10 +58,10 @@ where
         Ok(None)
     }
 
-    pub fn parse_str(&mut self) -> crate::Result<Vec<u8>> {
+    pub fn parse_string(&mut self) -> crate::Result<Vec<u8>> {
         match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
             (_, b'"') => {
-                let string = self.tokenize_str()?;
+                let string = self.parse_string_content()?;
                 match self.eat()?.ok_or(SyntaxError::EofWhileEndParsingString)? {
                     (_, b'"') => Ok(string),
                     (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingString { pos, found })?,
@@ -71,16 +71,24 @@ where
         }
     }
 
-    pub fn tokenize_str(&mut self) -> crate::Result<Vec<u8>> {
+    pub fn parse_string_content(&mut self) -> crate::Result<Vec<u8>> {
         let mut buff = Vec::new();
         while let Some((_pos, c)) = self.find()? {
             match c {
-                b'\\' => unimplemented!("escape sequence"), // TODO implement escape sequence
+                b'\\' => buff.push(self.parse_escape_sequence()?),
                 b'"' => return Ok(buff),
                 _ => buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1),
             }
         }
-        Err(SyntaxError::EofWhileEndParsingString)? // TODO contain tokenized string?
+        Err(SyntaxError::EofWhileEndParsingString)? // TODO contain parsed string?
+    }
+
+    pub fn parse_escape_sequence(&mut self) -> crate::Result<u8> {
+        unimplemented!("escape sequence")
+    }
+
+    pub fn parse_unicode(&mut self) -> crate::Result<u8> {
+        unimplemented!("escape unicode")
     }
 
     pub fn parse_like<F: Fn(u8) -> bool>(&mut self, max: usize, f: F) -> crate::Result<(PosRange, Vec<u8>)> {
@@ -227,7 +235,7 @@ mod tests {
         assert_eq!(tokenizer.skip_whitespace().unwrap(), Some(((2, 16), b'"')));
         assert_eq!(tokenizer.find().unwrap(), Some(((2, 16), b'"')));
 
-        assert_eq!(tokenizer.parse_str().unwrap(), b"jsonc");
+        assert_eq!(tokenizer.parse_string().unwrap(), b"jsonc");
         assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
 
         assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b'1')))));
