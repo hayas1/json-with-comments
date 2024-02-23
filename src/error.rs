@@ -126,9 +126,6 @@ pub enum SyntaxError {
     #[error("Expected object value, but got EOF")]
     EofWhileParsingObjectValue,
 
-    #[error("Expected value, but got EOF")]
-    EofWhileEndParsingValue,
-
     #[error("{pos:?}: Expected ident {expected:?}, but found {found:?}")]
     UnexpectedIdent { pos: PosRange, expected: Vec<u8>, found: Vec<u8> },
 

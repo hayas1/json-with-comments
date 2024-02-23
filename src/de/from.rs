@@ -41,7 +41,7 @@ where
 {
     let mut de = Deserializer::new(Tokenizer::new(read));
     let value = de::Deserialize::deserialize(&mut de)?;
-    de.end()?;
+    de.finish()?;
 
     Ok(value)
 }

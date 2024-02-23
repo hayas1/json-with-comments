@@ -24,7 +24,7 @@ where
         Deserializer { tokenizer }
     }
 
-    pub fn end(&mut self) -> crate::Result<()> {
+    pub fn finish(&mut self) -> crate::Result<()> {
         match self.tokenizer.eat_whitespace()? {
             Some((pos, found)) => Err(SyntaxError::ExpectedEof { pos, found })?,
             None => Ok(()),
@@ -175,7 +175,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingValue)? {
+        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingValue)? {
             (_, b'n') => self.tokenizer.parse_ident(b"null", visitor.visit_unit())?,
             _ => visitor.visit_some(self),
         }
@@ -334,7 +334,7 @@ where
                 (_, b':') => seed.deserialize(&mut *self.deserializer),
                 (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingObjectValue { pos, found })?,
             };
-        match self.deserializer.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingValue)? {
+        match self.deserializer.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileParsingObjectValue)? {
             (_, b',') => {
                 self.deserializer.tokenizer.eat()?.ok_or(NeverFail::EatAfterFind)?;
             }
@@ -374,7 +374,7 @@ where
                 (_, b']') => Ok(None),
                 _ => seed.deserialize(&mut *self.deserializer).map(Some),
             };
-        match self.deserializer.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingValue)? {
+        match self.deserializer.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingArray)? {
             (_, b',') => {
                 self.deserializer.tokenizer.eat()?.ok_or(NeverFail::EatAfterFind)?;
             }
