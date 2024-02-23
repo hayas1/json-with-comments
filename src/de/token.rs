@@ -116,11 +116,11 @@ where
         Ok(buff.extend_from_slice(ch.encode_utf8(&mut [0; 4]).as_bytes()))
     }
 
-    pub fn parse_like<F: Fn(u8) -> bool>(&mut self, max: usize, f: F) -> crate::Result<(PosRange, Vec<u8>)> {
+    pub fn fold_token<F: Fn(&[u8], u8) -> bool>(&mut self, f: F) -> crate::Result<(PosRange, Vec<u8>)> {
         let (start, _) = self.skip_whitespace()?.ok_or(SyntaxError::EofWhileParsingIdent)?;
         let (mut end, mut buff) = (start, Vec::new());
         while let Some((_pos, c)) = self.find()? {
-            if f(c) && buff.len() < max {
+            if f(&buff, c) {
                 (end, _) = self.eat()?.ok_or(NeverFail::EatAfterFind)?;
                 buff.push(c)
             } else {
@@ -132,7 +132,8 @@ where
 
     pub fn parse_ident<T>(&mut self, ident: &[u8], value: T) -> crate::Result<T> {
         let max = 10; // to prevent from parsing tokens that are too long. the longest json ident is `false` of 5.
-        let (pos, parsed) = self.parse_like(max, |c| c.is_ascii_alphanumeric() || ident.contains(&c))?;
+        let (pos, parsed) =
+            self.fold_token(|b, c| b.len() < max && (c.is_ascii_alphanumeric() || ident.contains(&c)))?;
         if &parsed == ident {
             Ok(value)
         } else {
