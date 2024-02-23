@@ -296,6 +296,7 @@ mod tests {
         assert_eq!(parse(r#""back\\slash""#).unwrap(), b"back\\slash");
         assert_eq!(parse(r#""escaped\/slash""#).unwrap(), b"escaped/slash");
         assert_eq!(parse(r#""unescaped/slash""#).unwrap(), b"unescaped/slash");
+        assert_eq!(parse(r#""backspace\b formfeed\f""#).unwrap(), b"backspace\x08 formfeed\x0C");
         assert_eq!(parse(r#""line\nfeed""#).unwrap(), b"line\nfeed");
         assert_eq!(parse(r#""white\tspace""#).unwrap(), b"white\tspace");
         assert_eq!(String::from_utf8(parse(r#""line\u000Afeed""#).unwrap()).unwrap(), "line\u{000A}feed");
@@ -309,12 +310,27 @@ mod tests {
             SyntaxError::EofWhileEndParsingString,
         ));
         assert!(matches!(
-            parse("\"line\nfeed\"").unwrap_err().into_inner().downcast_ref().unwrap(),
+            parse(
+                r#""line
+                    feed""#
+            )
+            .unwrap_err()
+            .into_inner()
+            .downcast_ref()
+            .unwrap(),
             SyntaxError::ControlCharacterWhileParsingString { c: b'\n', .. }
+        ));
+        assert!(matches!(
+            parse(r#""escape EoF \"#).unwrap_err().into_inner().downcast_ref().unwrap(),
+            SyntaxError::EofWhileParsingEscapeSequence,
         ));
         assert!(matches!(
             parse(r#""invalid escape sequence \a""#).unwrap_err().into_inner().downcast_ref().unwrap(),
             SyntaxError::InvalidEscapeSequence { found: b'a', .. }
         ));
+        assert!(matches!(
+            parse(r#""invalid unicode \uXXXX""#).unwrap_err().into_inner().downcast_ref().unwrap(),
+            SyntaxError::InvalidUnicodeEscape { found: b'X', .. }
+        ))
     }
 }
