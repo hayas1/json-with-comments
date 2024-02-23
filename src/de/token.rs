@@ -75,7 +75,7 @@ where
         let mut buff = Vec::new();
         while let Some((pos, found)) = self.find()? {
             match found {
-                b'\\' => buff.push(self.parse_escape_sequence()?),
+                b'\\' => buff.extend(self.parse_escape_sequence()?),
                 b'"' => return Ok(buff),
                 c if c.is_ascii_control() => Err(SyntaxError::ControlCharacterWhileParsingString { pos, c })?,
                 _ => buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1),
@@ -84,26 +84,36 @@ where
         Err(SyntaxError::EofWhileEndParsingString)? // TODO contain parsed string?
     }
 
-    pub fn parse_escape_sequence(&mut self) -> crate::Result<u8> {
+    pub fn parse_escape_sequence(&mut self) -> crate::Result<Vec<u8>> {
         match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
             (_, b'\\') => match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
-                (_, b'"') => Ok(b'"'),
-                (_, b'\\') => Ok(b'\\'),
-                (_, b'/') => Ok(b'/'),
-                (_, b'b') => Ok(b'\x08'),
-                (_, b'f') => Ok(b'\x0C'),
-                (_, b'n') => Ok(b'\n'),
-                (_, b'r') => Ok(b'\r'),
-                (_, b't') => Ok(b'\t'),
-                (_, b'u') => self.parse_unicode(),
+                (_, b'"') => Ok(vec![b'"']),
+                (_, b'\\') => Ok(vec![b'\\']),
+                (_, b'/') => Ok(vec![b'/']),
+                (_, b'b') => Ok(vec![b'\x08']),
+                (_, b'f') => Ok(vec![b'\x0C']),
+                (_, b'n') => Ok(vec![b'\n']),
+                (_, b'r') => Ok(vec![b'\r']),
+                (_, b't') => Ok(vec![b'\t']),
+                (_, b'u') => Ok(self.parse_unicode()?.into()),
                 (pos, found) => Err(SyntaxError::InvalidEscapeSequence { pos, found })?,
             },
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingEscapeSequence { pos, found })?,
         }
     }
 
-    pub fn parse_unicode(&mut self) -> crate::Result<u8> {
-        unimplemented!("escape unicode")
+    pub fn parse_unicode(&mut self) -> crate::Result<Vec<u8>> {
+        let mut buff: u32 = 0;
+        for i in 0..4 {
+            match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
+                (_, hex @ b'0'..=b'9') => buff += ((hex - b'0' + 0) as u32) << (3 - i) * 4,
+                (_, hex @ b'a'..=b'f') => buff += ((hex - b'a' + 10) as u32) << (3 - i) * 4,
+                (_, hex @ b'A'..=b'F') => buff += ((hex - b'A' + 10) as u32) << (3 - i) * 4,
+                (pos, found) => return Err(SyntaxError::InvalidUnicodeEscape { pos, found })?,
+            }
+        }
+        let c = unsafe { char::from_u32_unchecked(buff) }; // TODO maybe safe
+        Ok(c.encode_utf8(&mut [0_u8; 4]).as_bytes().to_vec())
     }
 
     pub fn parse_like<F: Fn(u8) -> bool>(&mut self, max: usize, f: F) -> crate::Result<(PosRange, Vec<u8>)> {
@@ -287,6 +297,10 @@ mod tests {
         assert_eq!(parse(r#""unescaped/slash""#).unwrap(), b"unescaped/slash");
         assert_eq!(parse(r#""line\nfeed""#).unwrap(), b"line\nfeed");
         assert_eq!(parse(r#""white\tspace""#).unwrap(), b"white\tspace");
+        assert_eq!(String::from_utf8(parse(r#""line\u000Afeed""#).unwrap()).unwrap(), "line\u{000A}feed");
+        assert_eq!(parse(r#""line\u000Afeed""#).unwrap(), "line\nfeed".bytes().collect::<Vec<_>>());
+        assert_eq!(parse(r#""epsilon \u03b5""#).unwrap(), "epsilon ε".bytes().collect::<Vec<_>>());
+        assert_eq!(parse(r#""💯""#).unwrap(), "💯".bytes().collect::<Vec<_>>());
 
         // err
         assert!(matches!(

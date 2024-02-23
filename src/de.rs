@@ -145,7 +145,7 @@ where
         V: de::Visitor<'de>,
     {
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
-            (_, b'"') => visitor.visit_str(&String::from_utf8_lossy(&self.tokenizer.parse_string()?)),
+            (_, b'"') => visitor.visit_str(&String::from_utf8(self.tokenizer.parse_string()?)?),
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
         }
     }

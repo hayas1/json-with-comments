@@ -1,6 +1,6 @@
 use serde::de;
-use std::fmt;
 use std::fmt::Display;
+use std::{fmt, string::FromUtf8Error};
 use thiserror::Error;
 
 use crate::de::position::{PosRange, Position};
@@ -31,6 +31,12 @@ impl de::Error for JsonWithCommentError {
         T: Display,
     {
         todo!()
+    }
+}
+
+impl From<FromUtf8Error> for JsonWithCommentError {
+    fn from(value: FromUtf8Error) -> Self {
+        JsonWithCommentError::new(value)
     }
 }
 
@@ -134,6 +140,12 @@ pub enum SyntaxError {
 
     #[error("{pos:?}: invalid escape sequence \\{found:?}")]
     InvalidEscapeSequence { pos: Position, found: u8 },
+
+    #[error("{pos:?}: invalid \\uXXXX escape, cannot parse {found:?} as hex digit")]
+    InvalidUnicodeEscape { pos: Position, found: u8 },
+
+    #[error("{pos:?}: cannot convert {char:08X} to char")]
+    CannotConvertChar { pos: Position, char: u32 },
 }
 impl From<SyntaxError> for JsonWithCommentError {
     fn from(err: SyntaxError) -> Self {
