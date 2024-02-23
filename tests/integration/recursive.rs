@@ -2,7 +2,7 @@ use json_with_comment::from_str;
 use serde::Deserialize;
 
 #[test]
-fn test_deserialize_recursive_map() {
+fn test_deserialize_recursive_object() {
     #[derive(Deserialize, PartialEq, Eq, Debug)]
     struct Node<V> {
         value: V,
@@ -32,7 +32,7 @@ fn test_deserialize_recursive_map() {
 }
 
 #[test]
-fn test_deserialize_recursive_vec() {
+fn test_deserialize_recursive_array() {
     let raw = r#"[[[], [], []], [], []]"#;
     let data: Vec<Vec<Vec<()>>> = from_str(raw).unwrap();
     assert_eq!(data, vec![vec![vec![], vec![], vec![]], vec![], vec![]]);
