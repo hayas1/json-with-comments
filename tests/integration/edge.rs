@@ -10,10 +10,10 @@ fn test_deserialize_empty_map() {
 }
 
 #[test]
-fn test_deserialize_only_comma_map() {
+fn test_cannot_deserialize_only_comma_map() {
     let raw = r#"{,}"#;
-    let data: HashMap<String, String> = from_str(raw).unwrap();
-    assert_eq!(data, HashMap::new());
+    let data = from_str::<HashMap<String, String>>(raw);
+    assert!(matches!(data, Err(_)));
 }
 
 #[test]
@@ -24,8 +24,8 @@ fn test_deserialize_edge_vec() {
 }
 
 #[test]
-fn test_deserialize_only_comma_vec() {
+fn test_cannot_deserialize_only_comma_vec() {
     let raw = r#"[,]"#;
-    let data: Vec<()> = from_str(raw).unwrap();
-    assert_eq!(data, vec![]);
+    let data = from_str::<Vec<String>>(raw);
+    assert!(matches!(data, Err(_)));
 }
