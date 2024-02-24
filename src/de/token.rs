@@ -74,16 +74,9 @@ where
     }
 
     pub fn parse_ident<T>(&mut self, ident: &[u8], value: T) -> crate::Result<T> {
-        let (mut iter, mut ok) = (ident.into_iter(), true);
-        let (p, parsed) = self.fold_token(|_, c| {
-            if c.is_ascii_alphanumeric() || matches!(c, b'_') {
-                ok &= iter.next().map_or(false, |&i| i == c);
-                true // keep parsing ident, even if does not match ident and parsed
-            } else {
-                false
-            }
-        })?;
-        match (p, ok && iter.next().is_none()) {
+        let mut iter = ident.into_iter();
+        let (p, parsed) = self.fold_token(|_, c| iter.next().map_or(false, |&i| i == c))?;
+        match (p, iter.next().is_none() && parsed.len() == ident.len()) {
             (_, true) => Ok(value),
             (Some(pos), false) => Err(SyntaxError::UnexpectedIdent { pos, expected: ident.into(), found: parsed })?,
             (None, false) => Err(SyntaxError::EofWhileParsingIdent)?,
@@ -310,7 +303,7 @@ mod tests {
 
     #[test]
     fn behavior_parse_ident() {
-        let raw = r#"[true, fal, nulling]"#;
+        let raw = r#"[true, fal, nulled, nul,]"#;
         let reader = BufReader::new(raw.as_bytes());
         let mut tokenizer = Tokenizer::new(reader);
 
@@ -330,15 +323,22 @@ mod tests {
         assert_eq!(tokenizer.eat().unwrap(), Some(((0, 10), b',')));
         assert_eq!(tokenizer.eat().unwrap(), Some(((0, 11), b' ')));
 
+        assert_eq!(tokenizer.parse_ident(b"null", ()).unwrap(), ());
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 16), b'e')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 17), b'd')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 18), b',')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 19), b' ')));
+
         match tokenizer.parse_ident(b"null", ()).unwrap_err().into_inner().downcast_ref().unwrap() {
             SyntaxError::UnexpectedIdent { pos, expected, found } => {
-                assert_eq!(pos, &((0, 12), (0, 18)));
+                assert_eq!(pos, &((0, 20), (0, 22)));
                 assert_eq!(expected, &b"null".to_vec());
-                assert_eq!(found, &b"nulling".to_vec());
+                assert_eq!(found, &b"nul".to_vec());
             }
             _ => unreachable!(),
         }
-        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 19), b']')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 23), b',')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 24), b']')));
 
         assert!(matches!(
             tokenizer.parse_ident(b"None", ()).unwrap_err().into_inner().downcast_ref().unwrap(),
