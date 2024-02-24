@@ -161,14 +161,17 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingBytes)? {
+            (_, b'"') => visitor.visit_bytes(&self.tokenizer.parse_string()?),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingBytes { pos, found })?,
+        }
     }
 
     fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_bytes(visitor)
     }
 
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>

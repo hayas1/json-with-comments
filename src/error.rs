@@ -48,6 +48,9 @@ pub enum SyntaxError {
     #[error("{pos:?}: Expected string start `\"`, but found {found:?}")]
     UnexpectedTokenWhileStartParsingString { pos: Position, found: u8 },
 
+    #[error("{pos:?}: Expected bytes start, but found {found:?}")]
+    UnexpectedTokenWhileStartParsingBytes { pos: Position, found: u8 },
+
     #[error("{pos:?}: Expected string end `\"`, but found {found:?}")]
     UnexpectedTokenWhileParsingString { pos: Position, found: u8 },
 
@@ -98,6 +101,9 @@ pub enum SyntaxError {
 
     #[error("Expected string end `\"`, but got EOF")]
     EofWhileEndParsingString,
+
+    #[error("Expected bytes start, but got EOF")]
+    EofWhileStartParsingBytes,
 
     #[error("Expected escape sequence starts with `\\`, but got EOF")]
     EofWhileParsingEscapeSequence,
