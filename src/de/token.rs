@@ -58,33 +58,35 @@ where
         Ok(None)
     }
 
-    pub fn fold_token<F: Fn(&[u8], u8) -> bool>(&mut self, f: F) -> crate::Result<(Option<PosRange>, Vec<u8>)> {
-        let Some((start, _)) = self.skip_whitespace()? else {
-            return Ok((None, Vec::new()));
-        };
-        let (mut end, mut buff) = (start, Vec::new());
-        while let Some((_pos, c)) = self.find()? {
+    pub fn fold_token<F: FnMut(&[u8], u8) -> bool>(&mut self, mut f: F) -> crate::Result<(Option<PosRange>, Vec<u8>)> {
+        let (mut range, mut buff) = (None, Vec::new());
+        while let Some((pos, c)) = self.find()? {
+            range = if range.is_none() { Some((pos, pos)) } else { range };
             if f(&buff, c) {
-                (end, _) = self.eat()?.ok_or(NeverFail::EatAfterFind)?;
-                buff.push(c)
+                let (p, c) = self.eat()?.ok_or(NeverFail::EatAfterFind)?;
+                range.as_mut().map(|(_, t)| *t = p);
+                buff.push(c);
             } else {
                 break;
             }
         }
-        Ok((Some((start, end)), buff))
+        Ok((range, buff))
     }
 
     pub fn parse_ident<T>(&mut self, ident: &[u8], value: T) -> crate::Result<T> {
-        let max = 10; // to prevent from parsing tokens that are too long. the longest json ident is `false` of 5.
-        let (pos, parsed) =
-            self.fold_token(|t, c| t.len() < max && (c.is_ascii_alphanumeric() || ident.contains(&c)))?;
-        if &parsed == ident {
-            Ok(value)
-        } else {
-            match pos {
-                Some(pos) => Err(SyntaxError::UnexpectedIdent { pos, expected: ident.into(), found: parsed })?,
-                None => Err(SyntaxError::EofWhileParsingIdent)?,
+        let (mut iter, mut ok) = (ident.into_iter(), true);
+        let (p, parsed) = self.fold_token(|_, c| {
+            if c.is_ascii_alphanumeric() || matches!(c, b'_') {
+                ok &= iter.next().map_or(false, |&i| i == c);
+                true // keep parsing ident, even if does not match ident and parsed
+            } else {
+                false
             }
+        })?;
+        match (p, ok && iter.next().is_none()) {
+            (_, true) => Ok(value),
+            (Some(pos), false) => Err(SyntaxError::UnexpectedIdent { pos, expected: ident.into(), found: parsed })?,
+            (None, false) => Err(SyntaxError::EofWhileParsingIdent)?,
         }
     }
 
@@ -240,10 +242,10 @@ mod tests {
         //   "bar",
         //   "baz"
         // ]
-        //
-        let raw = vec!["[", r#"  "foo","#, r#"  "bar","#, r#"  "baz""#, "]", ""].join("\n");
+        let raw = vec!["[", r#"  "foo","#, r#"  "bar","#, r#"  "baz""#, "]"].join("\n");
         let reader = BufReader::new(raw.as_bytes());
         let mut iter = RowColIterator::new(reader.bytes());
+
         assert!(matches!(iter.next(), Some(((0, 0), Ok(b'[')))));
         assert!(matches!(iter.next(), Some(((0, 1), Ok(b'\n')))));
 
@@ -277,11 +279,72 @@ mod tests {
         assert!(matches!(iter.next(), Some(((3, 7), Ok(b'\n')))));
 
         assert!(matches!(iter.next(), Some(((4, 0), Ok(b']')))));
-        assert!(matches!(iter.next(), Some(((4, 1), Ok(b'\n')))));
+        assert!(matches!(iter.next(), None));
+        assert!(matches!(iter.next(), None));
+        assert!(matches!(iter.next(), None));
+    }
 
-        assert!(matches!(iter.next(), None));
-        assert!(matches!(iter.next(), None));
-        assert!(matches!(iter.next(), None));
+    #[test]
+    fn behavior_fold_token() {
+        let raw = r#"[123, 456]"#;
+        let reader = BufReader::new(raw.as_bytes());
+        let mut tokenizer = Tokenizer::new(reader);
+
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 0), b'[')));
+        assert_eq!(
+            tokenizer.fold_token(|_t, c| matches!(c, b'1'..=b'9')).unwrap(),
+            (Some(((0, 1), (0, 3))), vec![b'1', b'2', b'3']),
+        );
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 4), b',')));
+        assert_eq!(tokenizer.fold_token(|_t, c| matches!(c, b'1'..=b'9')).unwrap(), (Some(((0, 5), (0, 5))), vec![]));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 5), b' ')));
+        assert_eq!(
+            tokenizer.fold_token(|_t, c| matches!(c, b'1'..=b'9')).unwrap(),
+            (Some(((0, 6), (0, 8))), vec![b'4', b'5', b'6']),
+        );
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 9), b']')));
+        assert_eq!(tokenizer.eat().unwrap(), None);
+        assert_eq!(tokenizer.fold_token(|_t, c| matches!(c, b'1'..=b'9')).unwrap(), (None, vec![]));
+        assert_eq!(tokenizer.eat().unwrap(), None);
+    }
+
+    #[test]
+    fn behavior_parse_ident() {
+        let raw = r#"[true, fal, nulling]"#;
+        let reader = BufReader::new(raw.as_bytes());
+        let mut tokenizer = Tokenizer::new(reader);
+
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 0), b'[')));
+        assert_eq!(tokenizer.parse_ident(b"true", true).unwrap(), true);
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 5), b',')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 6), b' ')));
+
+        match tokenizer.parse_ident(b"false", false).unwrap_err().into_inner().downcast_ref().unwrap() {
+            SyntaxError::UnexpectedIdent { pos, expected, found } => {
+                assert_eq!(pos, &((0, 7), (0, 9)));
+                assert_eq!(expected, &b"false".to_vec());
+                assert_eq!(found, &b"fal".to_vec());
+            }
+            _ => unreachable!(),
+        }
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 10), b',')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 11), b' ')));
+
+        match tokenizer.parse_ident(b"null", ()).unwrap_err().into_inner().downcast_ref().unwrap() {
+            SyntaxError::UnexpectedIdent { pos, expected, found } => {
+                assert_eq!(pos, &((0, 12), (0, 18)));
+                assert_eq!(expected, &b"null".to_vec());
+                assert_eq!(found, &b"nulling".to_vec());
+            }
+            _ => unreachable!(),
+        }
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 19), b']')));
+
+        assert!(matches!(
+            tokenizer.parse_ident(b"None", ()).unwrap_err().into_inner().downcast_ref().unwrap(),
+            SyntaxError::EofWhileParsingIdent,
+        ));
+        assert_eq!(tokenizer.parse_ident(b"", ()).unwrap(), ());
     }
 
     #[test]
