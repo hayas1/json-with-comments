@@ -14,8 +14,8 @@ impl<R> ByteTokenizer<R>
 where
     R: io::Read,
 {
-    pub fn new(reader: R) -> Self {
-        ByteTokenizer { iter: RowColIterator::new(reader.bytes()).peekable() }
+    pub fn new(read: R) -> Self {
+        ByteTokenizer { iter: RowColIterator::new(read.bytes()).peekable() }
     }
 }
 
