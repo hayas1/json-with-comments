@@ -6,7 +6,7 @@ use std::{
 
 use serde::de;
 
-use crate::de::{token::Tokenizer, Deserializer};
+use crate::de::{token::byte::ByteTokenizer, Deserializer};
 
 /// TODO doc
 pub fn from_str<'de, T>(s: &'de str) -> crate::Result<T>
@@ -39,7 +39,7 @@ where
     R: io::Read,
     T: de::Deserialize<'de>,
 {
-    let mut de = Deserializer::new(Tokenizer::new(read));
+    let mut de = Deserializer::new(ByteTokenizer::new(read));
     let value = de::Deserialize::deserialize(&mut de)?;
     de.finish()?;
 

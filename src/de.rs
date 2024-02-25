@@ -2,25 +2,23 @@ pub mod from;
 pub mod position;
 pub mod token;
 
-use std::io;
-
 use serde::de;
 
 use crate::error::{NeverFail, SyntaxError};
 
-use self::token::Tokenizer;
+use self::token::TokenizerExt;
 
-pub struct Deserializer<R>
+pub struct Deserializer<T>
 where
-    R: io::Read,
+    T: TokenizerExt,
 {
-    tokenizer: Tokenizer<R>,
+    tokenizer: T,
 }
-impl<R> Deserializer<R>
+impl<T> Deserializer<T>
 where
-    R: io::Read,
+    T: TokenizerExt,
 {
-    pub fn new(tokenizer: Tokenizer<R>) -> Self {
+    pub fn new(tokenizer: T) -> Self {
         Deserializer { tokenizer }
     }
 
@@ -31,9 +29,9 @@ where
         }
     }
 }
-impl<'de, 'a, R> de::Deserializer<'de> for &'a mut Deserializer<R>
+impl<'de, 'a, T> de::Deserializer<'de> for &'a mut Deserializer<T>
 where
-    R: io::Read,
+    T: TokenizerExt,
 {
     type Error = crate::Error;
 
@@ -311,23 +309,23 @@ where
     }
 }
 
-pub struct MapDeserializer<'a, R: 'a>
+pub struct MapDeserializer<'a, T: 'a>
 where
-    R: io::Read,
+    T: TokenizerExt,
 {
-    deserializer: &'a mut Deserializer<R>,
+    deserializer: &'a mut Deserializer<T>,
 }
-impl<'a, R: 'a> MapDeserializer<'a, R>
+impl<'a, T: 'a> MapDeserializer<'a, T>
 where
-    R: io::Read,
+    T: TokenizerExt,
 {
-    fn new(de: &'a mut Deserializer<R>) -> Self {
+    fn new(de: &'a mut Deserializer<T>) -> Self {
         MapDeserializer { deserializer: de }
     }
 }
-impl<'de, 'a, R: io::Read> de::MapAccess<'de> for MapDeserializer<'a, R>
+impl<'de, 'a, T> de::MapAccess<'de> for MapDeserializer<'a, T>
 where
-    R: io::Read + 'a,
+    T: TokenizerExt,
 {
     type Error = crate::Error;
 
@@ -362,29 +360,29 @@ where
     }
 }
 
-pub struct SeqDeserializer<'a, R: 'a>
+pub struct SeqDeserializer<'a, T: 'a>
 where
-    R: io::Read,
+    T: TokenizerExt,
 {
-    deserializer: &'a mut Deserializer<R>,
+    deserializer: &'a mut Deserializer<T>,
 }
-impl<'a, R: 'a> SeqDeserializer<'a, R>
+impl<'a, T: 'a> SeqDeserializer<'a, T>
 where
-    R: io::Read,
+    T: TokenizerExt,
 {
-    fn new(de: &'a mut Deserializer<R>) -> Self {
+    fn new(de: &'a mut Deserializer<T>) -> Self {
         SeqDeserializer { deserializer: de }
     }
 }
-impl<'de, 'a, R: io::Read> de::SeqAccess<'de> for SeqDeserializer<'a, R>
+impl<'de, 'a, T> de::SeqAccess<'de> for SeqDeserializer<'a, T>
 where
-    R: io::Read + 'a,
+    T: TokenizerExt + 'a,
 {
     type Error = crate::Error;
 
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
+    fn next_element_seed<S>(&mut self, seed: S) -> Result<Option<S::Value>, Self::Error>
     where
-        T: de::DeserializeSeed<'de>,
+        S: de::DeserializeSeed<'de>,
     {
         let value =
             match self.deserializer.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingArray)? {
