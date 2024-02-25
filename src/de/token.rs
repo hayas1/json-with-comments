@@ -1,4 +1,5 @@
 pub mod byte;
+pub mod slice;
 
 use std::str::FromStr;
 
