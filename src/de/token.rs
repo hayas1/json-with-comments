@@ -198,6 +198,8 @@ where
 mod tests {
     use std::io::{BufReader, Read};
 
+    use tests::byte::ByteTokenizer;
+
     use super::*;
 
     #[test]
@@ -247,5 +249,125 @@ mod tests {
         assert!(matches!(iter.next(), None));
         assert!(matches!(iter.next(), None));
         assert!(matches!(iter.next(), None));
+    }
+
+    #[test]
+    fn behavior_fold_token() {
+        let raw = r#"[123, 456]"#;
+        let reader = BufReader::new(raw.as_bytes());
+        let mut tokenizer = ByteTokenizer::new(reader);
+
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 0), b'[')));
+        assert_eq!(
+            tokenizer.fold_token(|_t, c| matches!(c, b'1'..=b'9')).unwrap(),
+            (Some(((0, 1), (0, 3))), vec![b'1', b'2', b'3']),
+        );
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 4), b',')));
+        assert_eq!(tokenizer.fold_token(|_t, c| matches!(c, b'1'..=b'9')).unwrap(), (Some(((0, 5), (0, 5))), vec![]));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 5), b' ')));
+        assert_eq!(
+            tokenizer.fold_token(|_t, c| matches!(c, b'1'..=b'9')).unwrap(),
+            (Some(((0, 6), (0, 8))), vec![b'4', b'5', b'6']),
+        );
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 9), b']')));
+        assert_eq!(tokenizer.eat().unwrap(), None);
+        assert_eq!(tokenizer.fold_token(|_t, c| matches!(c, b'1'..=b'9')).unwrap(), (None, vec![]));
+        assert_eq!(tokenizer.eat().unwrap(), None);
+    }
+
+    #[test]
+    fn behavior_parse_ident() {
+        let raw = r#"[true, fal, nulled, nul,]"#;
+        let reader = BufReader::new(raw.as_bytes());
+        let mut tokenizer = ByteTokenizer::new(reader);
+
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 0), b'[')));
+        assert_eq!(tokenizer.parse_ident(b"true", true).unwrap(), true);
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 5), b',')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 6), b' ')));
+
+        match tokenizer.parse_ident(b"false", false).unwrap_err().into_inner().downcast_ref().unwrap() {
+            SyntaxError::UnexpectedIdent { pos, expected, found } => {
+                assert_eq!(pos, &((0, 7), (0, 9)));
+                assert_eq!(expected, &b"false".to_vec());
+                assert_eq!(found, &b"fal".to_vec());
+            }
+            _ => unreachable!(),
+        }
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 10), b',')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 11), b' ')));
+
+        assert_eq!(tokenizer.parse_ident(b"null", ()).unwrap(), ());
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 16), b'e')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 17), b'd')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 18), b',')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 19), b' ')));
+
+        match tokenizer.parse_ident(b"null", ()).unwrap_err().into_inner().downcast_ref().unwrap() {
+            SyntaxError::UnexpectedIdent { pos, expected, found } => {
+                assert_eq!(pos, &((0, 20), (0, 22)));
+                assert_eq!(expected, &b"null".to_vec());
+                assert_eq!(found, &b"nul".to_vec());
+            }
+            _ => unreachable!(),
+        }
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 23), b',')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 24), b']')));
+
+        assert!(matches!(
+            tokenizer.parse_ident(b"None", ()).unwrap_err().into_inner().downcast_ref().unwrap(),
+            SyntaxError::EofWhileParsingIdent,
+        ));
+        assert_eq!(tokenizer.parse_ident(b"", ()).unwrap(), ());
+    }
+
+    #[test]
+    fn behavior_tokenizer() {
+        let raw = r#"
+            [
+                "jsonc",
+                123,
+                true,
+                false,
+                null,
+            ]
+        "#;
+        let reader = BufReader::new(raw.as_bytes());
+        let mut tokenizer = ByteTokenizer::new(reader);
+
+        assert_eq!(tokenizer.find().unwrap(), Some(((0, 0), b'\n')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((0, 0), b'\n')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((0, 0), b'\n')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((1, 0), b' ')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((1, 0), b' ')));
+        assert_eq!(tokenizer.eat().unwrap(), Some(((1, 0), b' ')));
+
+        assert_eq!(tokenizer.eat_whitespace().unwrap(), Some(((1, 12), b'[')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((1, 13), b'\n')));
+        assert_eq!(tokenizer.skip_whitespace().unwrap(), Some(((2, 16), b'"')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((2, 16), b'"')));
+
+        assert_eq!(tokenizer.parse_string().unwrap(), b"jsonc");
+        assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
+
+        assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b'1')))));
+        assert!(matches!(tokenizer.parse_number(), Ok(123)));
+        assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
+
+        assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b't')))));
+        assert!(matches!(tokenizer.parse_ident(b"true", true), Ok(true)));
+        assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
+
+        assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b'f')))));
+        assert!(matches!(tokenizer.parse_ident(b"false", false), Ok(false)));
+        assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
+
+        assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b'n')))));
+        assert!(matches!(tokenizer.parse_ident(b"null", ()), Ok(())));
+        assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
+
+        assert_eq!(tokenizer.eat_whitespace().unwrap(), Some(((7, 12), b']')));
+        assert_eq!(tokenizer.find().unwrap(), Some(((7, 13), b'\n')));
+        assert_eq!(tokenizer.eat_whitespace().unwrap(), None);
     }
 }
