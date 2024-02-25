@@ -1,5 +1,6 @@
 use serde::de;
 use std::fmt::Display;
+use std::str::Utf8Error;
 use std::{fmt, string::FromUtf8Error};
 use thiserror::Error;
 
@@ -36,6 +37,11 @@ impl de::Error for JsonWithCommentError {
 
 impl From<FromUtf8Error> for JsonWithCommentError {
     fn from(value: FromUtf8Error) -> Self {
+        JsonWithCommentError::new(value)
+    }
+}
+impl From<Utf8Error> for JsonWithCommentError {
+    fn from(value: Utf8Error) -> Self {
         JsonWithCommentError::new(value)
     }
 }
