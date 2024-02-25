@@ -10,7 +10,7 @@ use crate::{
 
 use super::position::{PosRange, Position};
 
-pub trait Tokenizer {
+pub trait Tokenizer<'de> {
     fn eat(&mut self) -> crate::Result<Option<(Position, u8)>>;
     fn find(&mut self) -> crate::Result<Option<(Position, u8)>>;
 
@@ -59,7 +59,7 @@ pub trait Tokenizer {
         }
     }
 
-    fn parse_string<'de>(&mut self) -> crate::Result<StringValue<'de>> {
+    fn parse_string(&mut self) -> crate::Result<StringValue<'de>> {
         let mut buff = Vec::new();
         match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
             (_, b'"') => {
@@ -168,7 +168,7 @@ mod tests {
 
     use super::*;
 
-    pub fn behavior_fold_token<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
+    pub fn behavior_fold_token<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
         let target = r#"[123, 456]"#;
         let mut tokenizer = from(target);
 
@@ -190,7 +190,7 @@ mod tests {
         assert_eq!(tokenizer.eat().unwrap(), None);
     }
 
-    pub fn behavior_parse_ident<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
+    pub fn behavior_parse_ident<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
         let target = r#"[true, fal, nulled, nul,]"#;
         let mut tokenizer = from(target);
 
@@ -234,7 +234,7 @@ mod tests {
         assert_eq!(tokenizer.parse_ident(b"", ()).unwrap(), ());
     }
 
-    pub fn behavior_tokenizer<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
+    pub fn behavior_tokenizer<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
         let target = r#"
             [
                 "jsonc",
@@ -282,8 +282,8 @@ mod tests {
         assert_eq!(tokenizer.eat_whitespace().unwrap(), None);
     }
 
-    pub fn behavior_parse_owned_string<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
-        fn parse(mut tokenizer: impl Tokenizer) -> String {
+    pub fn behavior_parse_owned_string<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
+        fn parse<'a>(mut tokenizer: impl Tokenizer<'a>) -> String {
             tokenizer.parse_string().unwrap().to_string()
         }
 
@@ -302,8 +302,8 @@ mod tests {
         assert_eq!(parse(from(r#""💯""#)), "💯");
     }
 
-    pub fn behavior_parse_owned_string_err<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
-        fn parse_err(mut tokenizer: impl Tokenizer) -> Box<dyn std::error::Error + Send + Sync> {
+    pub fn behavior_parse_owned_string_err<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
+        fn parse_err<'a>(mut tokenizer: impl Tokenizer<'a>) -> Box<dyn std::error::Error + Send + Sync> {
             tokenizer.parse_string().unwrap_err().into_inner()
         }
 
@@ -334,8 +334,8 @@ mod tests {
         ))
     }
 
-    pub fn behavior_parse_number<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
-        fn parse<U: FromStr>(mut tokenizer: impl Tokenizer) -> U {
+    pub fn behavior_parse_number<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
+        fn parse<'a, U: FromStr>(mut tokenizer: impl Tokenizer<'a>) -> U {
             tokenizer.parse_number().unwrap()
         }
 
@@ -363,8 +363,10 @@ mod tests {
         assert_eq!(parse::<f64>(from("6.02214076e23")), 6.02214076E23);
     }
 
-    pub fn behavior_parse_number_err<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
-        fn parse_err<U: FromStr + Debug>(mut tokenizer: impl Tokenizer) -> Box<dyn std::error::Error + Send + Sync> {
+    pub fn behavior_parse_number_err<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
+        fn parse_err<'a, U: FromStr + Debug>(
+            mut tokenizer: impl Tokenizer<'a>,
+        ) -> Box<dyn std::error::Error + Send + Sync> {
             tokenizer.parse_number::<U>().unwrap_err().into_inner()
         }
 

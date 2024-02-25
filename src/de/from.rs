@@ -47,7 +47,7 @@ where
 /// TODO doc
 pub fn from_tokenizer<'de, T, D>(tokenizer: T) -> crate::Result<D>
 where
-    T: 'de + Tokenizer,
+    T: 'de + Tokenizer<'de>,
     D: de::Deserialize<'de>,
 {
     let mut de = Deserializer::new(tokenizer);

@@ -8,20 +8,20 @@ use crate::{
 
 use super::Tokenizer;
 
-pub struct SliceTokenizer<'a> {
-    slice: &'a [u8],
+pub struct SliceTokenizer<'de> {
+    slice: &'de [u8],
     current: usize,
-    iter: Peekable<RowColIterator<Box<dyn Iterator<Item = Result<u8, ()>> + 'a>>>,
+    iter: Peekable<RowColIterator<Box<dyn Iterator<Item = Result<u8, ()>> + 'de>>>,
 }
-impl<'a> SliceTokenizer<'a> {
-    pub fn new(slice: &'a [u8]) -> Self {
-        let i: Box<dyn Iterator<Item = Result<u8, ()>> + 'a> = Box::new(slice.iter().cloned().map(Ok));
+impl<'de> SliceTokenizer<'de> {
+    pub fn new(slice: &'de [u8]) -> Self {
+        let i: Box<dyn Iterator<Item = Result<u8, ()>> + 'de> = Box::new(slice.iter().cloned().map(Ok));
         let (current, iter) = (0, RowColIterator::new(i).peekable());
         SliceTokenizer { slice, current, iter }
     }
 }
 
-impl<'a> Tokenizer for SliceTokenizer<'a> {
+impl<'de> Tokenizer<'de> for SliceTokenizer<'de> {
     fn eat(&mut self) -> crate::Result<Option<(Position, u8)>> {
         self.current += 1;
         match self.iter.next() {
@@ -39,14 +39,14 @@ impl<'a> Tokenizer for SliceTokenizer<'a> {
         }
     }
 
-    fn parse_string<'de>(&mut self) -> crate::Result<StringValue<'de>> {
+    fn parse_string(&mut self) -> crate::Result<StringValue<'de>> {
         match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
             (_, b'"') => {
                 let offset = self.current;
                 self.parse_string_content(&mut Vec::new())?; // TODO: Optimize
                 match self.eat()?.ok_or(SyntaxError::EofWhileEndParsingString)? {
                     (_, b'"') => {
-                        let s = &self.slice[offset..self.current];
+                        let s = &self.slice[offset..self.current - 1];
                         Ok(StringValue::Borrowed(std::str::from_utf8(s)?))
                     }
                     (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingString { pos, found })?,

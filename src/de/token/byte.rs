@@ -19,7 +19,7 @@ where
     }
 }
 
-impl<R> Tokenizer for ByteTokenizer<R>
+impl<'de, R> Tokenizer<'de> for ByteTokenizer<R>
 where
     R: io::Read,
 {
