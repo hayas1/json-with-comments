@@ -196,9 +196,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::io::{BufReader, Read};
-
-    use tests::byte::ByteTokenizer;
+    use std::{
+        fmt::Debug,
+        io::{BufReader, Read},
+    };
 
     use super::*;
 
@@ -251,11 +252,9 @@ mod tests {
         assert!(matches!(iter.next(), None));
     }
 
-    #[test]
-    fn behavior_fold_token() {
-        let raw = r#"[123, 456]"#;
-        let reader = BufReader::new(raw.as_bytes());
-        let mut tokenizer = ByteTokenizer::new(reader);
+    pub fn behavior_fold_token<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
+        let target = r#"[123, 456]"#;
+        let mut tokenizer = from(target);
 
         assert_eq!(tokenizer.eat().unwrap(), Some(((0, 0), b'[')));
         assert_eq!(
@@ -275,11 +274,9 @@ mod tests {
         assert_eq!(tokenizer.eat().unwrap(), None);
     }
 
-    #[test]
-    fn behavior_parse_ident() {
-        let raw = r#"[true, fal, nulled, nul,]"#;
-        let reader = BufReader::new(raw.as_bytes());
-        let mut tokenizer = ByteTokenizer::new(reader);
+    pub fn behavior_parse_ident<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
+        let target = r#"[true, fal, nulled, nul,]"#;
+        let mut tokenizer = from(target);
 
         assert_eq!(tokenizer.eat().unwrap(), Some(((0, 0), b'[')));
         assert_eq!(tokenizer.parse_ident(b"true", true).unwrap(), true);
@@ -321,9 +318,8 @@ mod tests {
         assert_eq!(tokenizer.parse_ident(b"", ()).unwrap(), ());
     }
 
-    #[test]
-    fn behavior_tokenizer() {
-        let raw = r#"
+    pub fn behavior_tokenizer<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
+        let target = r#"
             [
                 "jsonc",
                 123,
@@ -332,8 +328,7 @@ mod tests {
                 null,
             ]
         "#;
-        let reader = BufReader::new(raw.as_bytes());
-        let mut tokenizer = ByteTokenizer::new(reader);
+        let mut tokenizer = from(target);
 
         assert_eq!(tokenizer.find().unwrap(), Some(((0, 0), b'\n')));
         assert_eq!(tokenizer.find().unwrap(), Some(((0, 0), b'\n')));
@@ -371,100 +366,123 @@ mod tests {
         assert_eq!(tokenizer.eat_whitespace().unwrap(), None);
     }
 
-    #[test]
-    fn test_parse_string() {
-        // ok
-        fn parse(s: &str) -> Vec<u8> {
-            ByteTokenizer::new(s.as_bytes()).parse_string().unwrap()
+    pub fn behavior_parse_owned_string<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
+        fn parse(mut tokenizer: impl Tokenizer) -> Vec<u8> {
+            tokenizer.parse_string().unwrap()
         }
-        assert_eq!(parse(r#""""#), b"");
-        assert_eq!(parse(r#""rust""#), b"rust");
-        assert_eq!(parse(r#""\"quote\"""#), b"\"quote\"");
-        assert_eq!(parse(r#""back\\slash""#), b"back\\slash");
-        assert_eq!(parse(r#""escaped\/slash""#), b"escaped/slash");
-        assert_eq!(parse(r#""unescaped/slash""#), b"unescaped/slash");
-        assert_eq!(parse(r#""backspace\b formfeed\f""#), b"backspace\x08 formfeed\x0C");
-        assert_eq!(parse(r#""line\nfeed""#), b"line\nfeed");
-        assert_eq!(parse(r#""white\tspace""#), b"white\tspace");
-        assert_eq!(String::from_utf8(parse(r#""line\u000Afeed""#)).unwrap(), "line\u{000A}feed");
-        assert_eq!(parse(r#""line\u000Afeed""#), "line\nfeed".bytes().collect::<Vec<_>>());
-        assert_eq!(parse(r#""epsilon \u03b5""#), "epsilon ε".bytes().collect::<Vec<_>>());
-        assert_eq!(parse(r#""💯""#), "💯".bytes().collect::<Vec<_>>());
 
-        // err
-        fn parse_err(s: &str) -> Box<dyn std::error::Error> {
-            ByteTokenizer::new(s.as_bytes()).parse_string().unwrap_err().into_inner()
+        assert_eq!(parse(from(r#""""#)), b"");
+        assert_eq!(parse(from(r#""rust""#)), b"rust");
+        assert_eq!(parse(from(r#""\"quote\"""#)), b"\"quote\"");
+        assert_eq!(parse(from(r#""back\\slash""#)), b"back\\slash");
+        assert_eq!(parse(from(r#""escaped\/slash""#)), b"escaped/slash");
+        assert_eq!(parse(from(r#""unescaped/slash""#)), b"unescaped/slash");
+        assert_eq!(parse(from(r#""backspace\b formfeed\f""#)), b"backspace\x08 formfeed\x0C");
+        assert_eq!(parse(from(r#""line\nfeed""#)), b"line\nfeed");
+        assert_eq!(parse(from(r#""white\tspace""#)), b"white\tspace");
+        assert_eq!(String::from_utf8(parse(from(r#""line\u000Afeed""#))).unwrap(), "line\u{000A}feed");
+        assert_eq!(parse(from(r#""line\u000Afeed""#)), "line\nfeed".bytes().collect::<Vec<_>>());
+        assert_eq!(parse(from(r#""epsilon \u03b5""#)), "epsilon ε".bytes().collect::<Vec<_>>());
+        assert_eq!(parse(from(r#""💯""#)), "💯".bytes().collect::<Vec<_>>());
+    }
+
+    pub fn behavior_parse_owned_string_err<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
+        fn parse_err(mut tokenizer: impl Tokenizer) -> Box<dyn std::error::Error + Send + Sync> {
+            tokenizer.parse_string().unwrap_err().into_inner()
         }
-        assert!(matches!(parse_err(r#""ending..."#).downcast_ref().unwrap(), SyntaxError::EofWhileEndParsingString,));
+
         assert!(matches!(
-            parse_err(
+            parse_err(from(r#""ending..."#)).downcast_ref().unwrap(),
+            SyntaxError::EofWhileEndParsingString,
+        ));
+        assert!(matches!(
+            parse_err(from(
                 r#""line
                     feed""#
-            )
+            ))
             .downcast_ref()
             .unwrap(),
             SyntaxError::ControlCharacterWhileParsingString { c: b'\n', .. }
         ));
         assert!(matches!(
-            parse_err(r#""escape EoF \"#).downcast_ref().unwrap(),
+            parse_err(from(r#""escape EoF \"#)).downcast_ref().unwrap(),
             SyntaxError::EofWhileParsingEscapeSequence,
         ));
         assert!(matches!(
-            parse_err(r#""invalid escape sequence \a""#).downcast_ref().unwrap(),
+            parse_err(from(r#""invalid escape sequence \a""#)).downcast_ref().unwrap(),
             SyntaxError::InvalidEscapeSequence { found: b'a', .. }
         ));
         assert!(matches!(
-            parse_err(r#""invalid unicode \uXXXX""#).downcast_ref().unwrap(),
+            parse_err(from(r#""invalid unicode \uXXXX""#)).downcast_ref().unwrap(),
             SyntaxError::InvalidUnicodeEscape { found: b'X', .. }
         ))
     }
 
-    #[test]
-    fn test_parse_number() {
-        // ok
-        fn parse<T: FromStr>(s: &str) -> T {
-            ByteTokenizer::new(s.as_bytes()).parse_number().unwrap()
+    pub fn behavior_parse_number<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
+        fn parse<U: FromStr>(mut tokenizer: impl Tokenizer) -> U {
+            tokenizer.parse_number().unwrap()
         }
-        assert_eq!(parse::<u8>("255"), 255);
-        assert_eq!(parse::<u16>("16"), 16);
-        assert_eq!(parse::<u32>("32"), 32);
-        assert_eq!(parse::<u64>("9999999999999999999"), 9999999999999999999);
-        assert_eq!(parse::<u128>("340282366920938463463374607431768211455"), 340282366920938463463374607431768211455);
-        assert_eq!(parse::<i8>("-127"), -127);
-        assert_eq!(parse::<i16>("16"), 16);
-        assert_eq!(parse::<i32>("-32"), -32);
-        assert_eq!(parse::<i64>("-999999999999999999"), -999999999999999999);
-        assert_eq!(parse::<i128>("-170141183460469231731687303715884105728"), -170141183460469231731687303715884105728);
-        assert_eq!(parse::<f32>("0.000000000000000e00000000000000000"), 0.);
-        assert_eq!(parse::<f32>("3.1415926535"), 3.1415926535);
-        assert_eq!(parse::<f32>("2.7"), 2.7);
-        assert_eq!(parse::<f64>("8.314462618"), 8.314462618);
-        assert_eq!(parse::<f64>("6.674e-11"), 0.00000000006674);
-        assert_eq!(parse::<f64>("6.02214076e23"), 6.02214076E23);
 
-        // err
-        fn parse_err<T: FromStr + std::fmt::Debug>(s: &str) -> Box<dyn std::error::Error + Send + Sync> {
-            ByteTokenizer::new(s.as_bytes()).parse_number::<T>().unwrap_err().into_inner()
+        assert_eq!(parse::<u8>(from("255")), 255);
+        assert_eq!(parse::<u16>(from("16")), 16);
+        assert_eq!(parse::<u32>(from("32")), 32);
+        assert_eq!(parse::<u64>(from("9999999999999999999")), 9999999999999999999);
+        assert_eq!(
+            parse::<u128>(from("340282366920938463463374607431768211455")),
+            340282366920938463463374607431768211455
+        );
+        assert_eq!(parse::<i8>(from("-127")), -127);
+        assert_eq!(parse::<i16>(from("16")), 16);
+        assert_eq!(parse::<i32>(from("-32")), -32);
+        assert_eq!(parse::<i64>(from("-999999999999999999")), -999999999999999999);
+        assert_eq!(
+            parse::<i128>(from("-170141183460469231731687303715884105728")),
+            -170141183460469231731687303715884105728
+        );
+        assert_eq!(parse::<f32>(from("0.000000000000000e00000000000000000")), 0.);
+        assert_eq!(parse::<f32>(from("3.1415926535")), 3.1415926535);
+        assert_eq!(parse::<f32>(from("2.7")), 2.7);
+        assert_eq!(parse::<f64>(from("8.314462618")), 8.314462618);
+        assert_eq!(parse::<f64>(from("6.674e-11")), 0.00000000006674);
+        assert_eq!(parse::<f64>(from("6.02214076e23")), 6.02214076E23);
+    }
+
+    pub fn behavior_parse_number_err<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
+        fn parse_err<U: FromStr + Debug>(mut tokenizer: impl Tokenizer) -> Box<dyn std::error::Error + Send + Sync> {
+            tokenizer.parse_number::<U>().unwrap_err().into_inner()
         }
-        assert!(matches!(parse_err::<u32>("000").downcast_ref().unwrap(), SyntaxError::InvalidLeadingZeros { .. }));
-        assert!(matches!(parse_err::<u32>("012").downcast_ref().unwrap(), SyntaxError::InvalidLeadingZeros { .. }));
-        assert!(matches!(parse_err::<u32>("+12").downcast_ref().unwrap(), SyntaxError::InvalidLeadingPlus { .. }));
-        assert!(matches!(parse_err::<u8>("256").downcast_ref().unwrap(), SyntaxError::InvalidNumber { .. }));
-        assert!(matches!(parse_err::<i32>("-999999999999").downcast_ref().unwrap(), SyntaxError::InvalidNumber { .. }));
+
+        assert!(matches!(parse_err::<u8>(from("256")).downcast_ref().unwrap(), SyntaxError::InvalidNumber { .. }));
         assert!(matches!(
-            parse_err::<f32>("0.").downcast_ref().unwrap(),
+            parse_err::<u32>(from("000")).downcast_ref().unwrap(),
+            SyntaxError::InvalidLeadingZeros { .. }
+        ));
+        assert!(matches!(
+            parse_err::<u32>(from("012")).downcast_ref().unwrap(),
+            SyntaxError::InvalidLeadingZeros { .. }
+        ));
+        assert!(matches!(
+            parse_err::<u32>(from("+12")).downcast_ref().unwrap(),
+            SyntaxError::InvalidLeadingPlus { .. }
+        ));
+        assert!(matches!(
+            parse_err::<i32>(from("-999999999999")).downcast_ref().unwrap(),
+            SyntaxError::InvalidNumber { .. }
+        ));
+        assert!(matches!(
+            parse_err::<f32>(from("0.")).downcast_ref().unwrap(),
             SyntaxError::EofWhileStartParsingFraction { .. },
         ));
         assert!(matches!(
-            parse_err::<f32>("0.e").downcast_ref().unwrap(),
+            parse_err::<f32>(from("0.e")).downcast_ref().unwrap(),
             SyntaxError::MissingFraction { found: b'e', .. },
         ));
         assert!(matches!(
-            parse_err::<f64>("0e").downcast_ref().unwrap(),
+            parse_err::<f64>(from("0e")).downcast_ref().unwrap(),
             SyntaxError::EofWhileStartParsingExponent { .. },
         ));
         assert!(matches!(
-            parse_err::<f64>("1e.").downcast_ref().unwrap(),
+            parse_err::<f64>(from("1e.")).downcast_ref().unwrap(),
             SyntaxError::MissingExponent { found: b'.', .. },
         ));
     }

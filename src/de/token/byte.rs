@@ -39,3 +39,53 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::io::BufReader;
+
+    use super::super::tests::*;
+    use super::*;
+
+    #[test]
+    fn test_behavior_fold_token() {
+        behavior_fold_token(|s| ByteTokenizer::new(s.as_bytes()));
+        behavior_fold_token(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+    }
+
+    #[test]
+    fn test_behavior_parse_ident() {
+        behavior_parse_ident(|s| ByteTokenizer::new(s.as_bytes()));
+        behavior_parse_ident(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+    }
+
+    #[test]
+    fn test_behavior_tokenizer() {
+        behavior_tokenizer(|s| ByteTokenizer::new(s.as_bytes()));
+        behavior_tokenizer(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+    }
+
+    #[test]
+    fn test_behavior_parse_owned_string() {
+        behavior_parse_owned_string(|s| ByteTokenizer::new(s.as_bytes()));
+        behavior_parse_owned_string(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+    }
+
+    #[test]
+    fn test_behavior_parse_owned_string_err() {
+        behavior_parse_owned_string_err(|s| ByteTokenizer::new(s.as_bytes()));
+        behavior_parse_owned_string_err(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+    }
+
+    #[test]
+    fn test_behavior_parse_number() {
+        behavior_parse_number(|s| ByteTokenizer::new(s.as_bytes()));
+        behavior_parse_number(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+    }
+
+    #[test]
+    fn test_behavior_parse_number_err() {
+        behavior_parse_number_err(|s| ByteTokenizer::new(s.as_bytes()));
+        behavior_parse_number_err(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+    }
+}
