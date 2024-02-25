@@ -119,3 +119,8 @@ fn test_deserialize_json() {
     ];
     assert_eq!(events, expected);
 }
+
+#[test]
+fn test_deserialize_json_with_comment() {
+    // TODO
+}
