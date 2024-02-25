@@ -1,8 +1,8 @@
 use std::{io, iter::Peekable};
 
-use crate::de::position::Position;
+use crate::de::position::{Position, RowColIterator};
 
-use super::{RowColIterator, Tokenizer};
+use super::Tokenizer;
 
 pub struct ByteTokenizer<R>
 where
