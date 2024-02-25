@@ -2,7 +2,10 @@ pub mod byte;
 
 use std::str::FromStr;
 
-use crate::error::{NeverFail, SyntaxError};
+use crate::{
+    error::{NeverFail, SyntaxError},
+    value::string::StringValue,
+};
 
 use super::position::{PosRange, Position};
 
@@ -55,13 +58,13 @@ pub trait Tokenizer {
         }
     }
 
-    fn parse_string(&mut self) -> crate::Result<Vec<u8>> {
+    fn parse_string(&mut self) -> crate::Result<StringValue> {
         let mut buff = Vec::new();
         match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
             (_, b'"') => {
                 self.parse_string_content(&mut buff)?;
                 match self.eat()?.ok_or(SyntaxError::EofWhileEndParsingString)? {
-                    (_, b'"') => Ok(buff),
+                    (_, b'"') => Ok(StringValue::Owned(String::from_utf8(buff)?)),
                     (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingString { pos, found })?,
                 }
             }
@@ -254,7 +257,7 @@ mod tests {
         assert_eq!(tokenizer.skip_whitespace().unwrap(), Some(((2, 16), b'"')));
         assert_eq!(tokenizer.find().unwrap(), Some(((2, 16), b'"')));
 
-        assert_eq!(tokenizer.parse_string().unwrap(), b"jsonc");
+        assert_eq!(tokenizer.parse_string().unwrap(), "jsonc");
         assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
 
         assert!(matches!(tokenizer.skip_whitespace(), Ok(Some((_, b'1')))));
@@ -279,23 +282,23 @@ mod tests {
     }
 
     pub fn behavior_parse_owned_string<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {
-        fn parse(mut tokenizer: impl Tokenizer) -> Vec<u8> {
-            tokenizer.parse_string().unwrap()
+        fn parse(mut tokenizer: impl Tokenizer) -> String {
+            tokenizer.parse_string().unwrap().to_string()
         }
 
-        assert_eq!(parse(from(r#""""#)), b"");
-        assert_eq!(parse(from(r#""rust""#)), b"rust");
-        assert_eq!(parse(from(r#""\"quote\"""#)), b"\"quote\"");
-        assert_eq!(parse(from(r#""back\\slash""#)), b"back\\slash");
-        assert_eq!(parse(from(r#""escaped\/slash""#)), b"escaped/slash");
-        assert_eq!(parse(from(r#""unescaped/slash""#)), b"unescaped/slash");
-        assert_eq!(parse(from(r#""backspace\b formfeed\f""#)), b"backspace\x08 formfeed\x0C");
-        assert_eq!(parse(from(r#""line\nfeed""#)), b"line\nfeed");
-        assert_eq!(parse(from(r#""white\tspace""#)), b"white\tspace");
-        assert_eq!(String::from_utf8(parse(from(r#""line\u000Afeed""#))).unwrap(), "line\u{000A}feed");
-        assert_eq!(parse(from(r#""line\u000Afeed""#)), "line\nfeed".bytes().collect::<Vec<_>>());
-        assert_eq!(parse(from(r#""epsilon \u03b5""#)), "epsilon ε".bytes().collect::<Vec<_>>());
-        assert_eq!(parse(from(r#""💯""#)), "💯".bytes().collect::<Vec<_>>());
+        assert_eq!(parse(from(r#""""#)), "");
+        assert_eq!(parse(from(r#""rust""#)), "rust");
+        assert_eq!(parse(from(r#""\"quote\"""#)), "\"quote\"");
+        assert_eq!(parse(from(r#""back\\slash""#)), "back\\slash");
+        assert_eq!(parse(from(r#""escaped\/slash""#)), "escaped/slash");
+        assert_eq!(parse(from(r#""unescaped/slash""#)), "unescaped/slash");
+        assert_eq!(parse(from(r#""backspace\b formfeed\f""#)), "backspace\x08 formfeed\x0C");
+        assert_eq!(parse(from(r#""line\nfeed""#)), "line\nfeed");
+        assert_eq!(parse(from(r#""white\tspace""#)), "white\tspace");
+        assert_eq!(parse(from(r#""line\u000Afeed""#)), "line\u{000A}feed");
+        assert_eq!(parse(from(r#""line\u000Afeed""#)), "line\nfeed");
+        assert_eq!(parse(from(r#""epsilon \u03b5""#)), "epsilon ε");
+        assert_eq!(parse(from(r#""💯""#)), "💯");
     }
 
     pub fn behavior_parse_owned_string_err<'a, T: 'a + Tokenizer, F: Fn(&'a str) -> T>(from: F) {

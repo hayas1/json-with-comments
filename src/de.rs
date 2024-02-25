@@ -4,7 +4,10 @@ pub mod token;
 
 use serde::de;
 
-use crate::error::{NeverFail, SyntaxError};
+use crate::{
+    error::{NeverFail, SyntaxError},
+    value::string::StringValue,
+};
 
 use self::token::Tokenizer;
 
@@ -157,7 +160,11 @@ where
         V: de::Visitor<'de>,
     {
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
-            (_, b'"') => visitor.visit_str(&String::from_utf8(self.tokenizer.parse_string()?)?),
+            (_, b'"') => match &self.tokenizer.parse_string()? {
+                // TODO StringValue::Borrowed(s) => visitor.visit_borrowed_str(s),
+                StringValue::Borrowed(s) => visitor.visit_str(s),
+                StringValue::Owned(s) => visitor.visit_str(s),
+            },
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
         }
     }
@@ -174,7 +181,7 @@ where
         V: de::Visitor<'de>,
     {
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingBytes)? {
-            (_, b'"') => visitor.visit_bytes(&self.tokenizer.parse_string()?),
+            (_, b'"') => visitor.visit_bytes(self.tokenizer.parse_string()?.to_string().as_bytes()), // TODO directly convert to bytes
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingBytes { pos, found })?,
         }
     }
