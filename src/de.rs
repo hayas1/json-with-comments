@@ -6,17 +6,17 @@ use serde::de;
 
 use crate::error::{NeverFail, SyntaxError};
 
-use self::token::TokenizerExt;
+use self::token::Tokenizer;
 
 pub struct Deserializer<T>
 where
-    T: TokenizerExt,
+    T: Tokenizer,
 {
     tokenizer: T,
 }
 impl<T> Deserializer<T>
 where
-    T: TokenizerExt,
+    T: Tokenizer,
 {
     pub fn new(tokenizer: T) -> Self {
         Deserializer { tokenizer }
@@ -31,7 +31,7 @@ where
 }
 impl<'de, 'a, T> de::Deserializer<'de> for &'a mut Deserializer<T>
 where
-    T: TokenizerExt,
+    T: Tokenizer,
 {
     type Error = crate::Error;
 
@@ -311,13 +311,13 @@ where
 
 pub struct MapDeserializer<'a, T: 'a>
 where
-    T: TokenizerExt,
+    T: Tokenizer,
 {
     deserializer: &'a mut Deserializer<T>,
 }
 impl<'a, T: 'a> MapDeserializer<'a, T>
 where
-    T: TokenizerExt,
+    T: Tokenizer,
 {
     fn new(de: &'a mut Deserializer<T>) -> Self {
         MapDeserializer { deserializer: de }
@@ -325,7 +325,7 @@ where
 }
 impl<'de, 'a, T> de::MapAccess<'de> for MapDeserializer<'a, T>
 where
-    T: TokenizerExt,
+    T: Tokenizer,
 {
     type Error = crate::Error;
 
@@ -362,13 +362,13 @@ where
 
 pub struct SeqDeserializer<'a, T: 'a>
 where
-    T: TokenizerExt,
+    T: Tokenizer,
 {
     deserializer: &'a mut Deserializer<T>,
 }
 impl<'a, T: 'a> SeqDeserializer<'a, T>
 where
-    T: TokenizerExt,
+    T: Tokenizer,
 {
     fn new(de: &'a mut Deserializer<T>) -> Self {
         SeqDeserializer { deserializer: de }
@@ -376,7 +376,7 @@ where
 }
 impl<'de, 'a, T> de::SeqAccess<'de> for SeqDeserializer<'a, T>
 where
-    T: TokenizerExt + 'a,
+    T: Tokenizer + 'a,
 {
     type Error = crate::Error;
 

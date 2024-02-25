@@ -6,7 +6,7 @@ use crate::error::{NeverFail, SyntaxError};
 
 use super::position::{PosRange, Position};
 
-pub trait TokenizerExt {
+pub trait Tokenizer {
     fn eat(&mut self) -> crate::Result<Option<(Position, u8)>>;
     fn find(&mut self) -> crate::Result<Option<(Position, u8)>>;
 

@@ -2,7 +2,7 @@ use std::{io, iter::Peekable};
 
 use crate::de::position::Position;
 
-use super::{RowColIterator, TokenizerExt};
+use super::{RowColIterator, Tokenizer};
 
 pub struct ByteTokenizer<R>
 where
@@ -19,7 +19,7 @@ where
     }
 }
 
-impl<R> TokenizerExt for ByteTokenizer<R>
+impl<R> Tokenizer for ByteTokenizer<R>
 where
     R: io::Read,
 {
