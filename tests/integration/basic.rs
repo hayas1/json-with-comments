@@ -34,16 +34,21 @@ fn test_deserialize_basic_array() {
 
 #[test]
 fn test_deserialize_str() {
-    #[derive(Deserialize)]
-    struct Data<'a> {
-        // static_: &'static str, // cannot deserialize borrowed string
-        cow: Cow<'a, str>,
-        string: String,
-    }
-    let raw = r#"{"cow": "copy on write", "string": "owned string"}"#;
-    let data: Data = from_str(raw).unwrap();
-    assert_eq!(data.cow, "copy on write");
-    assert_eq!(data.string, "owned string");
+    let unescaped = r#""string without linefeed""#;
+    assert_eq!(from_str::<String>(unescaped).unwrap(), "string without linefeed");
+    assert_eq!(from_str::<Cow<'_, str>>(unescaped).unwrap(), "string without linefeed");
+    assert!(from_str::<&str>(unescaped).is_err(), "borrowed string cannot be deserialized and unescaped");
+    assert_eq!(from_str_raw::<String>(unescaped).unwrap(), r#"string without linefeed"#);
+    assert_eq!(from_str_raw::<Cow<'_, str>>(unescaped).unwrap(), r#"string without linefeed"#);
+    assert_eq!(from_str_raw::<&str>(unescaped).unwrap(), r#"string without linefeed"#);
+
+    let escaped = r#""string with linefeed\n""#;
+    assert_eq!(from_str::<String>(escaped).unwrap(), "string with linefeed\n");
+    assert_eq!(from_str::<Cow<'_, str>>(escaped).unwrap(), "string with linefeed\n");
+    assert!(from_str::<&str>(escaped).is_err(), "borrowed string cannot be deserialized and unescaped");
+    assert_eq!(from_str_raw::<String>(escaped).unwrap(), r#"string with linefeed\n"#);
+    assert_eq!(from_str_raw::<Cow<'_, str>>(escaped).unwrap(), r#"string with linefeed\n"#);
+    assert_eq!(from_str_raw::<&str>(escaped).unwrap(), r#"string with linefeed\n"#);
 }
 
 #[test]
@@ -129,7 +134,7 @@ fn test_deserialize_json_with_comment() {
 }
 
 #[test]
-fn test_deserialize_literal() {
+fn test_deserialize_literal_matchable() {
     #[derive(Deserialize)]
     struct Person<'a> {
         name: &'static str,
