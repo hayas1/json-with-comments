@@ -302,6 +302,28 @@ mod tests {
         assert_eq!(parse(from(r#""💯""#)), "💯");
     }
 
+    pub fn behavior_parse_borrowed_string<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
+        fn parse<'a>(mut tokenizer: impl Tokenizer<'a>) -> &'a str {
+            match tokenizer.parse_string().unwrap() {
+                StringValue::Borrowed(s) => s,
+                StringValue::Owned(s) => panic!("expected borrowed string, got owned: {}", s),
+            }
+        }
+
+        assert_eq!(parse(from(r#""""#)), "");
+        assert_eq!(parse(from(r#""rust""#)), "rust");
+        assert_eq!(parse(from(r#""\"quote\"""#)), "\\\"quote\\\"");
+        assert_eq!(parse(from(r#""back\\slash""#)), "back\\\\slash");
+        assert_eq!(parse(from(r#""escaped\/slash""#)), "escaped\\/slash");
+        assert_eq!(parse(from(r#""unescaped/slash""#)), "unescaped/slash");
+        assert_eq!(parse(from(r#""backspace\b formfeed\f""#)), "backspace\\b formfeed\\f");
+        assert_eq!(parse(from(r#""line\nfeed""#)), "line\\nfeed");
+        assert_eq!(parse(from(r#""white\tspace""#)), "white\\tspace");
+        assert_eq!(parse(from(r#""line\u000Afeed""#)), "line\\u000Afeed");
+        assert_eq!(parse(from(r#""epsilon \u03b5""#)), "epsilon \\u03b5");
+        assert_eq!(parse(from(r#""💯""#)), "💯");
+    }
+
     pub fn behavior_parse_owned_string_err<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
         fn parse_err<'a>(mut tokenizer: impl Tokenizer<'a>) -> Box<dyn std::error::Error + Send + Sync> {
             tokenizer.parse_string().unwrap_err().into_inner()
