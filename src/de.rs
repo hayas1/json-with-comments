@@ -34,7 +34,7 @@ where
 }
 impl<'de, 'a, T> de::Deserializer<'de> for &'a mut Deserializer<T>
 where
-    T: Tokenizer,
+    T: 'de + Tokenizer,
 {
     type Error = crate::Error;
 
@@ -160,10 +160,9 @@ where
         V: de::Visitor<'de>,
     {
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
-            (_, b'"') => match &self.tokenizer.parse_string()? {
-                // TODO StringValue::Borrowed(s) => visitor.visit_borrowed_str(s),
-                StringValue::Borrowed(s) => visitor.visit_str(s),
-                StringValue::Owned(s) => visitor.visit_str(s),
+            (_, b'"') => match self.tokenizer.parse_string()? {
+                StringValue::Borrowed(s) => visitor.visit_borrowed_str(s),
+                StringValue::Owned(s) => visitor.visit_str(&s),
             },
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
         }
@@ -332,7 +331,7 @@ where
 }
 impl<'de, 'a, T> de::MapAccess<'de> for MapDeserializer<'a, T>
 where
-    T: Tokenizer,
+    T: 'de + Tokenizer,
 {
     type Error = crate::Error;
 
@@ -383,7 +382,7 @@ where
 }
 impl<'de, 'a, T> de::SeqAccess<'de> for SeqDeserializer<'a, T>
 where
-    T: Tokenizer + 'a,
+    T: 'de + Tokenizer,
 {
     type Error = crate::Error;
 

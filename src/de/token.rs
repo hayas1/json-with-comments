@@ -58,7 +58,7 @@ pub trait Tokenizer {
         }
     }
 
-    fn parse_string(&mut self) -> crate::Result<StringValue> {
+    fn parse_string<'de>(&mut self) -> crate::Result<StringValue<'de>> {
         let mut buff = Vec::new();
         match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
             (_, b'"') => {
