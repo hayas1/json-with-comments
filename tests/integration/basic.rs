@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use json_with_comment::{self, from_str};
+use json_with_comment::{self, de::from::from_str_raw, from_str};
 use serde::Deserialize;
 
 #[test]
@@ -33,32 +33,35 @@ fn test_deserialize_basic_array() {
 }
 
 #[test]
-fn test_cow_str() {
+fn test_deserialize_str() {
     #[derive(Deserialize)]
     struct Data<'a> {
-        name: Cow<'a, str>,
+        // static_: &'static str, // cannot deserialize borrowed string
+        cow: Cow<'a, str>,
+        string: String,
     }
-    let raw = r#"{"name": "cow"}"#;
+    let raw = r#"{"cow": "copy on write", "string": "owned string"}"#;
     let data: Data = from_str(raw).unwrap();
-    assert_eq!(data.name, "cow");
+    assert_eq!(data.cow, "copy on write");
+    assert_eq!(data.string, "owned string");
 }
 
 #[test]
 fn test_deserialize_json() {
-    #[derive(Deserialize, PartialEq, Eq, Debug)]
+    #[derive(Deserialize, PartialEq, Debug)]
     struct Event {
         name: String,
         description: String,
         members: Vec<Member>,
         schedule: Schedule,
     }
-    #[derive(Deserialize, PartialEq, Eq, Debug)]
+    #[derive(Deserialize, PartialEq, Debug)]
     struct Member {
-        first_name: Option<String>,
-        last_name: String,
+        name: String,
         adult: bool,
+        height: Option<f64>,
     }
-    #[derive(Deserialize, PartialEq, Eq, Debug)]
+    #[derive(Deserialize, PartialEq, Debug)]
     struct Schedule {
         year: u32,
         month: u16,
@@ -71,14 +74,14 @@ fn test_deserialize_json() {
                 "description": "this is party\u0F12\nhappy new year🎉",
                 "members": [
                     {
-                        "first_name": "string",
-                        "last_name": "json",
+                        "name": "json string",
                         "adult": true,
+                        "height": 1.7
                     },
                     {
-                        "first_name": null,
-                        "last_name": "jsonc",
+                        "name": "jsonc string",
                         "adult": false,
+                        "height": null
                     }
                 ],
                 "schedule": {
@@ -105,8 +108,8 @@ fn test_deserialize_json() {
             name: "event🥳".to_string(),
             description: "this is party༒\nhappy new year🎉".to_string(),
             members: vec![
-                Member { first_name: Some("string".to_string()), last_name: "json".to_string(), adult: true },
-                Member { first_name: None, last_name: "jsonc".to_string(), adult: false },
+                Member { name: "json string".to_string(), adult: true, height: Some(1.7) },
+                Member { name: "jsonc string".to_string(), adult: false, height: None },
             ],
             schedule: Schedule { year: 2024, month: 1, day: 1 },
         },
@@ -123,4 +126,39 @@ fn test_deserialize_json() {
 #[test]
 fn test_deserialize_json_with_comment() {
     // TODO
+}
+
+#[test]
+fn test_deserialize_literal() {
+    #[derive(Deserialize)]
+    struct Person<'a> {
+        name: &'static str,
+        nickname: Option<&'a str>,
+        age: u8,
+        alive: bool,
+    }
+    let raw = r#"[
+        {
+            "name": "hayas1",
+            "nickname": "hayashi",
+            "age": 26,
+            "alive": true
+        },
+        {
+            "name": "nobunaga",
+            "nickname": null,
+            "age": 47,
+            "alive": false
+        },
+        {
+            "name": "Ω",
+            "nickname": "\u03ad",
+            "age": 32,
+            "alive": true
+        }
+    ]"#;
+    let people: Vec<Person> = from_str_raw(raw).unwrap();
+    assert!(matches!(people[0], Person { name: "hayas1", nickname: Some("hayashi"), age: 26, alive: true }));
+    assert!(matches!(people[1], Person { name: "nobunaga", nickname: None, age: 47, alive: false }));
+    assert!(matches!(people[2], Person { name: "Ω", nickname: Some("\\u03ad"), age: 32, alive: true }));
 }

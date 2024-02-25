@@ -8,7 +8,7 @@ use serde::de;
 
 use crate::de::{token::byte::ByteTokenizer, Deserializer};
 
-use super::token::Tokenizer;
+use super::token::{slice::SliceTokenizer, Tokenizer};
 
 /// TODO doc
 pub fn from_str<'de, D>(s: &'de str) -> crate::Result<D>
@@ -16,6 +16,14 @@ where
     D: de::Deserialize<'de>,
 {
     from_read(BufReader::new(s.as_bytes()))
+}
+
+/// TODO doc
+pub fn from_str_raw<'de, D>(s: &'de str) -> crate::Result<D>
+where
+    D: de::Deserialize<'de>,
+{
+    from_slice(s.as_bytes())
 }
 
 /// TODO doc
@@ -42,6 +50,14 @@ where
     D: de::Deserialize<'de>,
 {
     from_tokenizer(ByteTokenizer::new(read))
+}
+
+/// TODO doc
+pub fn from_slice<'de, D>(s: &'de [u8]) -> crate::Result<D>
+where
+    D: de::Deserialize<'de>,
+{
+    from_tokenizer(SliceTokenizer::new(s))
 }
 
 /// TODO doc
