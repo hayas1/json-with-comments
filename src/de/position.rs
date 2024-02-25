@@ -15,24 +15,26 @@ impl<I> RowColIterator<I> {
         (self.row, self.col)
     }
 }
-impl<I> Iterator for RowColIterator<I>
+impl<I, E> Iterator for RowColIterator<I>
 where
-    I: Iterator<Item = std::io::Result<u8>>,
+    I: Iterator<Item = Result<u8, E>>,
 {
     type Item = (Position, I::Item);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|c| {
+        self.iter.next().map(|r| {
             let pos = self.pos();
-            match c {
-                Ok(b'\n') => {
-                    self.row += 1;
-                    self.col = 0;
-                }
-                Ok(_) => self.col += 1,
-                Err(_) => {}
-            }
-            (pos, c)
+            let res = r.map(|c| {
+                match c {
+                    b'\n' => {
+                        self.row += 1;
+                        self.col = 0;
+                    }
+                    _ => self.col += 1,
+                };
+                c
+            });
+            (pos, res)
         })
     }
 }
