@@ -7,32 +7,24 @@ use crate::{
 
 use super::Tokenizer;
 
-pub struct SliceTokenizer<'a, I>
-where
-    I: Iterator<Item = Result<u8, ()>>,
-{
+pub struct SliceTokenizer<'a> {
     slice: &'a [u8],
     pos: usize,
-    iter: Peekable<RowColIterator<I>>,
+    iter: Peekable<RowColIterator<Box<dyn Iterator<Item = Result<u8, ()>> + 'a>>>,
 }
-impl<'a, I> SliceTokenizer<'a, I>
-where
-    I: Iterator<Item = Result<u8, ()>>,
-{
+impl<'a> SliceTokenizer<'a> {
     pub fn new(slice: &'a [u8]) -> Self {
-        let (pos, iter) = (0, RowColIterator::new(slice.iter().cloned().map(Ok)).peekable());
+        let i: Box<dyn Iterator<Item = Result<u8, ()>> + 'a> = Box::new(slice.iter().cloned().map(Ok));
+        let (pos, iter) = (0, RowColIterator::new(i).peekable());
         SliceTokenizer { slice, pos, iter }
     }
 }
 
-impl<'a, I> Tokenizer for SliceTokenizer<'a, I>
-where
-    I: Iterator<Item = Result<u8, ()>>,
-{
+impl<'a> Tokenizer for SliceTokenizer<'a> {
     fn eat(&mut self) -> crate::Result<Option<(Position, u8)>> {
         match self.iter.next() {
             Some((pos, Ok(c))) => Ok(Some((pos, c))),
-            Some((_, Err(e))) => Err(NeverFail::EmptyError)?,
+            Some((_, Err(()))) => Err(NeverFail::EmptyError)?,
             None => Ok(None),
         }
     }
@@ -40,8 +32,49 @@ where
     fn find(&mut self) -> crate::Result<Option<(Position, u8)>> {
         match self.iter.peek() {
             Some(&(pos, Ok(c))) => Ok(Some((pos, c))),
-            Some((_, Err(e))) => Err(NeverFail::EmptyError)?,
+            Some((_, Err(()))) => Err(NeverFail::EmptyError)?,
             None => Ok(None),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::tests::*;
+    use super::*;
+
+    #[test]
+    fn test_behavior_fold_token() {
+        behavior_fold_token(|s| SliceTokenizer::new(s.as_bytes()));
+    }
+
+    #[test]
+    fn test_behavior_parse_ident() {
+        behavior_parse_ident(|s| SliceTokenizer::new(s.as_bytes()));
+    }
+
+    #[test]
+    fn test_behavior_tokenizer() {
+        behavior_tokenizer(|s| SliceTokenizer::new(s.as_bytes()));
+    }
+
+    #[test]
+    fn test_behavior_parse_owned_string() {
+        behavior_parse_owned_string(|s| SliceTokenizer::new(s.as_bytes()));
+    }
+
+    #[test]
+    fn test_behavior_parse_owned_string_err() {
+        behavior_parse_owned_string_err(|s| SliceTokenizer::new(s.as_bytes()));
+    }
+
+    #[test]
+    fn test_behavior_parse_number() {
+        behavior_parse_number(|s| SliceTokenizer::new(s.as_bytes()));
+    }
+
+    #[test]
+    fn test_behavior_parse_number_err() {
+        behavior_parse_number_err(|s| SliceTokenizer::new(s.as_bytes()));
     }
 }

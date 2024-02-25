@@ -201,6 +201,9 @@ impl From<SemanticError> for JsonWithCommentError {
 pub enum NeverFail {
     #[error("previous peek ensure this eat does not return None")]
     EatAfterFind,
+
+    #[error("returns Result for interface reasons, but does not actually fail")]
+    EmptyError,
 }
 impl From<NeverFail> for JsonWithCommentError {
     fn from(err: NeverFail) -> Self {
