@@ -4,22 +4,22 @@ use crate::de::position::{Position, RowColIterator};
 
 use super::Tokenizer;
 
-pub struct ByteTokenizer<R>
+pub struct ReadTokenizer<R>
 where
     R: io::Read,
 {
     iter: Peekable<RowColIterator<io::Bytes<R>>>,
 }
-impl<R> ByteTokenizer<R>
+impl<R> ReadTokenizer<R>
 where
     R: io::Read,
 {
     pub fn new(read: R) -> Self {
-        ByteTokenizer { iter: RowColIterator::new(read.bytes()).peekable() }
+        ReadTokenizer { iter: RowColIterator::new(read.bytes()).peekable() }
     }
 }
 
-impl<'de, R> Tokenizer<'de> for ByteTokenizer<R>
+impl<'de, R> Tokenizer<'de> for ReadTokenizer<R>
 where
     R: io::Read,
 {
@@ -49,43 +49,43 @@ mod tests {
 
     #[test]
     fn test_behavior_fold_token() {
-        behavior_fold_token(|s| ByteTokenizer::new(s.as_bytes()));
-        behavior_fold_token(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+        behavior_fold_token(|s| ReadTokenizer::new(s.as_bytes()));
+        behavior_fold_token(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
     }
 
     #[test]
     fn test_behavior_parse_ident() {
-        behavior_parse_ident(|s| ByteTokenizer::new(s.as_bytes()));
-        behavior_parse_ident(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+        behavior_parse_ident(|s| ReadTokenizer::new(s.as_bytes()));
+        behavior_parse_ident(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
     }
 
     #[test]
     fn test_behavior_tokenizer() {
-        behavior_tokenizer(|s| ByteTokenizer::new(s.as_bytes()));
-        behavior_tokenizer(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+        behavior_tokenizer(|s| ReadTokenizer::new(s.as_bytes()));
+        behavior_tokenizer(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
     }
 
     #[test]
     fn test_behavior_parse_owned_string() {
-        behavior_parse_owned_string(|s| ByteTokenizer::new(s.as_bytes()));
-        behavior_parse_owned_string(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+        behavior_parse_owned_string(|s| ReadTokenizer::new(s.as_bytes()));
+        behavior_parse_owned_string(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
     }
 
     #[test]
     fn test_behavior_parse_owned_string_err() {
-        behavior_parse_owned_string_err(|s| ByteTokenizer::new(s.as_bytes()));
-        behavior_parse_owned_string_err(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+        behavior_parse_owned_string_err(|s| ReadTokenizer::new(s.as_bytes()));
+        behavior_parse_owned_string_err(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
     }
 
     #[test]
     fn test_behavior_parse_number() {
-        behavior_parse_number(|s| ByteTokenizer::new(s.as_bytes()));
-        behavior_parse_number(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+        behavior_parse_number(|s| ReadTokenizer::new(s.as_bytes()));
+        behavior_parse_number(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
     }
 
     #[test]
     fn test_behavior_parse_number_err() {
-        behavior_parse_number_err(|s| ByteTokenizer::new(s.as_bytes()));
-        behavior_parse_number_err(|s| ByteTokenizer::new(BufReader::new(s.as_bytes())));
+        behavior_parse_number_err(|s| ReadTokenizer::new(s.as_bytes()));
+        behavior_parse_number_err(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
     }
 }

@@ -6,9 +6,10 @@ use std::{
 
 use serde::de;
 
-use crate::de::{token::byte::ByteTokenizer, Deserializer};
-
-use super::token::{slice::SliceTokenizer, Tokenizer};
+use crate::de::{
+    token::{read::ReadTokenizer, slice::SliceTokenizer, Tokenizer},
+    Deserializer,
+};
 
 /// TODO doc
 pub fn from_str<'de, D>(s: &'de str) -> crate::Result<D>
@@ -49,7 +50,7 @@ where
     R: 'de + io::Read,
     D: de::Deserialize<'de>,
 {
-    from_tokenizer(ByteTokenizer::new(read))
+    from_tokenizer(ReadTokenizer::new(read))
 }
 
 /// TODO doc

@@ -1,4 +1,4 @@
-pub mod byte;
+pub mod read;
 pub mod slice;
 
 use std::str::FromStr;
