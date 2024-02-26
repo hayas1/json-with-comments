@@ -1,8 +1,4 @@
-use std::{
-    fs::File,
-    io::{self, BufReader},
-    path::Path,
-};
+use std::{fs::File, io, path::Path};
 
 use serde::de;
 
@@ -11,12 +7,14 @@ use crate::de::{
     Deserializer,
 };
 
+use super::token::str::StrTokenizer;
+
 /// TODO doc
 pub fn from_str<'de, D>(s: &'de str) -> crate::Result<D>
 where
     D: de::Deserialize<'de>,
 {
-    from_read(BufReader::new(s.as_bytes()))
+    from_tokenizer(StrTokenizer::new(s))
 }
 
 /// TODO doc

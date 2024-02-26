@@ -2,15 +2,15 @@ use std::iter::Peekable;
 
 use crate::{
     de::position::{Position, RowColIterator},
-    error::{NeverFail, SyntaxError},
+    error::NeverFail,
     value::string::StringValue,
 };
 
 use super::Tokenizer;
 
 pub struct RawTokenizer<'de> {
-    slice: &'de [u8],
-    current: usize,
+    pub slice: &'de [u8],
+    pub current: usize,
     iter: Peekable<RowColIterator<Box<dyn Iterator<Item = Result<u8, ()>> + 'de>>>,
 }
 impl<'de> RawTokenizer<'de> {
@@ -39,21 +39,11 @@ impl<'de> Tokenizer<'de> for RawTokenizer<'de> {
         }
     }
 
-    fn parse_string(&mut self) -> crate::Result<StringValue<'de>> {
-        match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
-            (_, b'"') => {
-                let offset = self.current;
-                self.parse_string_content(&mut Vec::new())?; // TODO: Optimize
-                match self.eat()?.ok_or(SyntaxError::EofWhileEndParsingString)? {
-                    (_, b'"') => {
-                        let s = &self.slice[offset..self.current - 1];
-                        Ok(StringValue::Borrowed(std::str::from_utf8(s)?))
-                    }
-                    (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingString { pos, found })?,
-                }
-            }
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
-        }
+    fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {
+        let offset = self.current;
+        let _ = self.parse_string_content_super()?;
+        let raw = &self.slice[offset..self.current];
+        Ok(StringValue::Borrowed(std::str::from_utf8(raw)?))
     }
 }
 
@@ -79,8 +69,9 @@ mod tests {
 
     #[test]
     fn test_behavior_parse_owned_string() {
-        // TODO parse escaped string when `to_string()`
-        // behavior_parse_owned_string(|s| SliceTokenizer::new(s.as_bytes()));
+        // `RawTokenizer` cannot parse owned string that should be unescaped.
+        // source data lifetime may be shorter than unescaped string that is created by Tokenizer.
+        // behavior_parse_owned_string(|s| RawTokenizer::new(s.as_bytes()));
     }
 
     #[test]

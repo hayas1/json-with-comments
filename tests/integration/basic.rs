@@ -37,7 +37,7 @@ fn test_deserialize_str() {
     let unescaped = r#""string without linefeed""#;
     assert_eq!(from_str::<String>(unescaped).unwrap(), "string without linefeed");
     assert_eq!(from_str::<Cow<'_, str>>(unescaped).unwrap(), "string without linefeed");
-    assert!(from_str::<&str>(unescaped).is_err(), "borrowed string cannot be deserialized and unescaped");
+    assert_eq!(from_str::<&str>(unescaped).unwrap(), "string without linefeed");
     assert_eq!(from_str_raw::<String>(unescaped).unwrap(), r#"string without linefeed"#);
     assert_eq!(from_str_raw::<Cow<'_, str>>(unescaped).unwrap(), r#"string without linefeed"#);
     assert_eq!(from_str_raw::<&str>(unescaped).unwrap(), r#"string without linefeed"#);
@@ -45,7 +45,7 @@ fn test_deserialize_str() {
     let escaped = r#""string with linefeed\n""#;
     assert_eq!(from_str::<String>(escaped).unwrap(), "string with linefeed\n");
     assert_eq!(from_str::<Cow<'_, str>>(escaped).unwrap(), "string with linefeed\n");
-    assert!(from_str::<&str>(escaped).is_err(), "borrowed string cannot be deserialized and unescaped");
+    assert!(from_str::<&str>(escaped).is_err(), "borrowed string that has escape cannot be deserialized (lifetime)");
     assert_eq!(from_str_raw::<String>(escaped).unwrap(), r#"string with linefeed\n"#);
     assert_eq!(from_str_raw::<Cow<'_, str>>(escaped).unwrap(), r#"string with linefeed\n"#);
     assert_eq!(from_str_raw::<&str>(escaped).unwrap(), r#"string with linefeed\n"#);

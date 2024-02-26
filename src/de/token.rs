@@ -1,5 +1,6 @@
 pub mod raw;
 pub mod read;
+pub mod str;
 
 use std::str::FromStr;
 
@@ -60,12 +61,11 @@ pub trait Tokenizer<'de> {
     }
 
     fn parse_string(&mut self) -> crate::Result<StringValue<'de>> {
-        let mut buff = Vec::new();
         match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
             (_, b'"') => {
-                self.parse_string_content(&mut buff)?;
+                let value = self.parse_string_content()?;
                 match self.eat()?.ok_or(SyntaxError::EofWhileEndParsingString)? {
-                    (_, b'"') => Ok(StringValue::Owned(String::from_utf8(buff)?)),
+                    (_, b'"') => Ok(value),
                     (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingString { pos, found })?,
                 }
             }
@@ -73,11 +73,15 @@ pub trait Tokenizer<'de> {
         }
     }
 
-    fn parse_string_content(&mut self, buff: &mut Vec<u8>) -> crate::Result<()> {
+    fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {
+        Ok(self.parse_string_content_super()?)
+    }
+    fn parse_string_content_super(&mut self) -> crate::Result<StringValue<'de>> {
+        let mut buff = Vec::new();
         while let Some((pos, found)) = self.find()? {
             match found {
-                b'\\' => self.parse_escape_sequence(buff)?,
-                b'"' => return Ok(()),
+                b'\\' => self.parse_escape_sequence(&mut buff)?,
+                b'"' => return Ok(StringValue::Owned(String::from_utf8(buff)?)),
                 c if c.is_ascii_control() => Err(SyntaxError::ControlCharacterWhileParsingString { pos, c })?,
                 _ => buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1),
             }
