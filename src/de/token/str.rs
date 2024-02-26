@@ -1,4 +1,4 @@
-use crate::{de::position::Position, value::string::StringValue};
+use crate::{de::position::Position, error::NeverFail, value::string::StringValue};
 
 use super::{slice::SliceTokenizer, Tokenizer};
 
@@ -23,19 +23,23 @@ impl<'de> Tokenizer<'de> for StrTokenizer<'de> {
 
     fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {
         let offset = self.delegate.current;
-        let value = self.delegate.parse_string_content()?;
-        if self.unescaped {
-            todo!();
-            Ok(value)
-        } else {
-            let raw = &self.delegate.slice[offset..self.delegate.current];
-            Ok(StringValue::Borrowed(std::str::from_utf8(raw)?))
+        let value = self.parse_string_content_super()?;
+        match (self.unescaped, value) {
+            // if string contain escape sequence, it should be unescaped
+            // but unescaped string should be owned because of lifetime
+            // default implementation of `Tokenizer` return always owned string
+            (true, StringValue::Borrowed(_)) => Err(NeverFail::OwnedString)?,
+            (true, s @ StringValue::Owned(_)) => Ok(s),
+            (false, _) => {
+                let raw = &self.delegate.slice[offset..self.delegate.current];
+                Ok(StringValue::Borrowed(std::str::from_utf8(raw)?))
+            }
         }
     }
 
     fn parse_escape_sequence(&mut self, buff: &mut Vec<u8>) -> crate::Result<()> {
         self.unescaped = true;
-        self.delegate.parse_escape_sequence(buff)
+        self.delegate.parse_escape_sequence_super(buff)
     }
 }
 

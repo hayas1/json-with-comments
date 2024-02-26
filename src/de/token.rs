@@ -75,6 +75,9 @@ pub trait Tokenizer<'de> {
     }
 
     fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {
+        self.parse_string_content_super()
+    }
+    fn parse_string_content_super(&mut self) -> crate::Result<StringValue<'de>> {
         let mut buff = Vec::new();
         while let Some((pos, found)) = self.find()? {
             match found {
@@ -88,6 +91,9 @@ pub trait Tokenizer<'de> {
     }
 
     fn parse_escape_sequence(&mut self, buff: &mut Vec<u8>) -> crate::Result<()> {
+        self.parse_escape_sequence_super(buff)
+    }
+    fn parse_escape_sequence_super(&mut self, buff: &mut Vec<u8>) -> crate::Result<()> {
         match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
             (_, b'\\') => match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
                 (_, b'"') => Ok(buff.push(b'"')),

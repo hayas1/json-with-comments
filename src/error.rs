@@ -210,6 +210,9 @@ pub enum NeverFail {
 
     #[error("returns Result for interface reasons, but does not actually fail")]
     EmptyError,
+
+    #[error("unescaped string should be owned because of lifetime")]
+    OwnedString,
 }
 impl From<NeverFail> for JsonWithCommentError {
     fn from(err: NeverFail) -> Self {

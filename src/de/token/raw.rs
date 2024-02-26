@@ -1,4 +1,4 @@
-use crate::{de::position::Position, error::NeverFail, value::string::StringValue};
+use crate::{de::position::Position, value::string::StringValue};
 
 use super::{slice::SliceTokenizer, Tokenizer};
 
@@ -22,7 +22,7 @@ impl<'de> Tokenizer<'de> for RawTokenizer<'de> {
 
     fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {
         let offset = self.delegate.current;
-        let _ = self.delegate.parse_string_content()?;
+        let _ = self.parse_string_content_super()?;
         let raw = &self.delegate.slice[offset..self.delegate.current];
         Ok(StringValue::Borrowed(std::str::from_utf8(raw)?))
     }
