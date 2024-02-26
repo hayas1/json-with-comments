@@ -7,7 +7,7 @@ use std::{
 use serde::de;
 
 use crate::de::{
-    token::{read::ReadTokenizer, slice::SliceTokenizer, Tokenizer},
+    token::{raw::RawTokenizer, read::ReadTokenizer, Tokenizer},
     Deserializer,
 };
 
@@ -24,7 +24,7 @@ pub fn from_str_raw<'de, D>(s: &'de str) -> crate::Result<D>
 where
     D: de::Deserialize<'de>,
 {
-    from_slice(s.as_bytes())
+    from_raw(s.as_bytes())
 }
 
 /// TODO doc
@@ -54,11 +54,11 @@ where
 }
 
 /// TODO doc
-pub fn from_slice<'de, D>(s: &'de [u8]) -> crate::Result<D>
+pub fn from_raw<'de, D>(s: &'de [u8]) -> crate::Result<D>
 where
     D: de::Deserialize<'de>,
 {
-    from_tokenizer(SliceTokenizer::new(s))
+    from_tokenizer(RawTokenizer::new(s))
 }
 
 /// TODO doc
