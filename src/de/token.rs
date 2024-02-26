@@ -290,7 +290,7 @@ mod tests {
         assert_eq!(tokenizer.eat_whitespace().unwrap(), None);
     }
 
-    pub fn behavior_parse_owned_string<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
+    pub fn behavior_parse_unescaped_string<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
         fn parse<'a>(mut tokenizer: impl Tokenizer<'a>) -> String {
             tokenizer.parse_string().unwrap().to_string()
         }
@@ -310,7 +310,7 @@ mod tests {
         assert_eq!(parse(from(r#""💯""#)), "💯");
     }
 
-    pub fn behavior_parse_borrowed_string<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
+    pub fn behavior_parse_raw_string<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
         fn parse<'a>(mut tokenizer: impl Tokenizer<'a>) -> &'a str {
             match tokenizer.parse_string().unwrap() {
                 StringValue::Borrowed(s) => s,
@@ -332,7 +332,7 @@ mod tests {
         assert_eq!(parse(from(r#""💯""#)), "💯");
     }
 
-    pub fn behavior_parse_owned_string_err<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
+    pub fn behavior_parse_string_err<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
         fn parse_err<'a>(mut tokenizer: impl Tokenizer<'a>) -> Box<dyn std::error::Error + Send + Sync> {
             tokenizer.parse_string().unwrap_err().into_inner()
         }

@@ -49,20 +49,19 @@ mod tests {
     }
 
     #[test]
-    fn test_behavior_parse_owned_string() {
-        // `RawTokenizer` cannot parse owned string that should be unescaped.
-        // source data lifetime may be shorter than unescaped string that is created by Tokenizer.
-        // behavior_parse_owned_string(|s| RawTokenizer::new(s.as_bytes()));
+    #[should_panic]
+    fn test_behavior_parse_unescaped_string() {
+        behavior_parse_unescaped_string(|s| RawTokenizer::new(s.as_bytes()));
     }
 
     #[test]
-    fn test_behavior_parse_borrowed_string() {
-        behavior_parse_borrowed_string(|s| RawTokenizer::new(s.as_bytes()));
+    fn test_behavior_parse_raw_string() {
+        behavior_parse_raw_string(|s| RawTokenizer::new(s.as_bytes()));
     }
 
     #[test]
-    fn test_behavior_parse_owned_string_err() {
-        behavior_parse_owned_string_err(|s| RawTokenizer::new(s.as_bytes()));
+    fn test_behavior_parse_string_err() {
+        behavior_parse_string_err(|s| RawTokenizer::new(s.as_bytes()));
     }
 
     #[test]

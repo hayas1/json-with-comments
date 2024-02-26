@@ -66,15 +66,22 @@ mod tests {
     }
 
     #[test]
-    fn test_behavior_parse_owned_string() {
-        behavior_parse_owned_string(|s| ReadTokenizer::new(s.as_bytes()));
-        behavior_parse_owned_string(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
+    fn test_behavior_parse_unescaped_string() {
+        behavior_parse_unescaped_string(|s| ReadTokenizer::new(s.as_bytes()));
+        behavior_parse_unescaped_string(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
     }
 
     #[test]
-    fn test_behavior_parse_owned_string_err() {
-        behavior_parse_owned_string_err(|s| ReadTokenizer::new(s.as_bytes()));
-        behavior_parse_owned_string_err(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
+    #[should_panic]
+    fn test_behavior_parse_raw_string() {
+        behavior_parse_raw_string(|s| ReadTokenizer::new(s.as_bytes()));
+        behavior_parse_raw_string(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
+    }
+
+    #[test]
+    fn test_behavior_parse_string_err() {
+        behavior_parse_string_err(|s| ReadTokenizer::new(s.as_bytes()));
+        behavior_parse_string_err(|s| ReadTokenizer::new(BufReader::new(s.as_bytes())));
     }
 
     #[test]

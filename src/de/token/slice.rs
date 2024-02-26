@@ -60,18 +60,19 @@ mod tests {
     }
 
     #[test]
-    fn test_behavior_parse_owned_string() {
-        behavior_parse_owned_string(|s| SliceTokenizer::new(s.as_bytes()));
+    fn test_behavior_parse_unescaped_string() {
+        behavior_parse_unescaped_string(|s| SliceTokenizer::new(s.as_bytes()));
     }
 
     #[test]
-    fn test_behavior_parse_borrowed_string() {
-        // behavior_parse_borrowed_string(|s| SliceTokenizer::new(s.as_bytes()));
+    #[should_panic]
+    fn test_behavior_parse_raw_string() {
+        behavior_parse_raw_string(|s| SliceTokenizer::new(s.as_bytes()));
     }
 
     #[test]
-    fn test_behavior_parse_owned_string_err() {
-        behavior_parse_owned_string_err(|s| SliceTokenizer::new(s.as_bytes()));
+    fn test_behavior_parse_string_err() {
+        behavior_parse_string_err(|s| SliceTokenizer::new(s.as_bytes()));
     }
 
     #[test]

@@ -64,18 +64,19 @@ mod tests {
     }
 
     #[test]
-    fn test_behavior_parse_owned_string() {
-        behavior_parse_owned_string(|s| StrTokenizer::new(s));
+    fn test_behavior_parse_unescaped_string() {
+        behavior_parse_unescaped_string(|s| StrTokenizer::new(s));
     }
 
     #[test]
-    fn test_behavior_parse_borrowed_string() {
-        // TODO behavior_parse_borrowed_string(|s| StrTokenizer::new(s));
+    #[should_panic]
+    fn test_behavior_parse_raw_string() {
+        behavior_parse_raw_string(|s| StrTokenizer::new(s));
     }
 
     #[test]
-    fn test_behavior_parse_owned_string_err() {
-        behavior_parse_owned_string_err(|s| StrTokenizer::new(s));
+    fn test_behavior_parse_string_err() {
+        behavior_parse_string_err(|s| StrTokenizer::new(s));
     }
 
     #[test]
