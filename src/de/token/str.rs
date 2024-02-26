@@ -1,14 +1,14 @@
 use crate::{de::position::Position, value::string::StringValue};
 
-use super::{raw::RawTokenizer, Tokenizer};
+use super::{slice::SliceTokenizer, Tokenizer};
 
 pub struct StrTokenizer<'de> {
-    delegate: RawTokenizer<'de>,
+    delegate: SliceTokenizer<'de>,
     unescaped: bool,
 }
 impl<'de> StrTokenizer<'de> {
     pub fn new(s: &'de str) -> Self {
-        StrTokenizer { delegate: RawTokenizer::new(s.as_bytes()), unescaped: false }
+        StrTokenizer { delegate: SliceTokenizer::new(s.as_bytes()), unescaped: false }
     }
 }
 
@@ -23,8 +23,9 @@ impl<'de> Tokenizer<'de> for StrTokenizer<'de> {
 
     fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {
         let offset = self.delegate.current;
-        let value = self.parse_string_content_super()?;
+        let value = self.delegate.parse_string_content()?;
         if self.unescaped {
+            todo!();
             Ok(value)
         } else {
             let raw = &self.delegate.slice[offset..self.delegate.current];

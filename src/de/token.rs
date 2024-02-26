@@ -1,5 +1,6 @@
 pub mod raw;
 pub mod read;
+pub mod slice;
 pub mod str;
 
 use std::str::FromStr;
@@ -74,9 +75,6 @@ pub trait Tokenizer<'de> {
     }
 
     fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {
-        Ok(self.parse_string_content_super()?)
-    }
-    fn parse_string_content_super(&mut self) -> crate::Result<StringValue<'de>> {
         let mut buff = Vec::new();
         while let Some((pos, found)) = self.find()? {
             match found {

@@ -1,48 +1,29 @@
-use std::iter::Peekable;
+use crate::{de::position::Position, error::NeverFail, value::string::StringValue};
 
-use crate::{
-    de::position::{Position, RowColIterator},
-    error::NeverFail,
-    value::string::StringValue,
-};
-
-use super::Tokenizer;
+use super::{slice::SliceTokenizer, Tokenizer};
 
 pub struct RawTokenizer<'de> {
-    pub slice: &'de [u8],
-    pub current: usize,
-    iter: Peekable<RowColIterator<Box<dyn Iterator<Item = Result<u8, ()>> + 'de>>>,
+    delegate: SliceTokenizer<'de>,
 }
 impl<'de> RawTokenizer<'de> {
     pub fn new(slice: &'de [u8]) -> Self {
-        let i: Box<dyn Iterator<Item = Result<u8, ()>> + 'de> = Box::new(slice.iter().cloned().map(Ok));
-        let (current, iter) = (0, RowColIterator::new(i).peekable());
-        RawTokenizer { slice, current, iter }
+        RawTokenizer { delegate: SliceTokenizer::new(slice) }
     }
 }
 
 impl<'de> Tokenizer<'de> for RawTokenizer<'de> {
     fn eat(&mut self) -> crate::Result<Option<(Position, u8)>> {
-        self.current += 1;
-        match self.iter.next() {
-            Some((pos, Ok(c))) => Ok(Some((pos, c))),
-            Some((_, Err(()))) => Err(NeverFail::EmptyError)?,
-            None => Ok(None),
-        }
+        self.delegate.eat()
     }
 
     fn find(&mut self) -> crate::Result<Option<(Position, u8)>> {
-        match self.iter.peek() {
-            Some(&(pos, Ok(c))) => Ok(Some((pos, c))),
-            Some((_, Err(()))) => Err(NeverFail::EmptyError)?,
-            None => Ok(None),
-        }
+        self.delegate.find()
     }
 
     fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {
-        let offset = self.current;
-        let _ = self.parse_string_content_super()?;
-        let raw = &self.slice[offset..self.current];
+        let offset = self.delegate.current;
+        let _ = self.delegate.parse_string_content()?;
+        let raw = &self.delegate.slice[offset..self.delegate.current];
         Ok(StringValue::Borrowed(std::str::from_utf8(raw)?))
     }
 }
