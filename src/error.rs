@@ -162,9 +162,6 @@ pub enum SyntaxError {
     #[error("Expected start comment `//` or `/*`, but got EOF")]
     EofWhileStartParsingComment,
 
-    #[error("Expected end comment `*/`, but got EOF")]
-    EofWhileEndParsingComment,
-
     #[error("{pos:?}: Expected ident {expected:?}, but found {found:?}")]
     UnexpectedIdent { pos: PosRange, expected: Vec<u8>, found: Vec<u8> },
 

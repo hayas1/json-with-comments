@@ -19,7 +19,7 @@ pub trait Tokenizer<'de> {
     fn eat_whitespace(&mut self) -> crate::Result<Option<(Position, u8)>> {
         loop {
             match self.eat()? {
-                Some((_, b'/')) => _ = self.eat_comment()?,
+                Some((_, b'/')) => _ = self.eat_comment_follow()?,
                 Some((_, c)) if c.is_ascii_whitespace() => (),
                 Some((pos, c)) => return Ok(Some((pos, c))),
                 None => return Ok(None),
@@ -40,20 +40,24 @@ pub trait Tokenizer<'de> {
 
     fn eat_comment(&mut self) -> crate::Result<Option<(PosRange, Vec<u8>)>> {
         match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingComment)? {
-            (start, b'/') => match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingComment)? {
-                (follow, b'/') => {
-                    let mut content = &mut b"//".into();
-                    let end = self.eat_slash_comment_content(&mut content)?;
-                    Ok(Some(((start, end.unwrap_or(follow)), content.to_vec())))
-                }
-                (follow, b'*') => {
-                    let mut content = &mut b"/*".into();
-                    let end = self.eat_asterisk_comment_content(&mut content)?;
-                    content.extend_from_slice(b"*/");
-                    Ok(Some(((start, end.unwrap_or(follow)), content.to_vec())))
-                }
-                (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingComment { pos, found })?,
-            },
+            (start, b'/') => Ok(self.eat_comment_follow()?.map(|(e, c)| ((start, e), c))),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingComment { pos, found })?,
+        }
+    }
+
+    fn eat_comment_follow(&mut self) -> crate::Result<Option<(Position, Vec<u8>)>> {
+        match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingComment)? {
+            (follow, b'/') => {
+                let mut content = &mut b"//".into();
+                let end = self.eat_slash_comment_content(&mut content)?;
+                Ok(Some(((end.unwrap_or(follow)), content.to_vec())))
+            }
+            (follow, b'*') => {
+                let mut content = &mut b"/*".into();
+                let end = self.eat_asterisk_comment_content(&mut content)?;
+                content.extend_from_slice(b"*/");
+                Ok(Some(((end.unwrap_or(follow)), content.to_vec())))
+            }
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingComment { pos, found })?,
         }
     }
@@ -71,7 +75,7 @@ pub trait Tokenizer<'de> {
     fn eat_asterisk_comment_content(&mut self, buff: &mut Vec<u8>) -> crate::Result<Option<Position>> {
         while let Some((_, c)) = self.eat()? {
             match c {
-                b'*' => match self.find()?.ok_or(SyntaxError::EofWhileEndParsingComment)? {
+                b'*' => match self.find()?.ok_or(SyntaxError::UnterminatedComment)? {
                     (_, b'/') => return Ok(Some(self.eat()?.ok_or(NeverFail::EatAfterFind)?.0)),
                     _ => buff.push(c),
                 },
@@ -385,6 +389,10 @@ mod tests {
         assert!(matches!(
             parse_err(from(r#""ending..."#)).downcast_ref().unwrap(),
             SyntaxError::EofWhileEndParsingString,
+        ));
+        assert!(matches!(
+            parse_err(from("\"escape \x1b\"")).downcast_ref().unwrap(),
+            SyntaxError::ControlCharacterWhileParsingString { c: b'\x1b', .. },
         ));
         assert!(matches!(
             parse_err(from(
