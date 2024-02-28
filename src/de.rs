@@ -2,7 +2,7 @@ pub mod from;
 pub mod position;
 pub mod token;
 
-use serde::de;
+use serde::de::{self, IgnoredAny};
 
 use crate::{
     error::{Ensure, SyntaxError},
@@ -308,11 +308,12 @@ where
         self.deserialize_str(visitor)
     }
 
-    fn deserialize_ignored_any<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        let _ = self.deserialize_any(IgnoredAny)?;
+        visitor.visit_unit()
     }
 }
 
