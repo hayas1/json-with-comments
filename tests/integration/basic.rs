@@ -130,7 +130,50 @@ fn test_deserialize_json() {
 
 #[test]
 fn test_deserialize_json_with_comment() {
-    // TODO
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Setting {
+        name: &'static str,
+        image: Option<&'static str>,
+        remote_user: Option<&'static str>,
+        mounts: Option<Vec<&'static str>>,
+    }
+    let target = r#"
+        {
+            "name": "Debian",
+            "image": "mcr.microsoft.com/vscode/devcontainers/base:0-bullseye",
+            "remoteUser": "vscode",
+            "mounts": null,
+        }
+    "#;
+    let setting = from_str::<Setting>(target).unwrap();
+    assert!(matches!(
+        setting,
+        Setting {
+            name: "Debian",
+            image: Some("mcr.microsoft.com/vscode/devcontainers/base:0-bullseye"),
+            remote_user: Some("vscode"),
+            mounts: None
+        }
+    ));
+    let target2 = r#"
+        {
+            "name": "Debian",  /* built container name is Debian */
+            "image": "mcr.microsoft.com/vscode/devcontainers/base:0-bullseye",
+            // "remoteUser": "vscode",
+            "mounts": null,  /* do not mounts any file */
+        }
+    "#;
+    let setting = from_str::<Setting>(target2).unwrap();
+    assert!(matches!(
+        setting,
+        Setting {
+            name: "Debian",
+            image: Some("mcr.microsoft.com/vscode/devcontainers/base:0-bullseye"),
+            remote_user: None,
+            mounts: None
+        }
+    ));
 }
 
 #[test]

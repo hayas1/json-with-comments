@@ -52,7 +52,7 @@ pub trait Tokenizer<'de> {
                     content.extend_from_slice(b"*/");
                     Ok(Some(((start, end.unwrap_or(follow)), content.to_vec())))
                 }
-                (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingComment { pos, found })?,
+                (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingComment { pos, found })?,
             },
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingComment { pos, found })?,
         }
@@ -72,7 +72,7 @@ pub trait Tokenizer<'de> {
         while let Some((_, c)) = self.eat()? {
             match c {
                 b'*' => match self.find()?.ok_or(SyntaxError::EofWhileEndParsingComment)? {
-                    (pos, b'/') => return Ok(Some(pos)),
+                    (_, b'/') => return Ok(Some(self.eat()?.ok_or(NeverFail::EatAfterFind)?.0)),
                     _ => buff.push(c),
                 },
                 _ => buff.push(c),
