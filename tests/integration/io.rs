@@ -25,7 +25,7 @@ pub struct OwnedAddress {
 }
 
 #[test]
-fn deserialize_from_file() {
+fn test_deserialize_from_file_with_path() {
     let path = std::path::Path::new("tests/data/john.json");
     let owned_person: OwnedPerson = json_with_comment::from_path(path).unwrap();
     assert_eq!(owned_person.name, "John Doe");
@@ -33,7 +33,10 @@ fn deserialize_from_file() {
     assert_eq!(owned_person.address.number, 42);
     assert_eq!(owned_person.email, "x0h5z@example.com");
     assert_eq!(owned_person.active, true);
+}
 
+#[test]
+fn test_deserialize_from_file() {
     let file = std::fs::File::open("tests/data/john.json").unwrap();
     let owned_person: OwnedPerson = json_with_comment::from_file(&file).unwrap();
     assert_eq!(owned_person.name, "John Doe");
@@ -41,7 +44,9 @@ fn deserialize_from_file() {
     assert_eq!(owned_person.address.number, 42);
     assert_eq!(owned_person.email, "x0h5z@example.com");
     assert_eq!(owned_person.active, true);
-
+}
+#[test]
+fn test_deserialize_from_file_content() {
     let content = std::fs::read_to_string("tests/data/john.json").unwrap();
     let person: Person = json_with_comment::from_str(&content).unwrap();
     assert!(matches!(
