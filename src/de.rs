@@ -266,10 +266,10 @@ where
                 let object = visitor.visit_map(MapDeserializer::new(self))?;
                 match self.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingObject)? {
                     (_, b'}') => Ok(object),
-                    (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndingObject { pos, found })?,
+                    (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingObject { pos, found })?,
                 }
             }
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartingObject { pos, found })?,
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingObject { pos, found })?,
         }
     }
 
@@ -285,7 +285,7 @@ where
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingValue)? {
             (_, b'{') => self.deserialize_map(visitor),
             (_, b'[') => self.deserialize_seq(visitor),
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartingObject { pos, found })?,
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingObject { pos, found })?,
         }
     }
 
@@ -293,12 +293,21 @@ where
         self,
         _name: &'static str,
         _variants: &'static [&'static str],
-        _visitor: V,
+        visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        match self.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingEnum)? {
+            (_, b'{') => {
+                let value = visitor.visit_enum(EnumDeserializer::new(self))?;
+                match self.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingEnum)? {
+                    (_, b'}') => Ok(value),
+                    (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingEnum { pos, found })?,
+                }
+            }
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingEnum { pos, found })?,
+        }
     }
 
     fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -327,7 +336,7 @@ impl<'de, 'a, T> MapDeserializer<'de, 'a, T>
 where
     T: 'a + Tokenizer<'de>,
 {
-    fn new(de: &'a mut Deserializer<'de, T>) -> Self {
+    pub fn new(de: &'a mut Deserializer<'de, T>) -> Self {
         MapDeserializer { deserializer: de }
     }
 }
@@ -376,7 +385,7 @@ impl<'de, 'a, T> SeqDeserializer<'de, 'a, T>
 where
     T: 'a + Tokenizer<'de>,
 {
-    fn new(de: &'a mut Deserializer<'de, T>) -> Self {
+    pub fn new(de: &'a mut Deserializer<'de, T>) -> Self {
         SeqDeserializer { deserializer: de }
     }
 }
@@ -401,5 +410,78 @@ where
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingArrayValue { pos, found })?,
         }
         Ok(value)
+    }
+}
+
+pub struct EnumDeserializer<'de, 'a, T>
+where
+    T: 'a + Tokenizer<'de>,
+{
+    deserializer: &'a mut Deserializer<'de, T>,
+}
+impl<'de, 'a, T> EnumDeserializer<'de, 'a, T>
+where
+    T: 'a + Tokenizer<'de>,
+{
+    pub fn new(de: &'a mut Deserializer<'de, T>) -> Self {
+        EnumDeserializer { deserializer: de }
+    }
+}
+impl<'de, 'a, T> de::EnumAccess<'de> for EnumDeserializer<'de, 'a, T>
+where
+    T: 'de + Tokenizer<'de>,
+{
+    type Error = crate::Error;
+    type Variant = Self;
+
+    fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
+    where
+        V: de::DeserializeSeed<'de>,
+    {
+        let key = seed.deserialize(&mut *self.deserializer)?;
+        Ok((key, self))
+    }
+}
+impl<'de, 'a, T> de::VariantAccess<'de> for EnumDeserializer<'de, 'a, T>
+where
+    T: 'de + Tokenizer<'de>,
+{
+    type Error = crate::Error;
+
+    fn unit_variant(self) -> Result<(), Self::Error> {
+        match self.deserializer.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileParsingObjectValue)? {
+            (_, b':') => de::Deserialize::deserialize(self.deserializer),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingEnumValue { pos, found })?,
+        }
+    }
+
+    fn newtype_variant_seed<S>(self, seed: S) -> Result<S::Value, Self::Error>
+    where
+        S: de::DeserializeSeed<'de>,
+    {
+        match self.deserializer.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileParsingObjectValue)? {
+            (_, b':') => seed.deserialize(self.deserializer),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingEnumValue { pos, found })?,
+        }
+    }
+
+    fn tuple_variant<V>(self, _len: usize, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: de::Visitor<'de>,
+    {
+        match self.deserializer.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileParsingObjectValue)? {
+            (_, b':') => de::Deserializer::deserialize_seq(self.deserializer, visitor),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingEnumValue { pos, found })?,
+        }
+    }
+
+    fn struct_variant<V>(self, fields: &'static [&'static str], visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: de::Visitor<'de>,
+    {
+        match self.deserializer.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileParsingObjectValue)? {
+            (_, b':') => de::Deserializer::deserialize_struct(self.deserializer, "", fields, visitor),
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingEnumValue { pos, found })?,
+        }
     }
 }

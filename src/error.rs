@@ -76,10 +76,10 @@ pub enum SyntaxError {
     UnexpectedTokenWhileParsingNull { pos: Position, found: u8 },
 
     #[error("{pos:?}: Expected object start `{{`, but found {found:?}")]
-    UnexpectedTokenWhileStartingObject { pos: Position, found: u8 },
+    UnexpectedTokenWhileStartParsingObject { pos: Position, found: u8 },
 
     #[error("{pos:?}: Expected object end `}}`, but found {found:?}")]
-    UnexpectedTokenWhileEndingObject { pos: Position, found: u8 },
+    UnexpectedTokenWhileEndParsingObject { pos: Position, found: u8 },
 
     #[error("{pos:?}: Expected object key, but found {found:?}")]
     UnexpectedTokenWhileParsingObjectKey { pos: Position, found: u8 },
@@ -98,6 +98,15 @@ pub enum SyntaxError {
 
     #[error("{pos:?}: Expected array value, but found {found:?}")]
     UnexpectedTokenWhileParsingArrayValue { pos: Position, found: u8 },
+
+    #[error("{pos:?}: Expected enum start `{{`, but found {found:?}")]
+    UnexpectedTokenWhileStartParsingEnum { pos: Position, found: u8 },
+
+    #[error("{pos:?}: Expected enum end `}}`, but found {found:?}")]
+    UnexpectedTokenWhileEndParsingEnum { pos: Position, found: u8 },
+
+    #[error("{pos:?}: Expected enum value start `:`, but found {found:?}")]
+    UnexpectedTokenWhileStartParsingEnumValue { pos: Position, found: u8 },
 
     #[error("{pos:?}: Expected comment start `//` or `/*`, but found {found:?}")]
     UnexpectedTokenWhileStartParsingComment { pos: Position, found: u8 },
@@ -144,6 +153,12 @@ pub enum SyntaxError {
     #[error("Expected object end `}}`, but got EOF")]
     EofWhileEndParsingObject,
 
+    #[error("Expected object key, but got EOF")]
+    EofWhileParsingObjectKey,
+
+    #[error("Expected object value, but got EOF")]
+    EofWhileParsingObjectValue,
+
     #[error("Expected array start `[`, but got EOF")]
     EofWhileStartParsingArray,
 
@@ -153,11 +168,11 @@ pub enum SyntaxError {
     #[error("Expected ident, but got EOF")]
     EofWhileParsingIdent,
 
-    #[error("Expected object key, but got EOF")]
-    EofWhileParsingObjectKey,
+    #[error("Expected enum start `{{`, but got EOF")]
+    EofWhileStartParsingEnum,
 
-    #[error("Expected object value, but got EOF")]
-    EofWhileParsingObjectValue,
+    #[error("Expected enum end `}}`, but got EOF")]
+    EofWhileEndParsingEnum,
 
     #[error("Expected start comment `//` or `/*`, but got EOF")]
     EofWhileStartParsingComment,
