@@ -99,6 +99,12 @@ pub enum SyntaxError {
     #[error("{pos:?}: Expected array value, but found {found:?}")]
     UnexpectedTokenWhileParsingArrayValue { pos: Position, found: u8 },
 
+    #[error("{pos:?}: Expected comment start `//` or `/*`, but found {found:?}")]
+    UnexpectedTokenWhileStartParsingComment { pos: Position, found: u8 },
+
+    #[error("{pos:?}: Expected comment end `*/`, but found {found:?}")]
+    UnexpectedTokenWhileEndParsingComment { pos: Position, found: u8 },
+
     #[error("Expected value, but got EOF")]
     EofWhileStartParsingValue,
 
@@ -153,6 +159,12 @@ pub enum SyntaxError {
     #[error("Expected object value, but got EOF")]
     EofWhileParsingObjectValue,
 
+    #[error("Expected start comment `//` or `/*`, but got EOF")]
+    EofWhileStartParsingComment,
+
+    #[error("Expected end comment `*/`, but got EOF")]
+    EofWhileEndParsingComment,
+
     #[error("{pos:?}: Expected ident {expected:?}, but found {found:?}")]
     UnexpectedIdent { pos: PosRange, expected: Vec<u8>, found: Vec<u8> },
 
@@ -185,6 +197,9 @@ pub enum SyntaxError {
 
     #[error("{pos:?}: cannot convert {rep:?} to number")]
     InvalidNumber { pos: Position, rep: String },
+
+    #[error("comment starts with `/*` must be ends with `*/`, but got EoF")]
+    UnterminatedComment,
 }
 impl From<SyntaxError> for JsonWithCommentError {
     fn from(err: SyntaxError) -> Self {

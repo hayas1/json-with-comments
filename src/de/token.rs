@@ -17,23 +17,68 @@ pub trait Tokenizer<'de> {
     fn find(&mut self) -> crate::Result<Option<(Position, u8)>>;
 
     fn eat_whitespace(&mut self) -> crate::Result<Option<(Position, u8)>> {
+        loop {
+            match self.eat()? {
+                Some((_, b'/')) => _ = self.eat_comment()?,
+                Some((_, c)) if c.is_ascii_whitespace() => (),
+                Some((pos, c)) => return Ok(Some((pos, c))),
+                None => return Ok(None),
+            }
+        }
+    }
+
+    fn skip_whitespace(&mut self) -> crate::Result<Option<(Position, u8)>> {
+        loop {
+            match self.find()? {
+                Some((_, b'/')) => _ = self.eat_comment()?,
+                Some((_, c)) if c.is_ascii_whitespace() => _ = self.eat()?,
+                Some((pos, c)) => return Ok(Some((pos, c))),
+                None => return Ok(None),
+            }
+        }
+    }
+
+    fn eat_comment(&mut self) -> crate::Result<Option<(PosRange, Vec<u8>)>> {
+        match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingComment)? {
+            (start, b'/') => match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingComment)? {
+                (follow, b'/') => {
+                    let mut content = &mut b"//".into();
+                    let end = self.eat_slash_comment_content(&mut content)?;
+                    Ok(Some(((start, end.unwrap_or(follow)), content.to_vec())))
+                }
+                (follow, b'*') => {
+                    let mut content = &mut b"/*".into();
+                    let end = self.eat_asterisk_comment_content(&mut content)?;
+                    content.extend_from_slice(b"*/");
+                    Ok(Some(((start, end.unwrap_or(follow)), content.to_vec())))
+                }
+                (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingComment { pos, found })?,
+            },
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingComment { pos, found })?,
+        }
+    }
+
+    fn eat_slash_comment_content(&mut self, buff: &mut Vec<u8>) -> crate::Result<Option<Position>> {
         while let Some((pos, c)) = self.eat()? {
-            if !c.is_ascii_whitespace() {
-                return Ok(Some((pos, c)));
+            match c {
+                b'\n' => return Ok(Some(pos)),
+                _ => buff.push(c),
             }
         }
         Ok(None)
     }
 
-    fn skip_whitespace(&mut self) -> crate::Result<Option<(Position, u8)>> {
-        while let Some((pos, c)) = self.find()? {
-            if c.is_ascii_whitespace() {
-                self.eat()?;
-            } else {
-                return Ok(Some((pos, c)));
+    fn eat_asterisk_comment_content(&mut self, buff: &mut Vec<u8>) -> crate::Result<Option<Position>> {
+        while let Some((_, c)) = self.eat()? {
+            match c {
+                b'*' => match self.find()?.ok_or(SyntaxError::EofWhileEndParsingComment)? {
+                    (pos, b'/') => return Ok(Some(pos)),
+                    _ => buff.push(c),
+                },
+                _ => buff.push(c),
             }
         }
-        Ok(None)
+        Err(SyntaxError::UnterminatedComment)?
     }
 
     fn fold_token<F: FnMut(&[u8], u8) -> bool>(&mut self, mut f: F) -> crate::Result<(Option<PosRange>, Vec<u8>)> {
