@@ -11,7 +11,7 @@ fn test_deserialize_basic_object() {
         phantom: (),
         trailing_comma: bool,
     }
-    let raw = r#"
+    let target = r#"
         {
             "schema": "jsonc",
             "phantom": null,
@@ -19,7 +19,7 @@ fn test_deserialize_basic_object() {
         }
     "#;
 
-    let data: Data = from_str(raw).unwrap();
+    let data: Data = from_str(target).unwrap();
     assert_eq!(data.schema, "jsonc");
     assert_eq!(data.phantom, ());
     assert_eq!(data.trailing_comma, true);
@@ -27,8 +27,8 @@ fn test_deserialize_basic_object() {
 
 #[test]
 fn test_deserialize_basic_array() {
-    let raw = r#"["foo", "bar", "baz"]"#;
-    let data: Vec<String> = from_str(raw).unwrap();
+    let target = r#"["foo", "bar", "baz"]"#;
+    let data: Vec<String> = from_str(target).unwrap();
     assert_eq!(data, ["foo", "bar", "baz"]);
 }
 
@@ -72,7 +72,7 @@ fn test_deserialize_json() {
         month: u16,
         day: u8,
     }
-    let raw = r#"
+    let target = r#"
         [
             {
                 "name": "event🥳",
@@ -107,7 +107,7 @@ fn test_deserialize_json() {
             }
         ]
     "#;
-    let events: Vec<Event> = from_str(raw).unwrap();
+    let events: Vec<Event> = from_str(target).unwrap();
     let expected = vec![
         Event {
             name: "event🥳".to_string(),
@@ -142,7 +142,7 @@ fn test_deserialize_literal_matchable() {
         age: u8,
         alive: bool,
     }
-    let raw = r#"[
+    let target = r#"[
         {
             "name": "hayas1",
             "nickname": "hayashi",
@@ -162,7 +162,7 @@ fn test_deserialize_literal_matchable() {
             "alive": true
         }
     ]"#;
-    let people: Vec<Person> = from_str_raw(raw).unwrap();
+    let people: Vec<Person> = from_str_raw(target).unwrap();
     assert!(matches!(people[0], Person { name: "hayas1", nickname: Some("hayashi"), age: 26, alive: true }));
     assert!(matches!(people[1], Person { name: "nobunaga", nickname: None, age: 47, alive: false }));
     assert!(matches!(people[2], Person { name: "Ω", nickname: Some("\\u03ad"), age: 32, alive: true }));

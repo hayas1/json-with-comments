@@ -8,7 +8,7 @@ fn test_deserialize_recursive_object() {
         value: V,
         next: Option<Box<Node<V>>>,
     }
-    let raw = r#"
+    let target = r#"
         {
             "value": "foo",
             "next": {
@@ -20,7 +20,7 @@ fn test_deserialize_recursive_object() {
             }
         }
     "#;
-    let root: Node<String> = from_str(raw).unwrap();
+    let root: Node<String> = from_str(target).unwrap();
     assert_eq!(root.value, "foo");
 
     let next = root.next.unwrap();
@@ -33,7 +33,7 @@ fn test_deserialize_recursive_object() {
 
 #[test]
 fn test_deserialize_recursive_array() {
-    let raw = r#"[[[], [], []], [], []]"#;
-    let data: Vec<Vec<Vec<()>>> = from_str(raw).unwrap();
+    let target = r#"[[[], [], []], [], []]"#;
+    let data: Vec<Vec<Vec<()>>> = from_str(target).unwrap();
     assert_eq!(data, vec![vec![vec![], vec![], vec![]], vec![], vec![]]);
 }

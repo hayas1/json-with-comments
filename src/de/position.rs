@@ -52,8 +52,8 @@ mod tests {
         //   "bar",
         //   "baz"
         // ]
-        let raw = vec!["[", r#"  "foo","#, r#"  "bar","#, r#"  "baz""#, "]"].join("\n");
-        let reader = BufReader::new(raw.as_bytes());
+        let target = vec!["[", r#"  "foo","#, r#"  "bar","#, r#"  "baz""#, "]"].join("\n");
+        let reader = BufReader::new(target.as_bytes());
         let mut iter = RowColIterator::new(reader.bytes());
 
         assert!(matches!(iter.next(), Some(((0, 0), Ok(b'[')))));
