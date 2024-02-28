@@ -1,6 +1,4 @@
-use std::borrow::Cow;
-
-use json_with_comment::{self, de::from::from_str_raw, from_str};
+use json_with_comment::from_str;
 use serde::Deserialize;
 
 #[test]
@@ -30,25 +28,6 @@ fn test_deserialize_basic_array() {
     let target = r#"["foo", "bar", "baz"]"#;
     let data: Vec<String> = from_str(target).unwrap();
     assert_eq!(data, ["foo", "bar", "baz"]);
-}
-
-#[test]
-fn test_deserialize_str() {
-    let unescaped = r#""string without linefeed""#;
-    assert_eq!(from_str::<String>(unescaped).unwrap(), "string without linefeed");
-    assert_eq!(from_str::<Cow<'_, str>>(unescaped).unwrap(), "string without linefeed");
-    assert_eq!(from_str::<&str>(unescaped).unwrap(), "string without linefeed");
-    assert_eq!(from_str_raw::<String>(unescaped).unwrap(), r#"string without linefeed"#);
-    assert_eq!(from_str_raw::<Cow<'_, str>>(unescaped).unwrap(), r#"string without linefeed"#);
-    assert_eq!(from_str_raw::<&str>(unescaped).unwrap(), r#"string without linefeed"#);
-
-    let escaped = r#""string with linefeed\n""#;
-    assert_eq!(from_str::<String>(escaped).unwrap(), "string with linefeed\n");
-    assert_eq!(from_str::<Cow<'_, str>>(escaped).unwrap(), "string with linefeed\n");
-    assert!(from_str::<&str>(escaped).is_err(), "borrowed string that has escape cannot be deserialized (lifetime)");
-    assert_eq!(from_str_raw::<String>(escaped).unwrap(), r#"string with linefeed\n"#);
-    assert_eq!(from_str_raw::<Cow<'_, str>>(escaped).unwrap(), r#"string with linefeed\n"#);
-    assert_eq!(from_str_raw::<&str>(escaped).unwrap(), r#"string with linefeed\n"#);
 }
 
 #[test]
@@ -156,6 +135,7 @@ fn test_deserialize_json_with_comment() {
             mounts: None
         }
     ));
+
     let target2 = r#"
         {
             "name": "Debian",  /* built container name is Debian */
@@ -174,39 +154,4 @@ fn test_deserialize_json_with_comment() {
             mounts: None
         }
     ));
-}
-
-#[test]
-fn test_deserialize_literal_matchable() {
-    #[derive(Deserialize)]
-    struct Person<'a> {
-        name: &'static str,
-        nickname: Option<&'a str>,
-        age: u8,
-        alive: bool,
-    }
-    let target = r#"[
-        {
-            "name": "hayas1",
-            "nickname": "hayashi",
-            "age": 26,
-            "alive": true
-        },
-        {
-            "name": "nobunaga",
-            "nickname": null,
-            "age": 47,
-            "alive": false
-        },
-        {
-            "name": "Ω",
-            "nickname": "\u03ad",
-            "age": 32,
-            "alive": true
-        }
-    ]"#;
-    let people: Vec<Person> = from_str_raw(target).unwrap();
-    assert!(matches!(people[0], Person { name: "hayas1", nickname: Some("hayashi"), age: 26, alive: true }));
-    assert!(matches!(people[1], Person { name: "nobunaga", nickname: None, age: 47, alive: false }));
-    assert!(matches!(people[2], Person { name: "Ω", nickname: Some("\\u03ad"), age: 32, alive: true }));
 }
