@@ -216,7 +216,7 @@ impl From<SemanticError> for JsonWithCommentError {
 }
 
 #[derive(Error, Debug)]
-pub enum NeverFail {
+pub enum Ensure {
     #[error("previous peek ensure this eat does not return None")]
     EatAfterFind,
 
@@ -226,8 +226,8 @@ pub enum NeverFail {
     #[error("unescaped string should be owned because of lifetime")]
     OwnedString,
 }
-impl From<NeverFail> for JsonWithCommentError {
-    fn from(err: NeverFail) -> Self {
+impl From<Ensure> for JsonWithCommentError {
+    fn from(err: Ensure) -> Self {
         JsonWithCommentError::new(err)
     }
 }

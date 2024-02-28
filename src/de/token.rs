@@ -6,7 +6,7 @@ pub mod str;
 use std::str::FromStr;
 
 use crate::{
-    error::{NeverFail, SyntaxError},
+    error::{Ensure, SyntaxError},
     value::string::StringValue,
 };
 
@@ -76,7 +76,7 @@ pub trait Tokenizer<'de> {
         while let Some((_, c)) = self.eat()? {
             match c {
                 b'*' => match self.find()?.ok_or(SyntaxError::UnterminatedComment)? {
-                    (_, b'/') => return Ok(Some(self.eat()?.ok_or(NeverFail::EatAfterFind)?.0)),
+                    (_, b'/') => return Ok(Some(self.eat()?.ok_or(Ensure::EatAfterFind)?.0)),
                     _ => buff.push(c),
                 },
                 _ => buff.push(c),
@@ -90,7 +90,7 @@ pub trait Tokenizer<'de> {
         while let Some((pos, c)) = self.find()? {
             range = if range.is_none() { Some((pos, pos)) } else { range };
             if f(&buff, c) {
-                let (p, c) = self.eat()?.ok_or(NeverFail::EatAfterFind)?;
+                let (p, c) = self.eat()?.ok_or(Ensure::EatAfterFind)?;
                 range.as_mut().map(|(_, t)| *t = p);
                 buff.push(c);
             } else {
@@ -133,7 +133,7 @@ pub trait Tokenizer<'de> {
                 b'\\' => self.parse_escape_sequence(&mut buff)?,
                 b'"' => return Ok(StringValue::Owned(String::from_utf8(buff)?)),
                 c if c.is_ascii_control() => Err(SyntaxError::ControlCharacterWhileParsingString { pos, c })?,
-                _ => buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1),
+                _ => buff.push(self.eat()?.ok_or(Ensure::EatAfterFind)?.1),
             }
         }
         Err(SyntaxError::EofWhileEndParsingString)? // TODO contain parsed string?
@@ -178,7 +178,7 @@ pub trait Tokenizer<'de> {
         let mut buff = Vec::new(); // TODO performance optimization (do not use string buffer)
         let (pos, _) = self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)?;
         match self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)? {
-            (_, b'-') => buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1),
+            (_, b'-') => buff.push(self.eat()?.ok_or(Ensure::EatAfterFind)?.1),
             (pos, b'+') => Err(SyntaxError::InvalidLeadingPlus { pos })?,
             _ => (),
         }
@@ -195,7 +195,7 @@ pub trait Tokenizer<'de> {
         }
         match self.find()? {
             Some((_, b'.')) => {
-                buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1);
+                buff.push(self.eat()?.ok_or(Ensure::EatAfterFind)?.1);
                 match self.find()?.ok_or(SyntaxError::EofWhileStartParsingFraction)? {
                     (_, b'0'..=b'9') => buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1),
                     (pos, found) => Err(SyntaxError::MissingFraction { pos, found })?,
@@ -205,7 +205,7 @@ pub trait Tokenizer<'de> {
         }
         match self.find()? {
             Some((_, b'e' | b'E')) => {
-                buff.push(self.eat()?.ok_or(NeverFail::EatAfterFind)?.1);
+                buff.push(self.eat()?.ok_or(Ensure::EatAfterFind)?.1);
                 match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingExponent)? {
                     (_, c @ (b'+' | b'-' | b'0'..=b'9')) => buff.push(c),
                     (pos, found) => Err(SyntaxError::MissingExponent { pos, found })?,

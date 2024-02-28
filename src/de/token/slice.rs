@@ -2,7 +2,7 @@ use std::iter::Peekable;
 
 use crate::{
     de::position::{Position, RowColIterator},
-    error::NeverFail,
+    error::Ensure,
 };
 
 use super::Tokenizer;
@@ -25,7 +25,7 @@ impl<'de> Tokenizer<'de> for SliceTokenizer<'de> {
         self.current += 1;
         match self.iter.next() {
             Some((pos, Ok(c))) => Ok(Some((pos, c))),
-            Some((_, Err(()))) => Err(NeverFail::EmptyError)?,
+            Some((_, Err(()))) => Err(Ensure::EmptyError)?,
             None => Ok(None),
         }
     }
@@ -33,7 +33,7 @@ impl<'de> Tokenizer<'de> for SliceTokenizer<'de> {
     fn find(&mut self) -> crate::Result<Option<(Position, u8)>> {
         match self.iter.peek() {
             Some(&(pos, Ok(c))) => Ok(Some((pos, c))),
-            Some((_, Err(()))) => Err(NeverFail::EmptyError)?,
+            Some((_, Err(()))) => Err(Ensure::EmptyError)?,
             None => Ok(None),
         }
     }
