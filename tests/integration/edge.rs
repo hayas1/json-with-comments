@@ -166,3 +166,23 @@ fn test_deserialize_special_comment() {
     let data: &str = from_str(target_contain_control_character).unwrap();
     assert_eq!(data, "control character");
 }
+
+#[test]
+#[should_panic]
+fn test_cannot_deserialize_optional_string_map_key() {
+    let target_option = r#"{
+        ""ok"": null
+    }"#;
+    let map: HashMap<Option<&str>, Option<i32>> = from_str(target_option).unwrap();
+    assert_eq!(map, HashMap::from([(Some("ok"), None)]));
+}
+
+#[test]
+#[should_panic]
+fn test_cannot_deserialize_string_seq_map_key() {
+    let target_seq = r#"{
+        "[1, "two", 3]": "123"
+    }"#;
+    let seq_map: HashMap<(u32, &str, u32), &str> = from_str(target_seq).unwrap();
+    assert_eq!(seq_map, HashMap::from([((1, "two", 3), "123")]));
+}

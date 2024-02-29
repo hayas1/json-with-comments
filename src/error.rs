@@ -200,10 +200,10 @@ pub enum SyntaxError {
     #[error("{pos:?}: cannot convert {char:08X} to char")]
     CannotConvertChar { pos: Position, char: u32 },
 
-    #[error("{pos:?}: json number does not start from `+`")]
+    #[error("{pos:?}: JSON with comments number does not start from `+`")]
     InvalidLeadingPlus { pos: Position },
 
-    #[error("{pos:?}: json number is forbidden leading `0`")]
+    #[error("{pos:?}: JSON with comments number is forbidden leading `0`")]
     InvalidLeadingZeros { pos: Position },
 
     #[error("{pos:?}: expect exponent part, but found {found:?}")]
@@ -228,6 +228,12 @@ impl From<SyntaxError> for JsonWithCommentError {
 pub enum SemanticError {
     #[error("{pos:?}: Expected struct start with `{{` or `[`, but found {found:?}")]
     ExpectStruct { pos: Position, found: u8 },
+
+    #[error("map key of JSON with comments must be string")]
+    AnyMapKey,
+
+    #[error("JSON with comments must not be empty")]
+    EmptyJsonWithComment,
 }
 impl From<SemanticError> for JsonWithCommentError {
     fn from(err: SemanticError) -> Self {
