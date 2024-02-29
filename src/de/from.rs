@@ -2,12 +2,9 @@ use std::{fs::File, io, path::Path};
 
 use serde::de;
 
-use crate::de::{
-    token::{raw::RawTokenizer, read::ReadTokenizer, Tokenizer},
-    Deserializer,
-};
+use crate::de::token::{raw::RawTokenizer, read::ReadTokenizer, Tokenizer};
 
-use super::token::str::StrTokenizer;
+use super::{access::jsonc::Deserializer, token::str::StrTokenizer};
 
 /// Deserialize a JSON with comments text as type `D`.
 ///
