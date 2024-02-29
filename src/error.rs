@@ -35,6 +35,11 @@ impl de::Error for JsonWithCommentError {
     }
 }
 
+impl From<std::io::Error> for JsonWithCommentError {
+    fn from(value: std::io::Error) -> Self {
+        JsonWithCommentError::new(value)
+    }
+}
 impl From<FromUtf8Error> for JsonWithCommentError {
     fn from(value: FromUtf8Error) -> Self {
         JsonWithCommentError::new(value)
@@ -232,6 +237,9 @@ impl From<SemanticError> for JsonWithCommentError {
 
 #[derive(Error, Debug)]
 pub enum Ensure {
+    #[error("next should return peeked value")]
+    NextAfterPeek,
+
     #[error("previous peek ensure this eat does not return None")]
     EatAfterFind,
 

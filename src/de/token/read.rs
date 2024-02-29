@@ -1,6 +1,9 @@
 use std::{io, iter::Peekable};
 
-use crate::de::position::{Position, RowColIterator};
+use crate::{
+    de::position::{Position, RowColIterator},
+    error::Ensure,
+};
 
 use super::Tokenizer;
 
@@ -26,7 +29,7 @@ where
     fn eat(&mut self) -> crate::Result<Option<(Position, u8)>> {
         match self.iter.next() {
             Some((pos, Ok(c))) => Ok(Some((pos, c))),
-            Some((_, Err(e))) => Err(crate::Error::new(e.to_string())), // TODO handling io error
+            Some((_, Err(e))) => Err(e)?,
             None => Ok(None),
         }
     }
@@ -34,7 +37,10 @@ where
     fn find(&mut self) -> crate::Result<Option<(Position, u8)>> {
         match self.iter.peek() {
             Some(&(pos, Ok(c))) => Ok(Some((pos, c))),
-            Some((_, Err(e))) => Err(crate::Error::new(e.to_string())), // TODO handling io error
+            Some(&(_, Err(_))) => match self.iter.next() {
+                Some((_, Err(e))) => Err(e)?,
+                _ => Err(Ensure::NextAfterPeek)?,
+            },
             None => Ok(None),
         }
     }

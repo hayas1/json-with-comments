@@ -141,8 +141,7 @@ pub fn from_path<D>(p: &Path) -> crate::Result<D>
 where
     D: de::DeserializeOwned,
 {
-    // TODO handling io error
-    from_file(&File::open(p).or_else(|e| Err(crate::Error::new(e.to_string())))?)
+    from_file(&File::open(p)?)
 }
 
 /// Deserialize a JSON with comments text of the given file as type `D`.
