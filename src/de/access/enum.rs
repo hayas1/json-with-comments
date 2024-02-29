@@ -2,20 +2,20 @@ use serde::de;
 
 use crate::{de::token::Tokenizer, error::SyntaxError};
 
-use super::jsonc::Deserializer;
+use super::jsonc::JsoncDeserializer;
 
 pub struct EnumDeserializer<'de, 'a, T>
 where
     T: 'a + Tokenizer<'de>,
 {
-    deserializer: &'a mut Deserializer<'de, T>,
+    deserializer: &'a mut JsoncDeserializer<'de, T>,
 }
 
 impl<'de, 'a, T> EnumDeserializer<'de, 'a, T>
 where
     T: 'a + Tokenizer<'de>,
 {
-    pub fn new(de: &'a mut Deserializer<'de, T>) -> Self {
+    pub fn new(de: &'a mut JsoncDeserializer<'de, T>) -> Self {
         EnumDeserializer { deserializer: de }
     }
 }

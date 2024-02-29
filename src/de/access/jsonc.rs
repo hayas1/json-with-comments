@@ -4,19 +4,20 @@ use crate::{de::token::Tokenizer, error::SyntaxError, value::string::StringValue
 
 use super::{map::MapDeserializer, r#enum::EnumDeserializer, seq::SeqDeserializer};
 
-pub struct Deserializer<'de, T>
+pub struct JsoncDeserializer<'de, T>
 where
     T: Tokenizer<'de>,
 {
     pub tokenizer: T,
     phantom: std::marker::PhantomData<&'de ()>,
 }
-impl<'de, T> Deserializer<'de, T>
+
+impl<'de, T> JsoncDeserializer<'de, T>
 where
     T: Tokenizer<'de>,
 {
     pub fn new(tokenizer: T) -> Self {
-        Deserializer { tokenizer, phantom: std::marker::PhantomData }
+        JsoncDeserializer { tokenizer, phantom: std::marker::PhantomData }
     }
 
     pub fn finish(&mut self) -> crate::Result<()> {
@@ -26,7 +27,8 @@ where
         }
     }
 }
-impl<'de, 'a, T> de::Deserializer<'de> for &'a mut Deserializer<'de, T>
+
+impl<'de, 'a, T> de::Deserializer<'de> for &'a mut JsoncDeserializer<'de, T>
 where
     T: 'de + Tokenizer<'de>,
 {

@@ -5,20 +5,20 @@ use crate::{
     error::{Ensure, SyntaxError},
 };
 
-use super::jsonc::Deserializer;
+use super::jsonc::JsoncDeserializer;
 
 pub struct MapDeserializer<'de, 'a, T>
 where
     T: 'a + Tokenizer<'de>,
 {
-    deserializer: &'a mut Deserializer<'de, T>,
+    deserializer: &'a mut JsoncDeserializer<'de, T>,
 }
 
 impl<'de, 'a, T> MapDeserializer<'de, 'a, T>
 where
     T: 'a + Tokenizer<'de>,
 {
-    pub fn new(de: &'a mut Deserializer<'de, T>) -> Self {
+    pub fn new(de: &'a mut JsoncDeserializer<'de, T>) -> Self {
         MapDeserializer { deserializer: de }
     }
 }

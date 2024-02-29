@@ -8,7 +8,7 @@ use serde::de;
 
 use crate::de::token::{raw::RawTokenizer, read::ReadTokenizer, Tokenizer};
 
-use self::{access::jsonc::Deserializer, token::str::StrTokenizer};
+use self::{access::jsonc::JsoncDeserializer, token::str::StrTokenizer};
 
 /// Deserialize a JSON with comments text as type `D`.
 ///
@@ -251,7 +251,7 @@ where
     T: 'de + Tokenizer<'de>,
     D: de::Deserialize<'de>,
 {
-    let mut de = Deserializer::new(tokenizer);
+    let mut de = JsoncDeserializer::new(tokenizer);
     let value = de::Deserialize::deserialize(&mut de)?;
     de.finish()?;
 
