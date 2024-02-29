@@ -34,7 +34,7 @@ where
         }
     }
 
-    fn find(&mut self) -> crate::Result<Option<(Position, u8)>> {
+    fn look(&mut self) -> crate::Result<Option<(Position, u8)>> {
         match self.iter.peek() {
             Some(&(pos, Ok(c))) => Ok(Some((pos, c))),
             Some(&(_, Err(_))) => match self.iter.next() {

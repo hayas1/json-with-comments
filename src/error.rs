@@ -241,7 +241,7 @@ pub enum Ensure {
     NextAfterPeek,
 
     #[error("previous peek ensure this eat does not return None")]
-    EatAfterFind,
+    EatAfterLook,
 
     #[error("returns Result for interface reasons, but does not actually fail")]
     EmptyError,

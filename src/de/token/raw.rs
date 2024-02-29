@@ -16,8 +16,8 @@ impl<'de> Tokenizer<'de> for RawTokenizer<'de> {
         self.delegate.eat()
     }
 
-    fn find(&mut self) -> crate::Result<Option<(Position, u8)>> {
-        self.delegate.find()
+    fn look(&mut self) -> crate::Result<Option<(Position, u8)>> {
+        self.delegate.look()
     }
 
     fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {

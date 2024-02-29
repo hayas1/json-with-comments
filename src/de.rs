@@ -367,7 +367,7 @@ where
                 (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingObjectValue { pos, found })?,
             }?;
         match self.deserializer.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileParsingObjectValue)? {
-            (_, b',') => _ = self.deserializer.tokenizer.eat()?.ok_or(Ensure::EatAfterFind)?,
+            (_, b',') => _ = self.deserializer.tokenizer.eat()?.ok_or(Ensure::EatAfterLook)?,
             (_, b'}') => (),
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingObjectValue { pos, found })?,
         };
@@ -405,7 +405,7 @@ where
                 _ => seed.deserialize(&mut *self.deserializer).map(Some),
             }?;
         match self.deserializer.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingArray)? {
-            (_, b',') => _ = self.deserializer.tokenizer.eat()?.ok_or(Ensure::EatAfterFind)?,
+            (_, b',') => _ = self.deserializer.tokenizer.eat()?.ok_or(Ensure::EatAfterLook)?,
             (_, b']') => (),
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingArrayValue { pos, found })?,
         }

@@ -14,7 +14,7 @@ use super::position::{PosRange, Position};
 
 pub trait Tokenizer<'de> {
     fn eat(&mut self) -> crate::Result<Option<(Position, u8)>>;
-    fn find(&mut self) -> crate::Result<Option<(Position, u8)>>;
+    fn look(&mut self) -> crate::Result<Option<(Position, u8)>>;
 
     fn eat_whitespace(&mut self) -> crate::Result<Option<(Position, u8)>> {
         loop {
@@ -29,7 +29,7 @@ pub trait Tokenizer<'de> {
 
     fn skip_whitespace(&mut self) -> crate::Result<Option<(Position, u8)>> {
         loop {
-            match self.find()? {
+            match self.look()? {
                 Some((_, b'/')) => _ = self.eat_comment()?,
                 Some((_, c)) if c.is_ascii_whitespace() => _ = self.eat()?,
                 Some((pos, c)) => return Ok(Some((pos, c))),
@@ -75,8 +75,8 @@ pub trait Tokenizer<'de> {
     fn eat_asterisk_comment_content(&mut self, buff: &mut Vec<u8>) -> crate::Result<Option<Position>> {
         while let Some((_, c)) = self.eat()? {
             match c {
-                b'*' => match self.find()?.ok_or(SyntaxError::UnterminatedComment)? {
-                    (_, b'/') => return Ok(Some(self.eat()?.ok_or(Ensure::EatAfterFind)?.0)),
+                b'*' => match self.look()?.ok_or(SyntaxError::UnterminatedComment)? {
+                    (_, b'/') => return Ok(Some(self.eat()?.ok_or(Ensure::EatAfterLook)?.0)),
                     _ => buff.push(c),
                 },
                 _ => buff.push(c),
@@ -87,10 +87,10 @@ pub trait Tokenizer<'de> {
 
     fn fold_token<F: FnMut(&[u8], u8) -> bool>(&mut self, mut f: F) -> crate::Result<(Option<PosRange>, Vec<u8>)> {
         let (mut range, mut buff) = (None, Vec::new());
-        while let Some((pos, c)) = self.find()? {
+        while let Some((pos, c)) = self.look()? {
             range = if range.is_none() { Some((pos, pos)) } else { range };
             if f(&buff, c) {
-                let (p, c) = self.eat()?.ok_or(Ensure::EatAfterFind)?;
+                let (p, c) = self.eat()?.ok_or(Ensure::EatAfterLook)?;
                 range.as_mut().map(|(_, t)| *t = p);
                 buff.push(c);
             } else {
@@ -128,12 +128,12 @@ pub trait Tokenizer<'de> {
     }
     fn parse_string_content_super(&mut self) -> crate::Result<StringValue<'de>> {
         let mut buff = Vec::new();
-        while let Some((pos, found)) = self.find()? {
+        while let Some((pos, found)) = self.look()? {
             match found {
                 b'\\' => self.parse_escape_sequence(&mut buff)?,
                 b'"' => return Ok(StringValue::Owned(String::from_utf8(buff)?)),
                 c if c.is_ascii_control() => Err(SyntaxError::ControlCharacterWhileParsingString { pos, c })?,
-                _ => buff.push(self.eat()?.ok_or(Ensure::EatAfterFind)?.1),
+                _ => buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1),
             }
         }
         Err(SyntaxError::EofWhileEndParsingString)? // TODO contain parsed string?
@@ -178,12 +178,12 @@ pub trait Tokenizer<'de> {
         let mut buff = Vec::new(); // TODO performance optimization (do not use string buffer)
         let (pos, _) = self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)?;
         match self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)? {
-            (_, b'-') => buff.push(self.eat()?.ok_or(Ensure::EatAfterFind)?.1),
+            (_, b'-') => buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1),
             (pos, b'+') => Err(SyntaxError::InvalidLeadingPlus { pos })?,
             _ => (),
         }
         match self.eat()?.ok_or(SyntaxError::EofWhileParsingNumber)? {
-            (_, c @ b'0') => match self.find()? {
+            (_, c @ b'0') => match self.look()? {
                 Some((pos, b'0'..=b'9')) => Err(SyntaxError::InvalidLeadingZeros { pos })?,
                 _ => buff.push(c),
             },
@@ -193,19 +193,19 @@ pub trait Tokenizer<'de> {
             }
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingNumber { pos, found })?,
         }
-        match self.find()? {
+        match self.look()? {
             Some((_, b'.')) => {
-                buff.push(self.eat()?.ok_or(Ensure::EatAfterFind)?.1);
-                match self.find()?.ok_or(SyntaxError::EofWhileStartParsingFraction)? {
+                buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
+                match self.look()?.ok_or(SyntaxError::EofWhileStartParsingFraction)? {
                     (_, b'0'..=b'9') => buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1),
                     (pos, found) => Err(SyntaxError::MissingFraction { pos, found })?,
                 }
             }
             _ => (),
         }
-        match self.find()? {
+        match self.look()? {
             Some((_, b'e' | b'E')) => {
-                buff.push(self.eat()?.ok_or(Ensure::EatAfterFind)?.1);
+                buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
                 match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingExponent)? {
                     (_, c @ (b'+' | b'-' | b'0'..=b'9')) => buff.push(c),
                     (pos, found) => Err(SyntaxError::MissingExponent { pos, found })?,
@@ -303,17 +303,17 @@ mod tests {
         "#;
         let mut tokenizer = from(target);
 
-        assert_eq!(tokenizer.find().unwrap(), Some(((0, 0), b'\n')));
-        assert_eq!(tokenizer.find().unwrap(), Some(((0, 0), b'\n')));
+        assert_eq!(tokenizer.look().unwrap(), Some(((0, 0), b'\n')));
+        assert_eq!(tokenizer.look().unwrap(), Some(((0, 0), b'\n')));
         assert_eq!(tokenizer.eat().unwrap(), Some(((0, 0), b'\n')));
-        assert_eq!(tokenizer.find().unwrap(), Some(((1, 0), b' ')));
-        assert_eq!(tokenizer.find().unwrap(), Some(((1, 0), b' ')));
+        assert_eq!(tokenizer.look().unwrap(), Some(((1, 0), b' ')));
+        assert_eq!(tokenizer.look().unwrap(), Some(((1, 0), b' ')));
         assert_eq!(tokenizer.eat().unwrap(), Some(((1, 0), b' ')));
 
         assert_eq!(tokenizer.eat_whitespace().unwrap(), Some(((1, 12), b'[')));
-        assert_eq!(tokenizer.find().unwrap(), Some(((1, 13), b'\n')));
+        assert_eq!(tokenizer.look().unwrap(), Some(((1, 13), b'\n')));
         assert_eq!(tokenizer.skip_whitespace().unwrap(), Some(((2, 16), b'"')));
-        assert_eq!(tokenizer.find().unwrap(), Some(((2, 16), b'"')));
+        assert_eq!(tokenizer.look().unwrap(), Some(((2, 16), b'"')));
 
         assert_eq!(tokenizer.parse_string().unwrap(), "jsonc");
         assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
@@ -335,7 +335,7 @@ mod tests {
         assert!(matches!(tokenizer.eat(), Ok(Some((_, b',')))));
 
         assert_eq!(tokenizer.eat_whitespace().unwrap(), Some(((7, 12), b']')));
-        assert_eq!(tokenizer.find().unwrap(), Some(((7, 13), b'\n')));
+        assert_eq!(tokenizer.look().unwrap(), Some(((7, 13), b'\n')));
         assert_eq!(tokenizer.eat_whitespace().unwrap(), None);
     }
 
