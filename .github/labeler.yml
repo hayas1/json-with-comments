@@ -28,8 +28,8 @@ deps:
       - '^dependencies/'
 
 maintenance:
-   - heamaintenance/'
-      - '^d-branch:
+   - head-branch:
+      - '^maintenance/'
       - '^ci/'
       - '^workflow/'
       - '^chore/'
