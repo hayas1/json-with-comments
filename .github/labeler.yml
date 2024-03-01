@@ -15,7 +15,8 @@ refactor:
 
 doc:
    - changed-files:
-      - any-glob-to-any-file: '**/README.md'
+      - any-glob-to-any-file:
+        - '**/README.md'
    - head-branch:
       - '^doc/'
       - '^docs/'
@@ -28,8 +29,8 @@ deps:
       - '^dependencies/'
 
 maintenance:
-   - heamaintenance/'
-      - '^d-branch:
+   - head-branch:
+      - '^maintenance/'
       - '^ci/'
       - '^workflow/'
       - '^chore/'
