@@ -43,3 +43,5 @@ assert!(matches!(
 
 ## Performance
 // TODO
+
+License: MIT
