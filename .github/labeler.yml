@@ -1,0 +1,34 @@
+feature:
+ - head-branch:
+    - '^feat/'
+    - '^feature/'
+
+bugfix:
+ - head-branch:
+    - '^fix/'
+    - '^bugfix/'
+    - '^modify/'
+
+refactor:
+ - head-branch:
+    - '^refactor/'
+
+doc:
+ - head-branch:
+    - '^doc/'
+    - '^docs/'
+    - '^documentation/'
+
+deps:
+ - head-branch:
+    - '^dep/'
+    - '^deps/'
+    - '^dependencies/'
+
+maintenance:
+ - head-branch:
+    - '^ci/'
+    - '^workflow/'
+    - '^maintenance/'
+    - '^chore/'
+
