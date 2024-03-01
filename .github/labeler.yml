@@ -15,7 +15,8 @@ refactor:
 
 doc:
    - changed-files:
-      - any-glob-to-any-file: '**/README.md'
+      - any-glob-to-any-file:
+        - '**/README.md'
    - head-branch:
       - '^doc/'
       - '^docs/'
