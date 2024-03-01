@@ -1,369 +1,259 @@
-pub mod from;
+pub mod access;
 pub mod position;
 pub mod token;
 
-use std::io;
+use std::{fs::File, io, path::Path};
 
 use serde::de;
 
-use crate::error::{NeverFail, SyntaxError};
+use crate::de::token::{raw::RawTokenizer, read::ReadTokenizer, Tokenizer};
 
-use self::token::Tokenizer;
+use self::{access::jsonc::JsoncDeserializer, token::str::StrTokenizer};
 
-pub struct Deserializer<R>
+/// Deserialize a JSON with comments text as type `D`.
+///
+/// # Examples
+/// ```
+/// use serde::Deserialize;
+/// #[derive(Deserialize)]
+/// struct Country {
+///     name: String,
+///     code: u32,
+///     regions: Vec<String>,
+/// }
+/// let jp = r#"
+///     {
+///         "name": "Japan",
+///         "code": 81,
+///         "regions": [
+///             "Hokkaido",
+///             "Kanto",
+///             "Kyushu-Okinawa",
+///         ],
+///     }
+/// "#;
+/// let japan: Country = json_with_comments::from_str(jp).unwrap();
+/// assert_eq!(japan.name, "Japan");
+/// assert_eq!(japan.code, 81);
+/// assert_eq!(japan.regions, ["Hokkaido", "Kanto", "Kyushu-Okinawa"]);
+/// ```
+///
+/// # Errors
+/// This function can deserialize string as borrowed `&str`.
+/// But, if it contain escape sequence such as `"\n"`, cannot deserialize and fail.
+/// ```
+/// use std::borrow::Cow;
+/// use json_with_comments::from_str;
+///
+/// let no_escaped = r#"  "string without linefeed"  "#;
+/// assert_eq!(from_str::<String>(no_escaped).unwrap(), "string without linefeed");
+/// assert_eq!(from_str::<Cow<'_, str>>(no_escaped).unwrap(), "string without linefeed");
+/// assert!(matches!(from_str::<&str>(no_escaped), Ok("string without linefeed")));
+///
+/// let escaped = r#"  "string with linefeed\n"  "#;
+/// assert_eq!(from_str::<String>(escaped).unwrap(), "string with linefeed\n");
+/// assert_eq!(from_str::<Cow<'_, str>>(escaped).unwrap(), "string with linefeed\n");
+/// assert!(matches!(from_str::<&str>(escaped), Err(_)));
+/// ```
+pub fn from_str<'de, D>(s: &'de str) -> crate::Result<D>
+where
+    D: de::Deserialize<'de>,
+{
+    from_tokenizer(StrTokenizer::new(s))
+}
+
+/// Deserialize a JSON with comments text as type `D`.
+/// Deserialized instance may have raw string value that contain escape sequence.
+/// This function can deserialize any string value as borrowed `&str`.
+/// If you need to deserialize string value as unescaped owned `String`, use [`from_str`].
+///
+/// # Examples
+/// ```
+/// let target = r#"    "\"q\" \\s\/ l\n"    "#;
+/// let no_escaped: &str = json_with_comments::from_str_raw(target).unwrap();
+/// assert_eq!(no_escaped, r#"\"q\" \\s\/ l\n"#);
+///
+/// let unescaped: String = json_with_comments::from_str(target).unwrap();
+/// assert_eq!(unescaped, "\"q\" \\s/ l\n");
+/// ```
+///
+/// ```
+/// use std::borrow::Cow;
+/// use json_with_comments::from_str_raw;
+///
+/// let no_escaped = r#"  "string without linefeed"  "#;
+/// assert_eq!(from_str_raw::<String>(no_escaped).unwrap(), "string without linefeed");
+/// assert_eq!(from_str_raw::<Cow<'_, str>>(no_escaped).unwrap(), "string without linefeed");
+/// assert!(matches!(from_str_raw::<&str>(no_escaped), Ok("string without linefeed")));
+///
+/// let escaped = r#"  "string with linefeed\n"  "#;
+/// assert_eq!(from_str_raw::<String>(escaped).unwrap(), "string with linefeed\\n");
+/// assert_eq!(from_str_raw::<Cow<'_, str>>(escaped).unwrap(), "string with linefeed\\n");
+/// assert!(matches!(from_str_raw::<&str>(escaped), Ok("string with linefeed\\n")));
+/// ```
+pub fn from_str_raw<'de, D>(s: &'de str) -> crate::Result<D>
+where
+    D: de::Deserialize<'de>,
+{
+    from_raw(s.as_bytes())
+}
+
+/// Deserialize a JSON with comments text of the given path as type `D`.
+///
+/// # Examples
+/// ```
+/// use serde::Deserialize;
+/// #[derive(Deserialize)]
+/// struct Product {
+///     name: String,
+///     price: u32,
+/// }
+///
+/// // {
+/// //     "name": "candy",
+/// //     "price": 100
+/// // }
+/// let path = std::path::Path::new("tests/data/product.json");
+/// let product: Product = json_with_comments::from_path(path).unwrap();
+/// assert_eq!(product.name, "candy");
+/// assert_eq!(product.price, 100);
+/// ```
+///
+/// # Errors
+/// This function cannot deserialize string value as borrowed `&str`.
+/// Same as [`from_file`].
+/// ```compile_fail
+/// use serde::Deserialize;
+/// #[derive(Deserialize)]
+/// struct Product<'a> {
+///     name: &'a str,
+///     price: u32,
+/// }
+/// // {
+/// //     "name": "candy",
+/// //     "price": 100
+/// // }
+/// let path = std::path::Path::new("tests/data/product.json");
+/// let product: Product = json_with_comments::from_path(path).unwrap(); // implementation of `Deserialize` is not general enough
+/// assert_eq!(product.name, "candy");
+/// assert_eq!(product.price, 100);
+/// ```
+pub fn from_path<D>(p: &Path) -> crate::Result<D>
+where
+    D: de::DeserializeOwned,
+{
+    from_file(&File::open(p)?)
+}
+
+/// Deserialize a JSON with comments text of the given file as type `D`.
+///
+/// # Examples
+/// ```
+/// use serde::Deserialize;
+/// #[derive(Deserialize)]
+/// struct Product {
+///     name: String,
+///     price: u32,
+/// }
+///
+/// // {
+/// //     "name": "candy",
+/// //     "price": 100
+/// // }
+/// let file = std::fs::File::open("tests/data/product.json").unwrap();
+/// let product: Product = json_with_comments::from_file(&file).unwrap();
+/// assert_eq!(product.name, "candy");
+/// assert_eq!(product.price, 100);
+/// ```
+///
+/// # Errors
+/// This function cannot deserialize string value as borrowed `&str`.
+/// Same as [`from_read`].
+/// ```compile_fail
+/// use serde::Deserialize;
+/// #[derive(Deserialize)]
+/// struct Product<'a> {
+///     name: &'a str,
+///     price: u32,
+/// }
+/// // {
+/// //     "name": "candy",
+/// //     "price": 100
+/// // }
+/// let file = std::fs::File::open("tests/data/product.json").unwrap();
+/// let product: Product = json_with_comments::from_file(&file).unwrap(); // implementation of `Deserialize` is not general enough
+/// assert_eq!(product.name, "candy");
+/// assert_eq!(product.price, 100);
+/// ```
+pub fn from_file<'de, D>(f: &'de File) -> crate::Result<D>
+where
+    D: de::DeserializeOwned,
+{
+    from_read(f)
+}
+
+/// Deserialize a JSON with comments text from the given reader as type `D`.
+///
+/// # Examples
+/// ```
+/// use serde::Deserialize;
+/// #[derive(Deserialize)]
+/// struct Product {
+///     name: String,
+///     price: u32,
+/// }
+///
+/// // {
+/// //     "name": "candy",
+/// //     "price": 100
+/// // }
+/// let read = std::fs::File::open("tests/data/product.json").unwrap();
+/// let product: Product = json_with_comments::from_read(&read).unwrap();
+/// assert_eq!(product.name, "candy");
+/// assert_eq!(product.price, 100);
+/// ```
+///
+/// # Errors
+/// This function cannot deserialize string value as borrowed `&str`.
+/// ```compile_fail
+/// use serde::Deserialize;
+/// #[derive(Deserialize)]
+/// struct Product<'a> {
+///     name: &'a str,
+///     price: u32,
+/// }
+/// // {
+/// //     "name": "candy",
+/// //     "price": 100
+/// // }
+/// let read = std::fs::File::open("tests/data/product.json").unwrap();
+/// let product: Product = json_with_comments::from_read(&read).unwrap(); // implementation of `Deserialize` is not general enough
+/// assert_eq!(product.name, "candy");
+/// assert_eq!(product.price, 100);
+/// ```
+pub fn from_read<R, D>(read: R) -> crate::Result<D>
 where
     R: io::Read,
+    D: de::DeserializeOwned,
 {
-    tokenizer: Tokenizer<R>,
+    from_tokenizer(ReadTokenizer::new(read))
 }
-impl<R> Deserializer<R>
+
+pub fn from_raw<'de, D>(s: &'de [u8]) -> crate::Result<D>
 where
-    R: io::Read,
+    D: de::Deserialize<'de>,
 {
-    pub fn new(tokenizer: Tokenizer<R>) -> Self {
-        Deserializer { tokenizer }
-    }
-
-    pub fn end(&mut self) -> crate::Result<()> {
-        match self.tokenizer.eat_whitespace()? {
-            Some((pos, found)) => Err(SyntaxError::ExpectedEof { pos, found })?,
-            None => Ok(()),
-        }
-    }
+    from_tokenizer(RawTokenizer::new(s))
 }
-impl<'de, 'a, R> de::Deserializer<'de> for &'a mut Deserializer<R>
+
+pub fn from_tokenizer<'de, T, D>(tokenizer: T) -> crate::Result<D>
 where
-    R: io::Read,
+    T: 'de + Tokenizer<'de>,
+    D: de::Deserialize<'de>,
 {
-    type Error = crate::Error;
+    let mut de = JsoncDeserializer::new(tokenizer);
+    let value = de::Deserialize::deserialize(&mut de)?;
+    de.finish()?;
 
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingValue)? {
-            (_, b'n') => self.deserialize_unit(visitor),
-            (_, b'f' | b't') => self.deserialize_bool(visitor),
-            (_, b'-' | b'0'..=b'9') => todo!("u64, i64, f64 and so on..."),
-            (_, b'"') => self.deserialize_str(visitor),
-            (_, b'[') => self.deserialize_seq(visitor),
-            (_, b'{') => self.deserialize_map(visitor),
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingValue { pos, found })?,
-        }
-    }
-
-    fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingBool)? {
-            (_, b't') => visitor.visit_bool(self.tokenizer.parse_ident(b"true", true)?),
-            (_, b'f') => visitor.visit_bool(self.tokenizer.parse_ident(b"false", false)?),
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingBool { pos, found })?,
-        }
-    }
-
-    fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_u32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_f32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        self.deserialize_str(visitor)
-    }
-
-    fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
-            (_, b'"') => visitor.visit_str(&String::from_utf8_lossy(&self.tokenizer.parse_str()?)),
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
-        }
-    }
-
-    fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        self.deserialize_str(visitor)
-    }
-
-    fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNull)? {
-            (_, b'n') => {
-                self.tokenizer.parse_ident(b"null", ())?;
-                visitor.visit_unit()
-            }
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingNull { pos, found })?,
-        }
-    }
-
-    fn deserialize_unit_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        self.deserialize_unit(visitor)
-    }
-
-    fn deserialize_newtype_struct<V>(self, name: &'static str, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_tuple_struct<V>(self, name: &'static str, len: usize, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        match self.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingObject)? {
-            (_, b'{') => {
-                let map = visitor.visit_map(MapDeserializer::new(self))?;
-                match self.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingObject)? {
-                    (_, b'}') => Ok(map),
-                    (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndingObject { pos, found })?,
-                }
-            }
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartingObject { pos, found })?,
-        }
-    }
-
-    fn deserialize_struct<V>(
-        self,
-        _name: &'static str,
-        _fields: &'static [&'static str],
-        visitor: V,
-    ) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingValue)? {
-            (_, b'{') => self.deserialize_map(visitor),
-            (_, b'[') => self.deserialize_seq(visitor),
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartingObject { pos, found })?,
-        }
-    }
-
-    fn deserialize_enum<V>(
-        self,
-        name: &'static str,
-        variants: &'static [&'static str],
-        visitor: V,
-    ) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        self.deserialize_str(visitor)
-    }
-
-    fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-}
-
-struct MapDeserializer<'a, R: 'a>
-where
-    R: io::Read,
-{
-    deserializer: &'a mut Deserializer<R>,
-}
-
-impl<'a, R: 'a> MapDeserializer<'a, R>
-where
-    R: io::Read,
-{
-    fn new(de: &'a mut Deserializer<R>) -> Self {
-        MapDeserializer { deserializer: de }
-    }
-}
-
-impl<'de, 'a, R: io::Read> de::MapAccess<'de> for MapDeserializer<'a, R>
-where
-    R: io::Read + 'a,
-{
-    type Error = crate::Error;
-
-    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
-    where
-        K: de::DeserializeSeed<'de>,
-    {
-        match self.deserializer.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileParsingObjectKey)? {
-            (_, b'"') => seed.deserialize(&mut *self.deserializer).map(Some),
-            (_, b'}') => Ok(None),
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileParsingObjectKey { pos, found })?,
-        }
-    }
-
-    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::DeserializeSeed<'de>,
-    {
-        let value =
-            match self.deserializer.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileParsingObjectValue)? {
-                (_, b':') => seed.deserialize(&mut *self.deserializer),
-                (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingObjectValue { pos, found })?,
-            };
-        match self.deserializer.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingValue)? {
-            (_, b',') => {
-                self.deserializer.tokenizer.eat()?.ok_or(NeverFail::EatAfterFind)?;
-            }
-            (_, b'}') => (),
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileEndParsingObjectValue { pos, found })?,
-        };
-        value
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use from::from_str;
-    use serde::Deserialize;
-
-    use super::*;
-
-    #[test]
-    fn test_deserialize_basic_map() {
-        #[derive(Deserialize)]
-        struct Data {
-            schema: String,
-            phantom: (),
-            trailing_comma: bool,
-        }
-        let raw = r#"
-            {
-                "schema": "jsonc",
-                "phantom": null,
-                "trailing_comma": true,
-            }
-        "#;
-
-        let data: Data = from_str(raw).unwrap();
-        assert_eq!(data.schema, "jsonc");
-        assert_eq!(data.phantom, ());
-        assert_eq!(data.trailing_comma, true);
-    }
+    Ok(value)
 }

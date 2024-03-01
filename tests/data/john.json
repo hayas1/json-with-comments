@@ -1,0 +1,9 @@
+{
+    "name": "John Doe",
+    "address": {
+        "street": "Main",
+        "number": 42
+    },
+    "email": "x0h5z@example.com",
+    "active": true
+}
