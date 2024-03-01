@@ -24,7 +24,7 @@ jobs:
           cargo tarpaulin --output-dir target/doc --manifest-path Cargo.toml --out Html
 
     - name: Deploy
-      uses: actions/upload-pages-artifact@v2
+      uses: actions/upload-pages-artifact@v3
       with:
         path: target/doc
 
