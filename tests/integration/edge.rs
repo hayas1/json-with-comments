@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use json_with_comment::{error::SyntaxError, from_str};
+use json_with_comments::{error::SyntaxError, from_str};
 
 #[test]
 fn test_cannot_deserialize_empty() {

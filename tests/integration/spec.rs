@@ -3,7 +3,7 @@ use std::{
     collections::{HashMap, HashSet},
 };
 
-use json_with_comment::{from_str, from_str_raw};
+use json_with_comments::{from_str, from_str_raw};
 use serde::Deserialize;
 
 #[test]

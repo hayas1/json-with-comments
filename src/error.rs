@@ -6,13 +6,13 @@ use thiserror::Error;
 
 use crate::de::position::{PosRange, Position};
 
-pub type Result<T> = std::result::Result<T, JsonWithCommentError>;
+pub type Result<T> = std::result::Result<T, JsonWithCommentsError>;
 #[derive(Error, Debug)]
-pub struct JsonWithCommentError {
+pub struct JsonWithCommentsError {
     #[from]
     inner: Box<dyn std::error::Error + Send + Sync + 'static>,
 }
-impl JsonWithCommentError {
+impl JsonWithCommentsError {
     pub fn new<E: Into<Box<dyn std::error::Error + Send + Sync + 'static>>>(err: E) -> Self {
         Self { inner: err.into() }
     }
@@ -21,33 +21,33 @@ impl JsonWithCommentError {
         self.inner
     }
 }
-impl fmt::Display for JsonWithCommentError {
+impl fmt::Display for JsonWithCommentsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.inner.fmt(f)
     }
 }
-impl de::Error for JsonWithCommentError {
+impl de::Error for JsonWithCommentsError {
     fn custom<T>(msg: T) -> Self
     where
         T: Display,
     {
-        JsonWithCommentError::new(msg.to_string()) // TODO
+        JsonWithCommentsError::new(msg.to_string()) // TODO
     }
 }
 
-impl From<std::io::Error> for JsonWithCommentError {
+impl From<std::io::Error> for JsonWithCommentsError {
     fn from(value: std::io::Error) -> Self {
-        JsonWithCommentError::new(value)
+        JsonWithCommentsError::new(value)
     }
 }
-impl From<FromUtf8Error> for JsonWithCommentError {
+impl From<FromUtf8Error> for JsonWithCommentsError {
     fn from(value: FromUtf8Error) -> Self {
-        JsonWithCommentError::new(value)
+        JsonWithCommentsError::new(value)
     }
 }
-impl From<Utf8Error> for JsonWithCommentError {
+impl From<Utf8Error> for JsonWithCommentsError {
     fn from(value: Utf8Error) -> Self {
-        JsonWithCommentError::new(value)
+        JsonWithCommentsError::new(value)
     }
 }
 
@@ -218,9 +218,9 @@ pub enum SyntaxError {
     #[error("comment starts with `/*` must be ends with `*/`, but got EoF")]
     UnterminatedComment,
 }
-impl From<SyntaxError> for JsonWithCommentError {
+impl From<SyntaxError> for JsonWithCommentsError {
     fn from(err: SyntaxError) -> Self {
-        JsonWithCommentError::new(err)
+        JsonWithCommentsError::new(err)
     }
 }
 
@@ -235,9 +235,9 @@ pub enum SemanticError {
     #[error("JSON with comments must not be empty")]
     EmptyJsonWithComment,
 }
-impl From<SemanticError> for JsonWithCommentError {
+impl From<SemanticError> for JsonWithCommentsError {
     fn from(err: SemanticError) -> Self {
-        JsonWithCommentError::new(err)
+        JsonWithCommentsError::new(err)
     }
 }
 
@@ -255,8 +255,8 @@ pub enum Ensure {
     #[error("unescaped string should be owned because of lifetime")]
     OwnedString,
 }
-impl From<Ensure> for JsonWithCommentError {
+impl From<Ensure> for JsonWithCommentsError {
     fn from(err: Ensure) -> Self {
-        JsonWithCommentError::new(err)
+        JsonWithCommentsError::new(err)
     }
 }

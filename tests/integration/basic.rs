@@ -1,4 +1,4 @@
-use json_with_comment::from_str;
+use json_with_comments::from_str;
 use serde::Deserialize;
 
 #[test]

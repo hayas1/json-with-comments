@@ -32,7 +32,7 @@ use self::{access::jsonc::JsoncDeserializer, token::str::StrTokenizer};
 ///         ],
 ///     }
 /// "#;
-/// let japan: Country = json_with_comment::from_str(jp).unwrap();
+/// let japan: Country = json_with_comments::from_str(jp).unwrap();
 /// assert_eq!(japan.name, "Japan");
 /// assert_eq!(japan.code, 81);
 /// assert_eq!(japan.regions, ["Hokkaido", "Kanto", "Kyushu-Okinawa"]);
@@ -43,7 +43,7 @@ use self::{access::jsonc::JsoncDeserializer, token::str::StrTokenizer};
 /// But, if it contain escape sequence such as `"\n"`, cannot deserialize and fail.
 /// ```
 /// use std::borrow::Cow;
-/// use json_with_comment::from_str;
+/// use json_with_comments::from_str;
 ///
 /// let no_escaped = r#"  "string without linefeed"  "#;
 /// assert_eq!(from_str::<String>(no_escaped).unwrap(), "string without linefeed");
@@ -70,16 +70,16 @@ where
 /// # Examples
 /// ```
 /// let target = r#"    "\"q\" \\s\/ l\n"    "#;
-/// let no_escaped: &str = json_with_comment::from_str_raw(target).unwrap();
+/// let no_escaped: &str = json_with_comments::from_str_raw(target).unwrap();
 /// assert_eq!(no_escaped, r#"\"q\" \\s\/ l\n"#);
 ///
-/// let unescaped: String = json_with_comment::from_str(target).unwrap();
+/// let unescaped: String = json_with_comments::from_str(target).unwrap();
 /// assert_eq!(unescaped, "\"q\" \\s/ l\n");
 /// ```
 ///
 /// ```
 /// use std::borrow::Cow;
-/// use json_with_comment::from_str_raw;
+/// use json_with_comments::from_str_raw;
 ///
 /// let no_escaped = r#"  "string without linefeed"  "#;
 /// assert_eq!(from_str_raw::<String>(no_escaped).unwrap(), "string without linefeed");
@@ -114,7 +114,7 @@ where
 /// //     "price": 100
 /// // }
 /// let path = std::path::Path::new("tests/data/product.json");
-/// let product: Product = json_with_comment::from_path(path).unwrap();
+/// let product: Product = json_with_comments::from_path(path).unwrap();
 /// assert_eq!(product.name, "candy");
 /// assert_eq!(product.price, 100);
 /// ```
@@ -134,7 +134,7 @@ where
 /// //     "price": 100
 /// // }
 /// let path = std::path::Path::new("tests/data/product.json");
-/// let product: Product = json_with_comment::from_path(path).unwrap(); // implementation of `Deserialize` is not general enough
+/// let product: Product = json_with_comments::from_path(path).unwrap(); // implementation of `Deserialize` is not general enough
 /// assert_eq!(product.name, "candy");
 /// assert_eq!(product.price, 100);
 /// ```
@@ -161,7 +161,7 @@ where
 /// //     "price": 100
 /// // }
 /// let file = std::fs::File::open("tests/data/product.json").unwrap();
-/// let product: Product = json_with_comment::from_file(&file).unwrap();
+/// let product: Product = json_with_comments::from_file(&file).unwrap();
 /// assert_eq!(product.name, "candy");
 /// assert_eq!(product.price, 100);
 /// ```
@@ -181,7 +181,7 @@ where
 /// //     "price": 100
 /// // }
 /// let file = std::fs::File::open("tests/data/product.json").unwrap();
-/// let product: Product = json_with_comment::from_file(&file).unwrap(); // implementation of `Deserialize` is not general enough
+/// let product: Product = json_with_comments::from_file(&file).unwrap(); // implementation of `Deserialize` is not general enough
 /// assert_eq!(product.name, "candy");
 /// assert_eq!(product.price, 100);
 /// ```
@@ -208,7 +208,7 @@ where
 /// //     "price": 100
 /// // }
 /// let read = std::fs::File::open("tests/data/product.json").unwrap();
-/// let product: Product = json_with_comment::from_read(&read).unwrap();
+/// let product: Product = json_with_comments::from_read(&read).unwrap();
 /// assert_eq!(product.name, "candy");
 /// assert_eq!(product.price, 100);
 /// ```
@@ -227,7 +227,7 @@ where
 /// //     "price": 100
 /// // }
 /// let read = std::fs::File::open("tests/data/product.json").unwrap();
-/// let product: Product = json_with_comment::from_read(&read).unwrap(); // implementation of `Deserialize` is not general enough
+/// let product: Product = json_with_comments::from_read(&read).unwrap(); // implementation of `Deserialize` is not general enough
 /// assert_eq!(product.name, "candy");
 /// assert_eq!(product.price, 100);
 /// ```
