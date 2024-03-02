@@ -15,12 +15,13 @@ json_with_comments = { git = "https://github.com/hayas1/json-with-comments" }
 ## Parse JSONC as typed struct
 Any type that implements [`serde::Deserialize`] can be deserialized from JSONC text.
 ```rust
-#[derive(serde::Deserialize)]
+use serde::Deserialize;
+#[derive(Deserialize)]
 struct Person<'a> {
     name: &'a str,
     address: Address<'a>,
 }
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 struct Address<'a> {
     street: &'a str,
     number: u32,
