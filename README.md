@@ -1,4 +1,4 @@
-[![Workflow Status](https://github.com/hayas1/json-with-comments/workflows/Master%20branch%20workflow/badge.svg)](https://github.com/hayas1/json-with-comments/actions?query=workflow%3A%22Master%2Bbranch%2Bworkflow%22)
+[![Workflow Status](https://github.com/hayas1/json-with-comments/workflows/Master/badge.svg)](https://github.com/hayas1/json-with-comments/actions?query=workflow%3A%22Master%22)
 
 # json-with-comments
 
