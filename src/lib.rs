@@ -39,6 +39,9 @@
 //! ));
 //! ```
 //!
+//! # Testing
+//! Coverage can be checked [https://hayas1.github.io/json-with-comments/tarpaulin-report](https://hayas1.github.io/json-with-comments/tarpaulin-report)
+//!
 //! # Performance
 //! // TODO
 
