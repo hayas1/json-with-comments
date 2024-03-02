@@ -40,7 +40,8 @@ use self::{access::jsonc::JsoncDeserializer, token::str::StrTokenizer};
 ///
 /// # Errors
 /// This function can deserialize string as borrowed `&str`.
-/// But, if it contain escape sequence such as `"\n"`, cannot deserialize and fail.
+/// But, if it contain escape sequence such as `"\n"`, cannot deserialize and return `Err`.
+/// If you want to deserialize string value as escaped borrowed `&str`, use [`from_str_raw`] instead.
 /// ```
 /// use std::borrow::Cow;
 /// use json_with_comments::from_str;
@@ -48,12 +49,12 @@ use self::{access::jsonc::JsoncDeserializer, token::str::StrTokenizer};
 /// let no_escaped = r#"  "string without linefeed"  "#;
 /// assert_eq!(from_str::<String>(no_escaped).unwrap(), "string without linefeed");
 /// assert_eq!(from_str::<Cow<'_, str>>(no_escaped).unwrap(), "string without linefeed");
-/// assert!(matches!(from_str::<&str>(no_escaped), Ok("string without linefeed")));
+/// assert_eq!(from_str::<&str>(no_escaped).unwrap(), "string without linefeed");
 ///
 /// let escaped = r#"  "string with linefeed\n"  "#;
 /// assert_eq!(from_str::<String>(escaped).unwrap(), "string with linefeed\n");
 /// assert_eq!(from_str::<Cow<'_, str>>(escaped).unwrap(), "string with linefeed\n");
-/// assert!(matches!(from_str::<&str>(escaped), Err(_)));
+/// assert!(from_str::<&str>(escaped).is_err()); // cannot deserialize as &str because of its lifetime
 /// ```
 pub fn from_str<'de, D>(s: &'de str) -> crate::Result<D>
 where
@@ -65,7 +66,6 @@ where
 /// Deserialize a JSON with comments text as type `D`.
 /// Deserialized instance may have raw string value that contain escape sequence.
 /// This function can deserialize any string value as borrowed `&str`.
-/// If you need to deserialize string value as unescaped owned `String`, use [`from_str`].
 ///
 /// # Examples
 /// ```
@@ -77,6 +77,10 @@ where
 /// assert_eq!(unescaped, "\"q\" \\s/ l\n");
 /// ```
 ///
+/// # Notes
+/// This function can deserialize any string as borrowed `&str`.
+/// But, if it contain escape sequence such as `"\n"`, it be deserialized as it is.
+/// If you need to deserialize string value as unescaped owned `String`, use [`from_str`].
 /// ```
 /// use std::borrow::Cow;
 /// use json_with_comments::from_str_raw;
@@ -84,12 +88,12 @@ where
 /// let no_escaped = r#"  "string without linefeed"  "#;
 /// assert_eq!(from_str_raw::<String>(no_escaped).unwrap(), "string without linefeed");
 /// assert_eq!(from_str_raw::<Cow<'_, str>>(no_escaped).unwrap(), "string without linefeed");
-/// assert!(matches!(from_str_raw::<&str>(no_escaped), Ok("string without linefeed")));
+/// assert_eq!(from_str_raw::<&str>(no_escaped).unwrap(), "string without linefeed");
 ///
 /// let escaped = r#"  "string with linefeed\n"  "#;
 /// assert_eq!(from_str_raw::<String>(escaped).unwrap(), "string with linefeed\\n");
 /// assert_eq!(from_str_raw::<Cow<'_, str>>(escaped).unwrap(), "string with linefeed\\n");
-/// assert!(matches!(from_str_raw::<&str>(escaped), Ok("string with linefeed\\n")));
+/// assert_eq!(from_str_raw::<&str>(escaped).unwrap(), "string with linefeed\\n"); // deserialized as it is
 /// ```
 pub fn from_str_raw<'de, D>(s: &'de str) -> crate::Result<D>
 where
@@ -121,7 +125,7 @@ where
 ///
 /// # Errors
 /// This function cannot deserialize string value as borrowed `&str`.
-/// Same as [`from_file`].
+/// It cause compile time error, same as [`from_file`].
 /// ```compile_fail
 /// use serde::Deserialize;
 /// #[derive(Deserialize)]
@@ -168,7 +172,7 @@ where
 ///
 /// # Errors
 /// This function cannot deserialize string value as borrowed `&str`.
-/// Same as [`from_read`].
+/// It cause compile time error, same as [`from_file`].
 /// ```compile_fail
 /// use serde::Deserialize;
 /// #[derive(Deserialize)]
@@ -215,6 +219,9 @@ where
 ///
 /// # Errors
 /// This function cannot deserialize string value as borrowed `&str`.
+/// It cause compile time error.
+/// If you want to deserialize string value as escaped borrowed `&str`, use [`from_str_raw`] instead.
+/// If you want to deserialize string value as unescaped owned `String`, use [`from_str`] instead.
 /// ```compile_fail
 /// use serde::Deserialize;
 /// #[derive(Deserialize)]

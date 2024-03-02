@@ -1,24 +1,26 @@
-#[derive(serde::Deserialize)]
+use serde::Deserialize;
+
+#[derive(Deserialize)]
 pub struct Person<'a> {
     name: &'a str,
     address: Address<'a>,
     email: &'a str,
     active: bool,
 }
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 pub struct Address<'a> {
     street: &'a str,
     number: u32,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 pub struct OwnedPerson {
     name: String,
     address: OwnedAddress,
     email: String,
     active: bool,
 }
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 pub struct OwnedAddress {
     street: String,
     number: u32,
