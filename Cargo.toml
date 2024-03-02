@@ -29,4 +29,4 @@ let_unit_value = "allow"
 enum_variant_names = "allow"
 
 [badges]
-github = { repository = "hayas1/json-with-comments", workflow = "Master branch workflow" }
+github = { repository = "hayas1/json-with-comments", workflow = "Master" }
