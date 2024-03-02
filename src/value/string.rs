@@ -21,8 +21,8 @@ impl<'a> Eq for StringValue<'a> {}
 impl<'a, Rhs: std::fmt::Display> PartialEq<Rhs> for StringValue<'a> {
     fn eq(&self, other: &Rhs) -> bool {
         match self {
-            StringValue::Borrowed(s) => s.to_string() == other.to_string(),
-            StringValue::Owned(s) => s.to_string() == other.to_string(),
+            StringValue::Borrowed(s) => *s == other.to_string(),
+            StringValue::Owned(s) => *s == other.to_string(),
         }
     }
 }

@@ -7,10 +7,11 @@ use crate::{
 
 use super::Tokenizer;
 
+type SliceIter<'de> = Box<dyn Iterator<Item = Result<u8, ()>> + 'de>;
 pub struct SliceTokenizer<'de> {
     pub slice: &'de [u8],
     pub current: usize,
-    iter: Peekable<RowColIterator<Box<dyn Iterator<Item = Result<u8, ()>> + 'de>>>,
+    iter: Peekable<RowColIterator<SliceIter<'de>>>,
 }
 impl<'de> SliceTokenizer<'de> {
     pub fn new(slice: &'de [u8]) -> Self {
