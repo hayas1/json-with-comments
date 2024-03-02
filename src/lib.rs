@@ -1,4 +1,5 @@
 //! JSON with comments parser for Rust.
+//! See [documents](https://hayas1.github.io/json-with-comments/json_with_comments/) also.
 //!
 //! # Usage
 //! in `Cargo.toml`
