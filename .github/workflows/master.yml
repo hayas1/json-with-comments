@@ -23,8 +23,11 @@ jobs:
         cargo install cargo-tarpaulin &&
           cargo tarpaulin --output-dir target/doc --manifest-path Cargo.toml --out Html
 
-    - name: Deploy
-      uses: actions/upload-pages-artifact@v1
+    - name: Remove 600 permission files
+      run: find target/doc -perm 600 | xargs rm -rf
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
       with:
         path: target/doc
 
