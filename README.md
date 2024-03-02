@@ -1,3 +1,5 @@
+[![Workflow Status](https://github.com/hayas1/json-with-comments/workflows/Master%20branch%20workflow/badge.svg)](https://github.com/hayas1/json-with-comments/actions?query=workflow%3A%22Master%2Bbranch%2Bworkflow%22)
+
 # json-with-comments
 
 JSON with comments parser for Rust.
@@ -40,6 +42,9 @@ assert!(matches!(
     }
 ));
 ```
+
+## Testing
+Coverage can be checked https://hayas1.github.io/json-with-comments/tarpaulin-report
 
 ## Performance
 // TODO
