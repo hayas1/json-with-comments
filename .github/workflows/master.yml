@@ -1,8 +1,10 @@
 name: "Master branch workflow"
 
 on:
-  pull_request:
-    branches: [ "master" ]
+  # pull_request:
+  #   branches: [ "master" ]
+  push:
+    branches: [ "ci/upload-pages-artifact-version" ]
 
 env:
   CARGO_TERM_COLOR: always
