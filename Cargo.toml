@@ -13,3 +13,16 @@ thiserror = "1.0.57"
 
 [dev-dependencies]
 serde = { version = "1.0.196", features = ["derive"] }
+
+[lints.clippy]
+unit_arg = "allow"
+manual_is_ascii_check = "allow"
+
+# tests
+unit_cmp = "allow"
+bool_assert_comparison = "allow"
+approx_constant = "allow"
+excessive_precision = "allow"
+redundant_pattern_matching = "allow"
+let_unit_value = "allow"
+enum_variant_names = "allow"
