@@ -4,8 +4,9 @@ authors = ["hayas1 <h4ystack@gmail.com>"]
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+repository = "https://github.com/hayas1/json-with-comments"
+homepage = "https://hayas1.github.io/json-with-comments/json_with_comments/"
+readme = "README.md"
 
 [dependencies]
 serde = "1.0.196"
@@ -26,3 +27,6 @@ excessive_precision = "allow"
 redundant_pattern_matching = "allow"
 let_unit_value = "allow"
 enum_variant_names = "allow"
+
+[badges]
+github = { repository = "hayas1/json-with-comments", workflow = "Master branch workflow" }
