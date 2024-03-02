@@ -29,6 +29,9 @@ deps:
       - '^dependencies/'
 
 maintenance:
+   - changed-files:
+      - any-glob-to-any-file:
+        - '.github/**'
    - head-branch:
       - '^maintenance/'
       - '^ci/'

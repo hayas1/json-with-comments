@@ -185,7 +185,7 @@ where
 /// assert_eq!(product.name, "candy");
 /// assert_eq!(product.price, 100);
 /// ```
-pub fn from_file<'de, D>(f: &'de File) -> crate::Result<D>
+pub fn from_file<D>(f: &File) -> crate::Result<D>
 where
     D: de::DeserializeOwned,
 {

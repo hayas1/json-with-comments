@@ -12,11 +12,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/setup
+    - uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+    - name: Cargo home
+      id: cargo-home
+      run: echo "path=${CARGO_HOME:-~/.cargo}" >>"$GITHUB_OUTPUT"
+    - uses: actions/cache@v4
+      with:
+        path: |
+          target
+          ${{ steps.cargo-home.outputs.path }}
+        key: cargo-${{ hashFiles('**/Cargo.toml') }}
 
     - run: cargo test --verbose
     - run: cargo fmt --check
-    # - run: cargo clippy
+    - run: cargo clippy --tests -- --deny warnings
 
     - run: cargo install cargo-readme && cargo readme > README.md
     - run: git add -N . && git diff --exit-code -- README.md

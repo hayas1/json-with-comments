@@ -48,12 +48,12 @@ pub trait Tokenizer<'de> {
     fn eat_comment_follow(&mut self) -> crate::Result<Option<(Position, Vec<u8>)>> {
         match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingComment)? {
             (follow, b'/') => {
-                let mut content = &mut b"//".into();
+                let mut content = b"//".to_vec();
                 let end = self.eat_slash_comment_content(&mut content)?;
                 Ok(Some(((end.unwrap_or(follow)), content.to_vec())))
             }
             (follow, b'*') => {
-                let mut content = &mut b"/*".into();
+                let mut content = b"/*".to_vec();
                 let end = self.eat_asterisk_comment_content(&mut content)?;
                 content.extend_from_slice(b"*/");
                 Ok(Some(((end.unwrap_or(follow)), content.to_vec())))
@@ -91,7 +91,9 @@ pub trait Tokenizer<'de> {
             range = if range.is_none() { Some((pos, pos)) } else { range };
             if f(&buff, c) {
                 let (p, c) = self.eat()?.ok_or(Ensure::EatAfterLook)?;
-                range.as_mut().map(|(_, t)| *t = p);
+                if let Some((s, _)) = range {
+                    range = Some((s, p));
+                }
                 buff.push(c);
             } else {
                 break;
@@ -101,7 +103,7 @@ pub trait Tokenizer<'de> {
     }
 
     fn parse_ident<T>(&mut self, ident: &[u8], value: T) -> crate::Result<T> {
-        let mut iter = ident.into_iter();
+        let mut iter = ident.iter();
         let (p, parsed) = self.fold_token(|_, c| iter.next().map_or(false, |&i| i == c))?;
         match (p, iter.next().is_none() && parsed.len() == ident.len()) {
             (_, true) => Ok(value),
@@ -164,9 +166,9 @@ pub trait Tokenizer<'de> {
         let mut hex: u32 = 0;
         for i in 0..4 {
             match self.eat()?.ok_or(SyntaxError::EofWhileParsingEscapeSequence)? {
-                (_, c @ b'0'..=b'9') => hex += ((c - b'0' + 0) as u32) << 4 * (3 - i),
-                (_, c @ b'a'..=b'f') => hex += ((c - b'a' + 10) as u32) << 4 * (3 - i),
-                (_, c @ b'A'..=b'F') => hex += ((c - b'A' + 10) as u32) << 4 * (3 - i),
+                (_, c @ b'0'..=b'9') => hex += ((c - b'0') as u32) << (4 * (3 - i)),
+                (_, c @ b'a'..=b'f') => hex += ((c - b'a' + 10) as u32) << (4 * (3 - i)),
+                (_, c @ b'A'..=b'F') => hex += ((c - b'A' + 10) as u32) << (4 * (3 - i)),
                 (pos, found) => return Err(SyntaxError::InvalidUnicodeEscape { pos, found })?,
             }
         }
@@ -193,26 +195,20 @@ pub trait Tokenizer<'de> {
             }
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingNumber { pos, found })?,
         }
-        match self.look()? {
-            Some((_, b'.')) => {
-                buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
-                match self.look()?.ok_or(SyntaxError::EofWhileStartParsingFraction)? {
-                    (_, b'0'..=b'9') => buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1),
-                    (pos, found) => Err(SyntaxError::MissingFraction { pos, found })?,
-                }
+        if let Some((_, b'.')) = self.look()? {
+            buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
+            match self.look()?.ok_or(SyntaxError::EofWhileStartParsingFraction)? {
+                (_, b'0'..=b'9') => buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1),
+                (pos, found) => Err(SyntaxError::MissingFraction { pos, found })?,
             }
-            _ => (),
         }
-        match self.look()? {
-            Some((_, b'e' | b'E')) => {
-                buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
-                match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingExponent)? {
-                    (_, c @ (b'+' | b'-' | b'0'..=b'9')) => buff.push(c),
-                    (pos, found) => Err(SyntaxError::MissingExponent { pos, found })?,
-                }
-                buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
+        if let Some((_, b'e' | b'E')) = self.look()? {
+            buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
+            match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingExponent)? {
+                (_, c @ (b'+' | b'-' | b'0'..=b'9')) => buff.push(c),
+                (pos, found) => Err(SyntaxError::MissingExponent { pos, found })?,
             }
-            _ => (),
+            buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
         }
         let representation = String::from_utf8(buff)?;
         Ok(representation.parse().or(Err(SyntaxError::InvalidNumber { pos, rep: representation }))?)

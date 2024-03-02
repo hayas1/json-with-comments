@@ -52,7 +52,7 @@ mod tests {
         //   "bar",
         //   "baz"
         // ]
-        let target = vec!["[", r#"  "foo","#, r#"  "bar","#, r#"  "baz""#, "]"].join("\n");
+        let target = ["[", r#"  "foo","#, r#"  "bar","#, r#"  "baz""#, "]"].join("\n");
         let reader = BufReader::new(target.as_bytes());
         let mut iter = RowColIterator::new(reader.bytes());
 

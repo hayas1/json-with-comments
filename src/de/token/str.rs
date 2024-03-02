@@ -50,42 +50,42 @@ mod tests {
 
     #[test]
     fn test_behavior_fold_token() {
-        behavior_fold_token(|s| StrTokenizer::new(s));
+        behavior_fold_token(StrTokenizer::new);
     }
 
     #[test]
     fn test_behavior_parse_ident() {
-        behavior_parse_ident(|s| StrTokenizer::new(s));
+        behavior_parse_ident(StrTokenizer::new);
     }
 
     #[test]
     fn test_behavior_tokenizer() {
-        behavior_tokenizer(|s| StrTokenizer::new(s));
+        behavior_tokenizer(StrTokenizer::new);
     }
 
     #[test]
     fn test_behavior_parse_unescaped_string() {
-        behavior_parse_unescaped_string(|s| StrTokenizer::new(s));
+        behavior_parse_unescaped_string(StrTokenizer::new);
     }
 
     #[test]
     #[should_panic]
     fn test_behavior_parse_raw_string() {
-        behavior_parse_raw_string(|s| StrTokenizer::new(s));
+        behavior_parse_raw_string(StrTokenizer::new);
     }
 
     #[test]
     fn test_behavior_parse_string_err() {
-        behavior_parse_string_err(|s| StrTokenizer::new(s));
+        behavior_parse_string_err(StrTokenizer::new);
     }
 
     #[test]
     fn test_behavior_parse_number() {
-        behavior_parse_number(|s| StrTokenizer::new(s));
+        behavior_parse_number(StrTokenizer::new);
     }
 
     #[test]
     fn test_behavior_parse_number_err() {
-        behavior_parse_number_err(|s| StrTokenizer::new(s));
+        behavior_parse_number_err(StrTokenizer::new);
     }
 }
