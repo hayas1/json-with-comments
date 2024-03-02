@@ -15,10 +15,13 @@ jobs:
     - uses: dtolnay/rust-toolchain@stable
       with:
         components: rustfmt, clippy
+    - name: Cargo home
+      id: cargo-home
+      run: echo "path=${CARGO_HOME:-~/.cargo}" >>"$GITHUB_OUTPUT"
     - uses: actions/cache@v4
       with:
         path: |
-          ~/.cargo/
+          ${{ steps.cargo-home.outputs.path }}
           target
         key: cargo-${{ hashFiles('**/Cargo.toml') }}
 
