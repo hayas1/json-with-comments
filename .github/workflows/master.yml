@@ -11,6 +11,9 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.detect-version.outputs.should-release }}
+      expected-git-tag: ${{ steps.detect-version.outputs.expected-git-tag }}
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
@@ -20,19 +23,20 @@ jobs:
 
     - name: Run doc
       run: cargo doc --no-deps
-
     - name: Coverage
       run: >
         cargo install cargo-tarpaulin &&
           cargo tarpaulin --output-dir target/doc --manifest-path Cargo.toml --out Html
-
     - name: Remove 600 permission files
       run: find target/doc -perm 600 | xargs rm -rf
-
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
         path: target/doc
+
+    - name: Check version in Cargo.toml and git tag
+      uses: ./.github/actions/versions
+      id: detect-version
 
   deploy:
     needs: build
@@ -50,23 +54,21 @@ jobs:
 
   release-draft:
     needs: build
+    if: needs.build.outputs.should-release == 'true'
     permissions:
       contents: write
     runs-on: ubuntu-latest
     steps:
-    - uses: ./.github/actions/versions
-      id: version-tag
+    - uses: actions/checkout@v4
     - name: Push tag
-      if: steps.version-tag.outputs.should-release == 'true'
       run: |
-        git tag ${{ steps.version-tag.outputs.expected-git-tag }}
-        git push origin ${{ steps.version-tag.outputs.expected-git-tag }}
+        git tag ${{ needs.build.outputs.expected-git-tag }}
+        git push origin ${{ needs.build.outputs.expected-git-tag }}
     - name: Release draft
-      uses: actions/create-release@v1
-      if: steps.version-tag.outputs.should-release == 'true'
+      uses: actions/create-release@v1 # archived
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.version-tag.outputs.expected-git-tag }}
-        release_name: ${{ steps.version-tag.outputs.expected-git-tag }}
+        tag_name: ${{ needs.build.outputs.expected-git-tag }}
+        release_name: ${{ needs.build.outputs.expected-git-tag }}
         draft: true
