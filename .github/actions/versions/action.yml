@@ -25,15 +25,15 @@ runs:
         cmd: "yq -p toml '.package.version' <Cargo.toml"
     - name: Expected git tag
       id: expected-git-tag
-      sh: bash
+      shell: bash
       run: echo "result=v${{ steps.crate-version.outputs.result }}" >>"$GITHUB_OUTPUT"
     - name: Detect git tag
       id: detected-git-tag
-      sh: bash
+      shell: bash
       run: echo "result=$(git describe --tags --abbrev=0 || echo)" >>"$GITHUB_OUTPUT"
     - name: Should release
       id: should-release
-      sh: bash
+      shell: bash
       run: |
         # TODO semver crate-version > git-tag (note: git-tag has "v" prefix)
         if [ "v${{ steps.crate-version.outputs.result }}" != "${{ steps.detected-git-tag.outputs.result }}" ]; then
