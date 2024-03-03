@@ -25,6 +25,7 @@ runs:
         cmd: "yq -p toml '.package.version' <Cargo.toml"
     - name: Expected git tag
       id: expected-git-tag
+      sh: bash
       run: echo "result=v${{ steps.crate-version.outputs.result }}" >>"$GITHUB_OUTPUT"
     - name: Detect git tag
       id: detected-git-tag
