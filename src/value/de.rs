@@ -19,11 +19,11 @@ impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Deserialize<'de> for Jso
     }
 }
 
-struct JsoncValueVisitor<I, F> {
+pub struct JsoncValueVisitor<I, F> {
     phantom: std::marker::PhantomData<(I, F)>,
 }
 impl<I, F> JsoncValueVisitor<I, F> {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self { phantom: std::marker::PhantomData }
     }
 }

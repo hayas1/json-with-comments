@@ -48,7 +48,7 @@ fn test_deserialize_array_as_value() {
 
 #[test]
 fn test_deserialize_object_as_value() {
-    let target = r#"{"null": null, "bool": true, "str": "false", "number": 10}"#;
+    let target = r#"{"null": null, "bool": true, "str": "false", "number": 10000000000, "float": 1.5}"#;
     let value: JsoncValue<'_, i128, f32> = from_str(target).unwrap();
     assert_eq!(
         value,
@@ -56,7 +56,8 @@ fn test_deserialize_object_as_value() {
             (StringValue::Borrowed("null"), JsoncValue::Null),
             (StringValue::Borrowed("bool"), JsoncValue::Bool(true)),
             (StringValue::Borrowed("str"), JsoncValue::String(StringValue::Borrowed("false"))),
-            (StringValue::Borrowed("number"), JsoncValue::Number(NumberValue::Integer(10))),
+            (StringValue::Borrowed("number"), JsoncValue::Number(NumberValue::Integer(10000000000))),
+            (StringValue::Borrowed("float"), JsoncValue::Number(NumberValue::Float(1.5))),
         ]))
     );
 }
