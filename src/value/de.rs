@@ -1,7 +1,10 @@
-use serde::{de::Visitor, Deserialize};
+use serde::{
+    de::{Error as _, Visitor},
+    Deserialize,
+};
 
 use crate::{
-    error::Ensure,
+    error::{Ensure, SemanticError},
     value::{number::NumberValue, string::StringValue, JsoncValue},
 };
 
@@ -196,10 +199,10 @@ impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Visitor<'de> for JsoncVa
     {
         let mut v = MapImpl::new();
         while let Some((key, value)) = map.next_entry::<JsoncValue<'_, I, F>, JsoncValue<'_, I, F>>()? {
-            // TODO
+            // TODO jsoncValue should convert Option<StringValue>
             match key {
                 JsoncValue::String(s) => v.insert(s, value),
-                _ => panic!("expected string"), // TODO
+                _ => Err(A::Error::custom(SemanticError::AnyMapKey))?,
             };
         }
         Ok(JsoncValue::Object(v))
