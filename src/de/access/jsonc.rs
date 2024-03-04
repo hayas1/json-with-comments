@@ -41,7 +41,7 @@ where
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingValue)? {
             (_, b'n') => self.deserialize_unit(visitor),
             (_, b'f' | b't') => self.deserialize_bool(visitor),
-            (_, b'-' | b'0'..=b'9') => todo!("u64, i64, f64 and so on..."), // TODO number
+            (_, b'-' | b'0'..=b'9') => self.deserialize_u8(visitor), // TODO number, float
             (_, b'"') => self.deserialize_str(visitor),
             (_, b'[') => self.deserialize_seq(visitor),
             (_, b'{') => self.deserialize_map(visitor),
