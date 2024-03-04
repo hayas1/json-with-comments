@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub enum StringValue<'a> {
     Borrowed(&'a str),
     Owned(String),
