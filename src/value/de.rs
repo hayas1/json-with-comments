@@ -1,11 +1,10 @@
-use num::FromPrimitive;
 use serde::{de::Visitor, Deserialize};
 
 use crate::value::{number::NumberValue, string::StringValue, JsoncValue};
 
 use super::MapImpl;
 
-impl<'de, I: FromPrimitive, F: FromPrimitive> Deserialize<'de> for JsoncValue<'de, I, F> {
+impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Deserialize<'de> for JsoncValue<'de, I, F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -22,7 +21,7 @@ impl<I, F> JsoncValueVisitor<I, F> {
         Self { phantom: std::marker::PhantomData }
     }
 }
-impl<'de, I: FromPrimitive, F: FromPrimitive> Visitor<'de> for JsoncValueVisitor<I, F> {
+impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Visitor<'de> for JsoncValueVisitor<I, F> {
     type Value = JsoncValue<'de, I, F>;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
