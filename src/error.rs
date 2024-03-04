@@ -254,6 +254,9 @@ pub enum Ensure {
 
     #[error("unescaped string should be owned because of lifetime")]
     OwnedString,
+
+    #[error("same type conversion should be always possible")]
+    CanConvertAlways,
 }
 impl From<Ensure> for JsonWithCommentsError {
     fn from(err: Ensure) -> Self {

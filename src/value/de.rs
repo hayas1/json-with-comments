@@ -1,6 +1,9 @@
 use serde::{de::Visitor, Deserialize};
 
-use crate::value::{number::NumberValue, string::StringValue, JsoncValue};
+use crate::{
+    error::Ensure,
+    value::{number::NumberValue, string::StringValue, JsoncValue},
+};
 
 use super::MapImpl;
 
@@ -39,88 +42,84 @@ impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Visitor<'de> for JsoncVa
     where
         E: serde::de::Error,
     {
-        // TODO error handling
-        Ok(JsoncValue::Number(NumberValue::Integer(I::from_i8(v).expect("error handling"))))
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_i8(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        todo!("{v}")
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_i16(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        todo!("{v}")
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_i32(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        todo!("{v}")
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_i64(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        todo!("{v}")
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_i128(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // TODO error handling
-        Ok(JsoncValue::Number(NumberValue::Integer(I::from_u8(v).expect("error handling"))))
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_u8(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        todo!("{v}")
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_u16(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        todo!("{v}")
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_u32(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        todo!("{v}")
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_u64(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        todo!("{v}")
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_u128(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // TODO error handling
-        Ok(JsoncValue::Number(NumberValue::Integer(I::from_f32(v).expect("error handling"))))
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_f32(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        // TODO error handling
-        Ok(JsoncValue::Number(NumberValue::Integer(I::from_f64(v).expect("error handling"))))
+        Ok(JsoncValue::Number(NumberValue::Integer(I::from_f64(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_char<E>(self, v: char) -> Result<Self::Value, E>

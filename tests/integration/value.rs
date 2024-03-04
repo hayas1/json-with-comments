@@ -40,7 +40,7 @@ fn test_deserialize_array_as_value() {
         JsoncValue::Array(vec![
             JsoncValue::Null,
             JsoncValue::Bool(true),
-            JsoncValue::String(StringValue::Owned("false".to_owned())),
+            JsoncValue::String(StringValue::Borrowed("false")),
             JsoncValue::Number(NumberValue::Integer(10)),
         ])
     );
@@ -49,13 +49,13 @@ fn test_deserialize_array_as_value() {
 #[test]
 fn test_deserialize_object_as_value() {
     let target = r#"{"null": null, "bool": true, "str": "false", "number": 10}"#;
-    let value: JsoncValue<'_, u8, f32> = from_str(target).unwrap();
+    let value: JsoncValue<'_, i128, f32> = from_str(target).unwrap();
     assert_eq!(
         value,
         JsoncValue::Object(MapImpl::from([
             (StringValue::Borrowed("null"), JsoncValue::Null),
             (StringValue::Borrowed("bool"), JsoncValue::Bool(true)),
-            (StringValue::Borrowed("str"), JsoncValue::String(StringValue::Owned("false".to_owned()))),
+            (StringValue::Borrowed("str"), JsoncValue::String(StringValue::Borrowed("false"))),
             (StringValue::Borrowed("number"), JsoncValue::Number(NumberValue::Integer(10))),
         ]))
     );
