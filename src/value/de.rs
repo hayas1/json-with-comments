@@ -115,14 +115,14 @@ impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Visitor<'de> for JsoncVa
     where
         E: serde::de::Error,
     {
-        Ok(JsoncValue::Number(NumberValue::Integer(I::from_f32(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
+        Ok(JsoncValue::Number(NumberValue::Float(F::from_f32(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        Ok(JsoncValue::Number(NumberValue::Integer(I::from_f64(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
+        Ok(JsoncValue::Number(NumberValue::Float(F::from_f64(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
     }
 
     fn visit_char<E>(self, v: char) -> Result<Self::Value, E>
