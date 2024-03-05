@@ -27,6 +27,11 @@ impl<I, F> JsoncValueVisitor<I, F> {
         Self { phantom: std::marker::PhantomData }
     }
 }
+impl<I, F> Default for JsoncValueVisitor<I, F> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Visitor<'de> for JsoncValueVisitor<I, F> {
     type Value = JsoncValue<'de, I, F>;
 
