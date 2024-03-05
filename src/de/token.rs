@@ -177,8 +177,25 @@ pub trait Tokenizer<'de> {
     }
 
     fn parse_number<T: FromStr>(&mut self) -> crate::Result<T> {
-        let mut buff = Vec::new(); // TODO performance optimization (do not use string buffer)
+        self.parse_number_super()
+    }
+    fn parse_number_super<T: FromStr>(&mut self) -> crate::Result<T> {
+        let mut buff = Vec::new();
         let (pos, _) = self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)?;
+        self.parse_integer_part(&mut buff)?;
+        if let Some((_, b'.')) = self.look()? {
+            buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
+            self.parse_fraction_part(&mut buff)?;
+        }
+        if let Some((_, b'e' | b'E')) = self.look()? {
+            buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
+            self.parse_exponent_part(&mut buff)?;
+        }
+        let representation = String::from_utf8(buff)?;
+        Ok(representation.parse().or(Err(SyntaxError::InvalidNumber { pos, rep: representation }))?)
+    }
+
+    fn parse_integer_part(&mut self, buff: &mut Vec<u8>) -> crate::Result<()> {
         match self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)? {
             (_, b'-') => buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1),
             (pos, b'+') => Err(SyntaxError::InvalidLeadingPlus { pos })?,
@@ -187,31 +204,34 @@ pub trait Tokenizer<'de> {
         match self.eat()?.ok_or(SyntaxError::EofWhileParsingNumber)? {
             (_, c @ b'0') => match self.look()? {
                 Some((pos, b'0'..=b'9')) => Err(SyntaxError::InvalidLeadingZeros { pos })?,
-                _ => buff.push(c),
+                _ => Ok(buff.push(c)),
             },
             (_, c @ b'1'..=b'9') => {
                 buff.push(c);
-                buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
+                let (_, remain) = self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?;
+                Ok(buff.extend_from_slice(&remain))
             }
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingNumber { pos, found })?,
         }
-        if let Some((_, b'.')) = self.look()? {
-            buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
-            match self.look()?.ok_or(SyntaxError::EofWhileStartParsingFraction)? {
-                (_, b'0'..=b'9') => buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1),
-                (pos, found) => Err(SyntaxError::MissingFraction { pos, found })?,
+    }
+
+    fn parse_fraction_part(&mut self, buff: &mut Vec<u8>) -> crate::Result<()> {
+        match self.look()?.ok_or(SyntaxError::EofWhileStartParsingFraction)? {
+            (_, b'0'..=b'9') => {
+                let (_, fraction) = self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?;
+                Ok(buff.extend_from_slice(&fraction))
             }
+            (pos, found) => Err(SyntaxError::MissingFraction { pos, found })?,
         }
-        if let Some((_, b'e' | b'E')) = self.look()? {
-            buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
-            match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingExponent)? {
-                (_, c @ (b'+' | b'-' | b'0'..=b'9')) => buff.push(c),
-                (pos, found) => Err(SyntaxError::MissingExponent { pos, found })?,
-            }
-            buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
+    }
+
+    fn parse_exponent_part(&mut self, buff: &mut Vec<u8>) -> crate::Result<()> {
+        match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingExponent)? {
+            (_, c @ (b'+' | b'-' | b'0'..=b'9')) => buff.push(c),
+            (pos, found) => Err(SyntaxError::MissingExponent { pos, found })?,
         }
-        let representation = String::from_utf8(buff)?;
-        Ok(representation.parse().or(Err(SyntaxError::InvalidNumber { pos, rep: representation }))?)
+        let (_, exponent) = self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?;
+        Ok(buff.extend_from_slice(&exponent))
     }
 }
 
