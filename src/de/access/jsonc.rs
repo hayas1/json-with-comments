@@ -1,9 +1,10 @@
-use serde::{
-    de::{self, IgnoredAny},
-    Deserializer,
-};
+use serde::de::{self, IgnoredAny};
 
-use crate::{de::token::Tokenizer, error::SyntaxError, value::string::StringValue};
+use crate::{
+    de::token::Tokenizer,
+    error::SyntaxError,
+    value::{number::NumberValue, string::StringValue},
+};
 
 use super::{map::MapDeserializer, r#enum::EnumDeserializer, seq::SeqDeserializer};
 
@@ -34,12 +35,10 @@ where
     where
         V: de::Visitor<'de>,
     {
-        // TODO
-        // match self.tokenizer.parse_number()? {
-        //     NumberValue::Integer(i) => visitor.visit_i64(i),
-        //     NumberValue::Float(f) => visitor.visit_f64(f),
-        // }
-        self.deserialize_i64(visitor)
+        match self.tokenizer.parse_number()? {
+            NumberValue::Integer(i) => visitor.visit_i64(i),
+            NumberValue::Float(f) => visitor.visit_f64(f),
+        }
     }
 
     pub fn deserialize_string_value<V>(&mut self, visitor: V) -> crate::Result<V::Value>

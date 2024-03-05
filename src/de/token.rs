@@ -3,10 +3,8 @@ pub mod read;
 pub mod slice;
 pub mod str;
 
-use std::str::FromStr;
-
 use crate::{
-    error::{Ensure, SyntaxError},
+    error::{Ensure, SemanticError, SyntaxError},
     value::string::StringValue,
 };
 
@@ -176,10 +174,10 @@ pub trait Tokenizer<'de> {
         Ok(buff.extend_from_slice(ch.encode_utf8(&mut [0; 4]).as_bytes()))
     }
 
-    fn parse_number<T: FromStr>(&mut self) -> crate::Result<T> {
+    fn parse_number<T: std::str::FromStr>(&mut self) -> crate::Result<T> {
         self.parse_number_super()
     }
-    fn parse_number_super<T: FromStr>(&mut self) -> crate::Result<T> {
+    fn parse_number_super<T: std::str::FromStr>(&mut self) -> crate::Result<T> {
         let mut buff = Vec::new();
         let (pos, _) = self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)?;
         self.parse_integer_part(&mut buff)?;
@@ -192,7 +190,7 @@ pub trait Tokenizer<'de> {
             self.parse_exponent_part(&mut buff)?;
         }
         let representation = String::from_utf8(buff)?;
-        Ok(representation.parse().or(Err(SyntaxError::InvalidNumber { pos, rep: representation }))?)
+        Ok(representation.parse().or(Err(SemanticError::InvalidNumber { pos, rep: representation }))?)
     }
 
     fn parse_integer_part(&mut self, buff: &mut Vec<u8>) -> crate::Result<()> {
@@ -237,7 +235,7 @@ pub trait Tokenizer<'de> {
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Debug;
+    use std::{fmt::Debug, str::FromStr};
 
     use super::*;
 
@@ -469,7 +467,7 @@ mod tests {
             tokenizer.parse_number::<U>().unwrap_err().into_inner()
         }
 
-        assert!(matches!(parse_err::<u8>(from("256")).downcast_ref().unwrap(), SyntaxError::InvalidNumber { .. }));
+        assert!(matches!(parse_err::<u8>(from("256")).downcast_ref().unwrap(), SemanticError::InvalidNumber { .. }));
         assert!(matches!(
             parse_err::<u32>(from("000")).downcast_ref().unwrap(),
             SyntaxError::InvalidLeadingZeros { .. }
@@ -484,7 +482,7 @@ mod tests {
         ));
         assert!(matches!(
             parse_err::<i32>(from("-999999999999")).downcast_ref().unwrap(),
-            SyntaxError::InvalidNumber { .. }
+            SemanticError::InvalidNumber { .. }
         ));
         assert!(matches!(
             parse_err::<f32>(from("0.")).downcast_ref().unwrap(),

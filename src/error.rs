@@ -212,9 +212,6 @@ pub enum SyntaxError {
     #[error("{pos:?}: expect fraction part, but found {found:?}")]
     MissingFraction { pos: Position, found: u8 },
 
-    #[error("{pos:?}: cannot convert {rep:?} to number")]
-    InvalidNumber { pos: Position, rep: String },
-
     #[error("comment starts with `/*` must be ends with `*/`, but got EoF")]
     UnterminatedComment,
 }
@@ -234,6 +231,9 @@ pub enum SemanticError {
 
     #[error("JSON with comments must not be empty")]
     EmptyJsonWithComment,
+
+    #[error("{pos:?}: cannot convert {rep:?} to number")]
+    InvalidNumber { pos: Position, rep: String },
 }
 impl From<SemanticError> for JsonWithCommentsError {
     fn from(err: SemanticError) -> Self {
