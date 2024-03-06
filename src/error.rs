@@ -1,7 +1,6 @@
 use serde::de;
+use std::fmt;
 use std::fmt::Display;
-use std::str::Utf8Error;
-use std::{fmt, string::FromUtf8Error};
 use thiserror::Error;
 
 use crate::de::position::{PosRange, Position};
@@ -40,13 +39,23 @@ impl From<std::io::Error> for JsonWithCommentsError {
         JsonWithCommentsError::new(value)
     }
 }
-impl From<FromUtf8Error> for JsonWithCommentsError {
-    fn from(value: FromUtf8Error) -> Self {
+impl From<std::string::FromUtf8Error> for JsonWithCommentsError {
+    fn from(value: std::string::FromUtf8Error) -> Self {
         JsonWithCommentsError::new(value)
     }
 }
-impl From<Utf8Error> for JsonWithCommentsError {
-    fn from(value: Utf8Error) -> Self {
+impl From<std::str::Utf8Error> for JsonWithCommentsError {
+    fn from(value: std::str::Utf8Error) -> Self {
+        JsonWithCommentsError::new(value)
+    }
+}
+impl From<std::num::ParseIntError> for JsonWithCommentsError {
+    fn from(value: std::num::ParseIntError) -> Self {
+        JsonWithCommentsError::new(value)
+    }
+}
+impl From<std::num::ParseFloatError> for JsonWithCommentsError {
+    fn from(value: std::num::ParseFloatError) -> Self {
         JsonWithCommentsError::new(value)
     }
 }
