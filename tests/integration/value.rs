@@ -1,40 +1,41 @@
 use json_with_comments::{
     from_str,
     value::{number::NumberValue, string::StringValue, JsoncValue, MapImpl},
+    Value,
 };
 
 #[test]
 fn test_deserialize_null_as_value() {
     let target = r#"null"#;
-    let value: JsoncValue<'_, u8, f32> = from_str(target).unwrap();
+    let value: Value = from_str(target).unwrap();
     assert_eq!(value, JsoncValue::Null);
 }
 
 #[test]
 fn test_deserialize_bool_as_value() {
     let target = r#"true"#;
-    let value: JsoncValue<'_, u8, f32> = from_str(target).unwrap();
+    let value: Value = from_str(target).unwrap();
     assert_eq!(value, JsoncValue::Bool(true));
 }
 
 #[test]
 fn test_deserialize_number_as_value() {
     let target = r#"9"#;
-    let value: JsoncValue<'_, u8, f32> = from_str(target).unwrap();
+    let value: Value = from_str(target).unwrap();
     assert!(matches!(value, JsoncValue::Number(NumberValue::Integer(9))));
 }
 
 #[test]
 fn test_deserialize_string_as_value() {
     let target = r#""string""#;
-    let value: JsoncValue<'_, u8, f32> = from_str(target).unwrap();
+    let value: Value = from_str(target).unwrap();
     assert!(matches!(value, JsoncValue::String(StringValue::Borrowed("string"))));
 }
 
 #[test]
 fn test_deserialize_array_as_value() {
     let target = r#"[null, true, "false", 10]"#;
-    let value: JsoncValue<'_, u8, f32> = from_str(target).unwrap();
+    let value: Value = from_str(target).unwrap();
     assert_eq!(
         value,
         JsoncValue::Array(vec![
