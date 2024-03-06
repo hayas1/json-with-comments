@@ -53,3 +53,4 @@ pub mod value;
 
 pub use de::{from_file, from_path, from_read, from_str, from_str_raw};
 pub use error::{JsonWithCommentsError as Error, Result};
+pub type Value<'a> = value::JsoncValue<'a, i64, f64>;
