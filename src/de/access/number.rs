@@ -1,17 +1,12 @@
 use crate::value::number::NumberValue;
 
-pub trait FromNumberBuilder {
+pub trait FromNumberBuilder: Sized {
     type Err;
-    fn from_number_builder(builder: NumberBuilder) -> Result<Self, Self::Err>
-    where
-        Self: std::marker::Sized;
+    fn from_number_builder(builder: NumberBuilder) -> Result<Self, Self::Err>;
 }
 impl<T: std::str::FromStr> FromNumberBuilder for T {
     type Err = T::Err;
-    fn from_number_builder(builder: NumberBuilder) -> Result<Self, Self::Err>
-    where
-        Self: std::marker::Sized,
-    {
+    fn from_number_builder(builder: NumberBuilder) -> Result<Self, Self::Err> {
         Self::from_str(&String::from_utf8_lossy(&builder.buff))
     }
 }
