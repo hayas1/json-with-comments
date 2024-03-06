@@ -188,11 +188,7 @@ pub trait Tokenizer<'de> {
         crate::Error: From<T::Err>,
     {
         let mut builder = NumberBuilder::new();
-        match self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)? {
-            (_, b'-') => builder.visit_sign(self.eat()?.ok_or(Ensure::EatAfterLook)?.1),
-            (pos, b'+') => Err(SyntaxError::InvalidLeadingPlus { pos })?,
-            _ => (),
-        }
+
         self.parse_integer_part(&mut builder)?;
         if let Some((_, b'.')) = self.look()? {
             builder.visit_fraction_dot(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
@@ -206,6 +202,11 @@ pub trait Tokenizer<'de> {
     }
 
     fn parse_integer_part(&mut self, builder: &mut NumberBuilder) -> crate::Result<()> {
+        match self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)? {
+            (_, b'-') => builder.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1),
+            (pos, b'+') => Err(SyntaxError::InvalidLeadingPlus { pos })?,
+            _ => (),
+        }
         match self.eat()?.ok_or(SyntaxError::EofWhileParsingNumber)? {
             (_, c @ b'0') => match self.look()? {
                 Some((pos, b'0'..=b'9')) => Err(SyntaxError::InvalidLeadingZeros { pos })?,

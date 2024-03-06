@@ -58,10 +58,6 @@ impl NumberBuilder {
         self.buff.extend_from_slice(slice)
     }
 
-    pub fn visit_sign(&mut self, sign: u8) {
-        self.buff.push(sign)
-    }
-
     pub fn visit_fraction_dot(&mut self, dot: u8) {
         self.ty = NumberValue::Float(());
         self.buff.push(dot)
