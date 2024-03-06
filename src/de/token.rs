@@ -5,13 +5,13 @@ pub mod str;
 
 use crate::{
     error::{Ensure, SyntaxError},
-    value::{
-        number::{FromNumberBuilder, NumberBuilder},
-        string::StringValue,
-    },
+    value::string::StringValue,
 };
 
-use super::position::{PosRange, Position};
+use super::{
+    access::number::{FromNumberBuilder, NumberBuilder},
+    position::{PosRange, Position},
+};
 
 pub trait Tokenizer<'de> {
     fn eat(&mut self) -> crate::Result<Option<(Position, u8)>>;
