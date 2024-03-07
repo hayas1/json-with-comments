@@ -251,6 +251,32 @@ impl From<SemanticError> for JsonWithCommentsError {
 }
 
 #[derive(Error, Debug)]
+pub enum InvalidRepresentsValue {
+    #[error("Only objects can be converted into map")]
+    ShouldObject,
+
+    #[error("Only arrays can be converted into vec")]
+    ShouldArray,
+
+    #[error("Only booleans can be converted into bool")]
+    ShouldBool,
+
+    #[error("Only nulls can be converted into unit")]
+    ShouldNull,
+
+    #[error("Only strings can be converted into string")]
+    ShouldString,
+
+    #[error("Only numbers can be converted into number")]
+    ShouldNumber,
+}
+impl From<InvalidRepresentsValue> for JsonWithCommentsError {
+    fn from(err: InvalidRepresentsValue) -> Self {
+        JsonWithCommentsError::new(err)
+    }
+}
+
+#[derive(Error, Debug)]
 pub enum Ensure {
     #[error("next should return peeked value")]
     NextAfterPeek,
