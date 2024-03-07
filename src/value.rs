@@ -6,7 +6,9 @@ pub mod string;
 
 pub type MapImpl<K, V> = std::collections::HashMap<K, V>;
 
+/// TODO doc
 #[derive(Debug, Clone, PartialEq)]
+// if JsoncValue<'a, I, F>, cannot implement FromStr
 pub enum JsoncValue<I, F> {
     Object(MapImpl<String, JsoncValue<I, F>>),
     Array(Vec<JsoncValue<I, F>>),
