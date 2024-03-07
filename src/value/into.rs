@@ -38,9 +38,15 @@ impl<I, F> JsoncValue<I, F> {
     pub fn is_bool(&self) -> bool {
         matches!(self, JsoncValue::Bool(_))
     }
-    pub fn as_bool(&self) -> Option<bool> {
+    pub fn as_bool(&self) -> Option<&bool> {
         match self {
-            &JsoncValue::Bool(v) => Some(v),
+            JsoncValue::Bool(v) => Some(v),
+            _ => None,
+        }
+    }
+    pub fn as_bool_mut(&mut self) -> Option<&mut bool> {
+        match self {
+            JsoncValue::Bool(v) => Some(v),
             _ => None,
         }
     }
@@ -64,11 +70,23 @@ impl<I, F> JsoncValue<I, F> {
             _ => None,
         }
     }
+    pub fn as_str_mut(&mut self) -> Option<&mut str> {
+        match self {
+            JsoncValue::String(v) => Some(v),
+            _ => None,
+        }
+    }
 
     pub fn is_number(&self) -> bool {
         matches!(self, JsoncValue::Number(_))
     }
     pub fn as_number(&self) -> Option<&NumberValue<I, F>> {
+        match self {
+            JsoncValue::Number(v) => Some(v),
+            _ => None,
+        }
+    }
+    pub fn as_number_mut(&mut self) -> Option<&mut NumberValue<I, F>> {
         match self {
             JsoncValue::Number(v) => Some(v),
             _ => None,
@@ -84,11 +102,23 @@ impl<I, F> JsoncValue<I, F> {
             _ => None,
         }
     }
+    pub fn as_integer_mut(&mut self) -> Option<&mut I> {
+        match self {
+            JsoncValue::Number(NumberValue::Integer(i)) => Some(i),
+            _ => None,
+        }
+    }
 
     pub fn is_float(&self) -> bool {
         matches!(self, JsoncValue::Number(NumberValue::Float(_)))
     }
     pub fn as_float(&self) -> Option<&F> {
+        match self {
+            JsoncValue::Number(NumberValue::Float(f)) => Some(f),
+            _ => None,
+        }
+    }
+    pub fn as_float_mut(&mut self) -> Option<&mut F> {
         match self {
             JsoncValue::Number(NumberValue::Float(f)) => Some(f),
             _ => None,
@@ -333,8 +363,8 @@ mod tests {
     fn test_value_as_array() {
         let mut v: Value = r#"[ null, "null", false, 123, 3.14 ]"#.parse().unwrap();
         assert!(
-            v.is_array()
-                && !v.is_object()
+            !v.is_object()
+                && v.is_array()
                 && !v.is_bool()
                 && !v.is_null()
                 && !v.is_string()
@@ -343,8 +373,8 @@ mod tests {
                 && !v.is_float()
         );
         assert!(
-            v.as_array().is_some()
-                && v.as_object().is_none()
+            v.as_object().is_none()
+                && v.as_array().is_some()
                 && v.as_bool().is_none()
                 && v.as_null().is_none()
                 && v.as_str().is_none()
@@ -365,16 +395,6 @@ mod tests {
 
         let muted = {
             let mv = v.as_array_mut().unwrap();
-            assert_eq!(
-                mv,
-                &mut [
-                    Value::Null,
-                    Value::String("null".to_string()),
-                    Value::Bool(false),
-                    Value::Number(NumberValue::Integer(123)),
-                    Value::Number(NumberValue::Float(3.14)),
-                ]
-            );
             *mv.get_mut(0).unwrap() = "null".into();
             mv.remove(1);
             assert_eq!(
@@ -391,5 +411,167 @@ mod tests {
 
         let owned_vec: Vec<Value> = v.try_into().unwrap();
         assert_eq!(muted, owned_vec);
+    }
+
+    #[test]
+    fn test_value_as_boolean() {
+        let mut v: Value = r#"false"#.parse().unwrap();
+        assert!(
+            !v.is_object()
+                && !v.is_array()
+                && v.is_bool()
+                && !v.is_null()
+                && !v.is_string()
+                && !v.is_number()
+                && !v.is_integer()
+                && !v.is_float()
+        );
+        assert!(
+            v.as_object().is_none()
+                && v.as_array().is_none()
+                && v.as_bool().is_some()
+                && v.as_null().is_none()
+                && v.as_str().is_none()
+                && v.as_number().is_none()
+                && v.as_integer().is_none()
+                && v.as_float().is_none()
+        );
+        assert_eq!(v.as_bool().unwrap(), &false);
+
+        let muted = {
+            let mv = v.as_bool_mut().unwrap();
+            *mv = true;
+            assert_eq!(mv, &mut true);
+            *mv
+        };
+
+        let owned_bool: bool = v.try_into().unwrap();
+        assert_eq!(muted, owned_bool);
+    }
+
+    #[test]
+    fn test_value_as_null() {
+        let v: Value = r#"null"#.parse().unwrap();
+        assert!(
+            !v.is_object()
+                && !v.is_array()
+                && !v.is_bool()
+                && v.is_null()
+                && !v.is_string()
+                && !v.is_number()
+                && !v.is_integer()
+                && !v.is_float()
+        );
+        assert!(
+            v.as_object().is_none()
+                && v.as_array().is_none()
+                && v.as_bool().is_none()
+                && v.as_null().is_some()
+                && v.as_str().is_none()
+                && v.as_number().is_none()
+                && v.as_integer().is_none()
+                && v.as_float().is_none()
+        );
+        assert_eq!(v.as_null().unwrap(), ());
+
+        let owned_null: () = v.try_into().unwrap();
+        assert_eq!(owned_null, ());
+    }
+
+    #[test]
+    fn test_value_as_string() {
+        let mut v: Value = r#""str""#.parse().unwrap();
+        assert!(
+            !v.is_object()
+                && !v.is_array()
+                && !v.is_bool()
+                && !v.is_null()
+                && v.is_string()
+                && !v.is_number()
+                && !v.is_integer()
+                && !v.is_float()
+        );
+        assert!(
+            v.as_object().is_none()
+                && v.as_array().is_none()
+                && v.as_bool().is_none()
+                && v.as_null().is_none()
+                && v.as_str().is_some()
+                && v.as_number().is_none()
+                && v.as_integer().is_none()
+                && v.as_float().is_none()
+        );
+        assert_eq!(v.as_str().unwrap(), "str");
+
+        let mut muted = String::new();
+        {
+            let mv = v.as_str_mut().unwrap();
+            let rmv = mv.as_mut_ptr();
+            unsafe {
+                *rmv = b'a';
+            }
+            assert_eq!(mv, "atr");
+            mv.clone_into(&mut muted)
+        };
+
+        let owned_str: String = v.try_into().unwrap();
+        assert_eq!(muted, owned_str);
+    }
+
+    #[test]
+    fn test_value_as_number() {
+        let mut v: Value = "123".parse().unwrap();
+        assert!(
+            !v.is_object()
+                && !v.is_array()
+                && !v.is_bool()
+                && !v.is_null()
+                && !v.is_string()
+                && v.is_number()
+                && v.is_integer() // number && integer
+                && !v.is_float()
+        );
+        assert!(
+            v.as_object().is_none()
+                && v.as_array().is_none()
+                && v.as_bool().is_none()
+                && v.as_null().is_none()
+                && v.as_str().is_none()
+                && v.as_number().is_some()
+                && v.as_integer().is_some() // number && integer
+                && v.as_float().is_none()
+        );
+        assert_eq!(v.as_number().unwrap(), &NumberValue::Integer(123));
+
+        let muted = {
+            let mv = v.as_number_mut().unwrap();
+            *mv = NumberValue::Float(3.14);
+            assert_eq!(mv, &NumberValue::Float(3.14));
+            mv.clone()
+        };
+
+        let owned_number: NumberValue<i64, f64> = v.clone().try_into().unwrap();
+        assert_eq!(muted, owned_number);
+
+        assert!(
+            !v.is_object()
+                && !v.is_array()
+                && !v.is_bool()
+                && !v.is_null()
+                && !v.is_string()
+                && v.is_number()
+                && !v.is_integer()
+                && v.is_float() // number && float
+        );
+        assert!(
+            v.as_object().is_none()
+                && v.as_array().is_none()
+                && v.as_bool().is_none()
+                && v.as_null().is_none()
+                && v.as_str().is_none()
+                && v.as_number().is_some()
+                && v.as_integer().is_none()
+                && v.as_float().is_some() // number && float
+        )
     }
 }
