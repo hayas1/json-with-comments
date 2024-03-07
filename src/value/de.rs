@@ -5,12 +5,12 @@ use serde::{
 
 use crate::{
     error::{Ensure, SemanticError},
-    value::{number::NumberValue, string::StringValue, JsoncValue},
+    value::{number::NumberValue, JsoncValue},
 };
 
 use super::MapImpl;
 
-impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Deserialize<'de> for JsoncValue<'de, I, F> {
+impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Deserialize<'de> for JsoncValue<I, F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -33,7 +33,7 @@ impl<I, F> Default for JsoncValueVisitor<I, F> {
     }
 }
 impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Visitor<'de> for JsoncValueVisitor<I, F> {
-    type Value = JsoncValue<'de, I, F>;
+    type Value = JsoncValue<I, F>;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
         formatter.write_str("any valid JSONC value")
@@ -141,21 +141,21 @@ impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Visitor<'de> for JsoncVa
     where
         E: serde::de::Error,
     {
-        Ok(JsoncValue::String(StringValue::Owned(v.to_string())))
+        Ok(JsoncValue::String(v.to_string()))
     }
 
     fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        Ok(JsoncValue::String(StringValue::Borrowed(v)))
+        Ok(JsoncValue::String(v.to_string()))
     }
 
     fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
-        Ok(JsoncValue::String(StringValue::Owned(v)))
+        Ok(JsoncValue::String(v))
     }
 
     // fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
@@ -203,7 +203,7 @@ impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Visitor<'de> for JsoncVa
         A: serde::de::MapAccess<'de>,
     {
         let mut v = MapImpl::new();
-        while let Some((key, value)) = map.next_entry::<JsoncValue<'_, I, F>, JsoncValue<'_, I, F>>()? {
+        while let Some((key, value)) = map.next_entry::<JsoncValue<I, F>, JsoncValue<I, F>>()? {
             // TODO jsoncValue should convert Option<StringValue>
             match key {
                 JsoncValue::String(s) => v.insert(s, value),
