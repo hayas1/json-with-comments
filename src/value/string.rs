@@ -3,9 +3,14 @@ pub enum StringValue<'a> {
     Borrowed(&'a str),
     Owned(String),
 }
-impl<'a, T: Into<String>> From<T> for StringValue<'a> {
-    fn from(t: T) -> Self {
-        StringValue::Owned(t.into())
+impl<'a> From<String> for StringValue<'a> {
+    fn from(t: String) -> Self {
+        StringValue::Owned(t)
+    }
+}
+impl<'a> From<&'a str> for StringValue<'a> {
+    fn from(s: &'a str) -> Self {
+        StringValue::Borrowed(s)
     }
 }
 impl<'a> std::fmt::Display for StringValue<'a> {
