@@ -1,6 +1,6 @@
 use crate::error::InvalidRepresentsValue;
 
-use super::{number::NumberValue, JsoncValue, MapImpl};
+use super::{number::Number, JsoncValue, MapImpl};
 
 impl<I, F> JsoncValue<I, F> {
     /// TODO doc
@@ -96,14 +96,14 @@ impl<I, F> JsoncValue<I, F> {
         matches!(self, JsoncValue::Number(_))
     }
     /// TODO doc
-    pub fn as_number(&self) -> Option<&NumberValue<I, F>> {
+    pub fn as_number(&self) -> Option<&Number<I, F>> {
         match self {
             JsoncValue::Number(v) => Some(v),
             _ => None,
         }
     }
     /// TODO doc
-    pub fn as_number_mut(&mut self) -> Option<&mut NumberValue<I, F>> {
+    pub fn as_number_mut(&mut self) -> Option<&mut Number<I, F>> {
         match self {
             JsoncValue::Number(v) => Some(v),
             _ => None,
@@ -112,38 +112,38 @@ impl<I, F> JsoncValue<I, F> {
 
     /// TODO doc
     pub fn is_integer(&self) -> bool {
-        matches!(self, JsoncValue::Number(NumberValue::Integer(_)))
+        matches!(self, JsoncValue::Number(Number::Integer(_)))
     }
     /// TODO doc
     pub fn as_integer(&self) -> Option<&I> {
         match self {
-            JsoncValue::Number(NumberValue::Integer(i)) => Some(i),
+            JsoncValue::Number(Number::Integer(i)) => Some(i),
             _ => None,
         }
     }
     /// TODO doc
     pub fn as_integer_mut(&mut self) -> Option<&mut I> {
         match self {
-            JsoncValue::Number(NumberValue::Integer(i)) => Some(i),
+            JsoncValue::Number(Number::Integer(i)) => Some(i),
             _ => None,
         }
     }
 
     /// TODO doc
     pub fn is_float(&self) -> bool {
-        matches!(self, JsoncValue::Number(NumberValue::Float(_)))
+        matches!(self, JsoncValue::Number(Number::Float(_)))
     }
     /// TODO doc
     pub fn as_float(&self) -> Option<&F> {
         match self {
-            JsoncValue::Number(NumberValue::Float(f)) => Some(f),
+            JsoncValue::Number(Number::Float(f)) => Some(f),
             _ => None,
         }
     }
     /// TODO doc
     pub fn as_float_mut(&mut self) -> Option<&mut F> {
         match self {
-            JsoncValue::Number(NumberValue::Float(f)) => Some(f),
+            JsoncValue::Number(Number::Float(f)) => Some(f),
             _ => None,
         }
     }
@@ -194,7 +194,7 @@ impl<I, F> TryFrom<JsoncValue<I, F>> for String {
         }
     }
 }
-impl<I, F> TryFrom<JsoncValue<I, F>> for NumberValue<I, F> {
+impl<I, F> TryFrom<JsoncValue<I, F>> for Number<I, F> {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<I, F>) -> Result<Self, Self::Error> {
         match value {
@@ -208,7 +208,7 @@ impl<I, F> TryFrom<JsoncValue<I, F>> for NumberValue<I, F> {
 //     type Error = crate::Error;
 //     fn try_from(value: JsoncValue<I, F>) -> Result<Self, Self::Error> {
 //         match value {
-//             JsoncValue::Number(NumberValue::Integer(v)) => Ok(v),
+//             JsoncValue::Number(Number::Integer(v)) => Ok(v),
 //             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
 //         }
 //     }
@@ -217,7 +217,7 @@ impl<I, F> TryFrom<JsoncValue<I, F>> for NumberValue<I, F> {
 //     type Error = crate::Error;
 //     fn try_from(value: JsoncValue<I, F>) -> Result<Self, Self::Error> {
 //         match value {
-//             JsoncValue::Number(NumberValue::Float(v)) => Ok(v),
+//             JsoncValue::Number(Number::Float(v)) => Ok(v),
 //             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
 //         }
 //     }
@@ -228,7 +228,7 @@ impl<F> TryFrom<JsoncValue<u8, F>> for u8 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<u8, F>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Integer(v)) => Ok(v),
+            JsoncValue::Number(Number::Integer(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -237,7 +237,7 @@ impl<F> TryFrom<JsoncValue<u16, F>> for u16 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<u16, F>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Integer(v)) => Ok(v),
+            JsoncValue::Number(Number::Integer(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -246,7 +246,7 @@ impl<F> TryFrom<JsoncValue<u32, F>> for u32 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<u32, F>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Integer(v)) => Ok(v),
+            JsoncValue::Number(Number::Integer(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -255,7 +255,7 @@ impl<F> TryFrom<JsoncValue<u64, F>> for u64 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<u64, F>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Integer(v)) => Ok(v),
+            JsoncValue::Number(Number::Integer(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -264,7 +264,7 @@ impl<F> TryFrom<JsoncValue<u128, F>> for u128 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<u128, F>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Integer(v)) => Ok(v),
+            JsoncValue::Number(Number::Integer(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -273,7 +273,7 @@ impl<F> TryFrom<JsoncValue<i8, F>> for i8 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<i8, F>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Integer(v)) => Ok(v),
+            JsoncValue::Number(Number::Integer(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -282,7 +282,7 @@ impl<F> TryFrom<JsoncValue<i16, F>> for i16 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<i16, F>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Integer(v)) => Ok(v),
+            JsoncValue::Number(Number::Integer(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -291,7 +291,7 @@ impl<F> TryFrom<JsoncValue<i32, F>> for i32 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<i32, F>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Integer(v)) => Ok(v),
+            JsoncValue::Number(Number::Integer(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -300,7 +300,7 @@ impl<F> TryFrom<JsoncValue<i64, F>> for i64 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<i64, F>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Integer(v)) => Ok(v),
+            JsoncValue::Number(Number::Integer(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -309,7 +309,7 @@ impl<F> TryFrom<JsoncValue<i128, F>> for i128 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<i128, F>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Integer(v)) => Ok(v),
+            JsoncValue::Number(Number::Integer(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -318,7 +318,7 @@ impl<I> TryFrom<JsoncValue<I, f32>> for f32 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<I, f32>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Float(v)) => Ok(v),
+            JsoncValue::Number(Number::Float(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -327,7 +327,7 @@ impl<I> TryFrom<JsoncValue<I, f64>> for f64 {
     type Error = crate::Error;
     fn try_from(value: JsoncValue<I, f64>) -> Result<Self, Self::Error> {
         match value {
-            JsoncValue::Number(NumberValue::Float(v)) => Ok(v),
+            JsoncValue::Number(Number::Float(v)) => Ok(v),
             _ => Err(InvalidRepresentsValue::ShouldNumber)?,
         }
     }
@@ -411,8 +411,8 @@ mod tests {
                 Value::Null,
                 Value::String("null".to_string()),
                 Value::Bool(false),
-                Value::Number(NumberValue::Integer(123)),
-                Value::Number(NumberValue::Float(3.14)),
+                Value::Number(Number::Integer(123)),
+                Value::Number(Number::Float(3.14)),
             ]
         );
 
@@ -425,8 +425,8 @@ mod tests {
                 &mut [
                     Value::String("null".to_string()),
                     Value::Bool(false),
-                    Value::Number(NumberValue::Integer(123)),
-                    Value::Number(NumberValue::Float(3.14)),
+                    Value::Number(Number::Integer(123)),
+                    Value::Number(Number::Float(3.14)),
                 ]
             );
             mv.clone()
@@ -564,16 +564,16 @@ mod tests {
                 && v.as_integer().is_some() // number && integer
                 && v.as_float().is_none()
         );
-        assert_eq!(v.as_number().unwrap(), &NumberValue::Integer(123));
+        assert_eq!(v.as_number().unwrap(), &Number::Integer(123));
 
         let muted = {
             let mv = v.as_number_mut().unwrap();
-            *mv = NumberValue::Float(3.14);
-            assert_eq!(mv, &NumberValue::Float(3.14));
+            *mv = Number::Float(3.14);
+            assert_eq!(mv, &Number::Float(3.14));
             mv.clone()
         };
 
-        let owned_number: NumberValue<i64, f64> = v.clone().try_into().unwrap();
+        let owned_number: Number<i64, f64> = v.clone().try_into().unwrap();
         assert_eq!(muted, owned_number);
 
         assert!(

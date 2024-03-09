@@ -1,6 +1,6 @@
 use json_with_comments::{
     from_str,
-    value::{number::NumberValue, JsoncValue, MapImpl},
+    value::{number::Number, JsoncValue, MapImpl},
     Value,
 };
 
@@ -22,7 +22,7 @@ fn test_deserialize_bool_as_value() {
 fn test_deserialize_number_as_value() {
     let target = r#"9"#;
     let value: Value = from_str(target).unwrap();
-    assert_eq!(value, JsoncValue::Number(NumberValue::Integer(9)));
+    assert_eq!(value, JsoncValue::Number(Number::Integer(9)));
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn test_deserialize_array_as_value() {
             JsoncValue::Null,
             JsoncValue::Bool(true),
             JsoncValue::String("false".to_string()),
-            JsoncValue::Number(NumberValue::Integer(10)),
+            JsoncValue::Number(Number::Integer(10)),
         ])
     );
 }
@@ -57,8 +57,8 @@ fn test_deserialize_object_as_value() {
             ("null".to_string(), JsoncValue::Null),
             ("bool".to_string(), JsoncValue::Bool(true)),
             ("str".to_string(), JsoncValue::String("false".to_string())),
-            ("number".to_string(), JsoncValue::Number(NumberValue::Integer(10000000000))),
-            ("float".to_string(), JsoncValue::Number(NumberValue::Float(1.5))),
+            ("number".to_string(), JsoncValue::Number(Number::Integer(10000000000))),
+            ("float".to_string(), JsoncValue::Number(Number::Float(1.5))),
         ]))
     );
 }

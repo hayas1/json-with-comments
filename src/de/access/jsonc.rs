@@ -1,6 +1,6 @@
 use serde::de::{self, IgnoredAny};
 
-use crate::{de::token::Tokenizer, error::SyntaxError, value::number::NumberValue};
+use crate::{de::token::Tokenizer, error::SyntaxError, value::number::Number};
 
 use super::{map::MapDeserializer, r#enum::EnumDeserializer, seq::SeqDeserializer, string::ParsedString};
 
@@ -32,8 +32,8 @@ where
         V: de::Visitor<'de>,
     {
         match self.tokenizer.parse_number()? {
-            NumberValue::Integer(i) => visitor.visit_i64(i),
-            NumberValue::Float(f) => visitor.visit_f64(f),
+            Number::Integer(i) => visitor.visit_i64(i),
+            Number::Float(f) => visitor.visit_f64(f),
         }
     }
 

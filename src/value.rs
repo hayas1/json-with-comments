@@ -15,7 +15,7 @@ pub enum JsoncValue<I, F> {
     Bool(bool),
     Null,
     String(String),
-    Number(number::NumberValue<I, F>),
+    Number(number::Number<I, F>),
 }
 
 impl<I, F> Default for JsoncValue<I, F> {
