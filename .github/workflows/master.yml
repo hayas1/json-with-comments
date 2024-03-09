@@ -16,8 +16,6 @@ jobs:
       expected-git-tag: ${{ steps.detect-version.outputs.expected-git-tag }}
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-tags: true
     - uses: dtolnay/rust-toolchain@stable
 
     - name: Release test

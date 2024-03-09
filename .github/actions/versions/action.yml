@@ -18,11 +18,14 @@ runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v4
+      with:
+        # fetch-tags: true # do not work?
+        fetch-depth: 0 # to fetch the latest tags, but all history is fetched
     - name: Find version in Cargo.toml
       id: crate-version
       uses: mikefarah/yq@v4
       with:
-        cmd: "yq -p toml '.package.version' <Cargo.toml"
+        cmd: yq -p toml '.package.version' <Cargo.toml
     - name: Expected git tag
       id: expected-git-tag
       shell: bash
