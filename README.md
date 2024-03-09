@@ -45,6 +45,26 @@ assert!(matches!(
 ));
 ```
 
+## Parse JSONC as any value
+Any valid JSONC text can be parsed as [`Value`].
+```rust
+use json_with_comments::{from_str, Value, value::JsoncValue};
+use json_with_comments::value::{number::NumberValue, MapImpl};
+
+let json = r#"{
+    "name": "John Doe", // John Doe is a fictional character
+    "address": {
+        "street": "Main",
+        "number": 42, /* trailing comma */
+    },
+}"#;
+
+let data: json_with_comments::Value = from_str(json).unwrap();
+assert_eq!(data["name"], JsoncValue::String("John Doe".into()));
+assert_eq!(data["address"]["street"], JsoncValue::String("Main".into()));
+assert_eq!(data.query("address.number"), Some(&42.into()));
+```
+
 ## Testing
 Coverage can be checked [https://hayas1.github.io/json-with-comments/tarpaulin-report](https://hayas1.github.io/json-with-comments/tarpaulin-report)
 

@@ -10,6 +10,7 @@ readme = "README.md"
 
 [dependencies]
 serde = "1.0.196"
+num = "0.4.0"
 thiserror = "1.0.57"
 
 [dev-dependencies]

@@ -3,14 +3,15 @@ pub mod read;
 pub mod slice;
 pub mod str;
 
-use std::str::FromStr;
+use crate::error::{Ensure, SyntaxError};
 
-use crate::{
-    error::{Ensure, SyntaxError},
-    value::string::StringValue,
+use super::{
+    access::{
+        number::{FromNumberBuilder, NumberBuilder},
+        string::ParsedString,
+    },
+    position::{PosRange, Position},
 };
-
-use super::position::{PosRange, Position};
 
 pub trait Tokenizer<'de> {
     fn eat(&mut self) -> crate::Result<Option<(Position, u8)>>;
@@ -112,7 +113,7 @@ pub trait Tokenizer<'de> {
         }
     }
 
-    fn parse_string(&mut self) -> crate::Result<StringValue<'de>> {
+    fn parse_string(&mut self) -> crate::Result<ParsedString<'de>> {
         match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
             (_, b'"') => {
                 let value = self.parse_string_content()?;
@@ -125,15 +126,15 @@ pub trait Tokenizer<'de> {
         }
     }
 
-    fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {
+    fn parse_string_content(&mut self) -> crate::Result<ParsedString<'de>> {
         self.parse_string_content_super()
     }
-    fn parse_string_content_super(&mut self) -> crate::Result<StringValue<'de>> {
+    fn parse_string_content_super(&mut self) -> crate::Result<ParsedString<'de>> {
         let mut buff = Vec::new();
         while let Some((pos, found)) = self.look()? {
             match found {
                 b'\\' => self.parse_escape_sequence(&mut buff)?,
-                b'"' => return Ok(StringValue::Owned(String::from_utf8(buff)?)),
+                b'"' => return Ok(ParsedString::Owned(String::from_utf8(buff)?)),
                 c if c.is_ascii_control() => Err(SyntaxError::ControlCharacterWhileParsingString { pos, c })?,
                 _ => buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1),
             }
@@ -176,48 +177,73 @@ pub trait Tokenizer<'de> {
         Ok(buff.extend_from_slice(ch.encode_utf8(&mut [0; 4]).as_bytes()))
     }
 
-    fn parse_number<T: FromStr>(&mut self) -> crate::Result<T> {
-        let mut buff = Vec::new(); // TODO performance optimization (do not use string buffer)
-        let (pos, _) = self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)?;
+    fn parse_number<T: FromNumberBuilder>(&mut self) -> crate::Result<T>
+    where
+        crate::Error: From<T::Err>,
+    {
+        self.parse_number_super()
+    }
+    fn parse_number_super<T: FromNumberBuilder>(&mut self) -> crate::Result<T>
+    where
+        crate::Error: From<T::Err>,
+    {
+        let mut builder = NumberBuilder::new();
+
+        self.parse_integer_part(&mut builder)?;
+        if let Some((_, b'.')) = self.look()? {
+            builder.visit_fraction_dot(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
+            self.parse_fraction_part(&mut builder)?;
+        }
+        if let Some((_, b'e' | b'E')) = self.look()? {
+            builder.visit_exponent_e(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
+            self.parse_exponent_part(&mut builder)?;
+        }
+        Ok(builder.build()?)
+    }
+
+    fn parse_integer_part(&mut self, builder: &mut NumberBuilder) -> crate::Result<()> {
         match self.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingNumber)? {
-            (_, b'-') => buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1),
+            (_, b'-') => builder.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1),
             (pos, b'+') => Err(SyntaxError::InvalidLeadingPlus { pos })?,
             _ => (),
         }
         match self.eat()?.ok_or(SyntaxError::EofWhileParsingNumber)? {
             (_, c @ b'0') => match self.look()? {
                 Some((pos, b'0'..=b'9')) => Err(SyntaxError::InvalidLeadingZeros { pos })?,
-                _ => buff.push(c),
+                _ => Ok(builder.push(c)),
             },
             (_, c @ b'1'..=b'9') => {
-                buff.push(c);
-                buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
+                builder.push(c);
+                let (_, remain) = self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?;
+                Ok(builder.extend_from_slice(&remain))
             }
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingNumber { pos, found })?,
         }
-        if let Some((_, b'.')) = self.look()? {
-            buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
-            match self.look()?.ok_or(SyntaxError::EofWhileStartParsingFraction)? {
-                (_, b'0'..=b'9') => buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1),
-                (pos, found) => Err(SyntaxError::MissingFraction { pos, found })?,
+    }
+
+    fn parse_fraction_part(&mut self, builder: &mut NumberBuilder) -> crate::Result<()> {
+        match self.look()?.ok_or(SyntaxError::EofWhileStartParsingFraction)? {
+            (_, b'0'..=b'9') => {
+                let (_, fraction) = self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?;
+                Ok(builder.extend_from_slice(&fraction))
             }
+            (pos, found) => Err(SyntaxError::MissingFraction { pos, found })?,
         }
-        if let Some((_, b'e' | b'E')) = self.look()? {
-            buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1);
-            match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingExponent)? {
-                (_, c @ (b'+' | b'-' | b'0'..=b'9')) => buff.push(c),
-                (pos, found) => Err(SyntaxError::MissingExponent { pos, found })?,
-            }
-            buff.extend_from_slice(&self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?.1);
+    }
+
+    fn parse_exponent_part(&mut self, builder: &mut NumberBuilder) -> crate::Result<()> {
+        match self.eat()?.ok_or(SyntaxError::EofWhileStartParsingExponent)? {
+            (_, c @ (b'+' | b'-' | b'0'..=b'9')) => builder.push(c),
+            (pos, found) => Err(SyntaxError::MissingExponent { pos, found })?,
         }
-        let representation = String::from_utf8(buff)?;
-        Ok(representation.parse().or(Err(SyntaxError::InvalidNumber { pos, rep: representation }))?)
+        let (_, exponent) = self.fold_token(|_, c| matches!(c, b'0'..=b'9'))?;
+        Ok(builder.extend_from_slice(&exponent))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Debug;
+    use std::{fmt::Debug, num::ParseIntError};
 
     use super::*;
 
@@ -358,8 +384,8 @@ mod tests {
     pub fn behavior_parse_raw_string<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
         fn parse<'a>(mut tokenizer: impl Tokenizer<'a>) -> &'a str {
             match tokenizer.parse_string().unwrap() {
-                StringValue::Borrowed(s) => s,
-                StringValue::Owned(s) => panic!("expected borrowed string, got owned: {}", s),
+                ParsedString::Borrowed(s) => s,
+                ParsedString::Owned(s) => panic!("expected borrowed string, got owned: {}", s),
             }
         }
 
@@ -414,7 +440,10 @@ mod tests {
     }
 
     pub fn behavior_parse_number<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
-        fn parse<'a, U: FromStr>(mut tokenizer: impl Tokenizer<'a>) -> U {
+        fn parse<'a, U: FromNumberBuilder>(mut tokenizer: impl Tokenizer<'a>) -> U
+        where
+            crate::Error: From<U::Err>,
+        {
             tokenizer.parse_number().unwrap()
         }
 
@@ -443,13 +472,16 @@ mod tests {
     }
 
     pub fn behavior_parse_number_err<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
-        fn parse_err<'a, U: FromStr + Debug>(
+        fn parse_err<'a, U: FromNumberBuilder + Debug>(
             mut tokenizer: impl Tokenizer<'a>,
-        ) -> Box<dyn std::error::Error + Send + Sync> {
+        ) -> Box<dyn std::error::Error + Send + Sync>
+        where
+            crate::Error: From<U::Err>,
+        {
             tokenizer.parse_number::<U>().unwrap_err().into_inner()
         }
 
-        assert!(matches!(parse_err::<u8>(from("256")).downcast_ref().unwrap(), SyntaxError::InvalidNumber { .. }));
+        assert!(matches!(parse_err::<u8>(from("256")).downcast_ref().unwrap(), ParseIntError { .. }));
         assert!(matches!(
             parse_err::<u32>(from("000")).downcast_ref().unwrap(),
             SyntaxError::InvalidLeadingZeros { .. }
@@ -462,10 +494,7 @@ mod tests {
             parse_err::<u32>(from("+12")).downcast_ref().unwrap(),
             SyntaxError::InvalidLeadingPlus { .. }
         ));
-        assert!(matches!(
-            parse_err::<i32>(from("-999999999999")).downcast_ref().unwrap(),
-            SyntaxError::InvalidNumber { .. }
-        ));
+        assert!(matches!(parse_err::<i32>(from("-999999999999")).downcast_ref().unwrap(), ParseIntError { .. }));
         assert!(matches!(
             parse_err::<f32>(from("0.")).downcast_ref().unwrap(),
             SyntaxError::EofWhileStartParsingFraction { .. },

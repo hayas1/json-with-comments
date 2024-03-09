@@ -1,8 +1,8 @@
 use serde::de::{self, IgnoredAny};
 
-use crate::{de::token::Tokenizer, error::SyntaxError, value::string::StringValue};
+use crate::{de::token::Tokenizer, error::SyntaxError, value::number::NumberValue};
 
-use super::{map::MapDeserializer, r#enum::EnumDeserializer, seq::SeqDeserializer};
+use super::{map::MapDeserializer, r#enum::EnumDeserializer, seq::SeqDeserializer, string::ParsedString};
 
 pub struct JsoncDeserializer<'de, T>
 where
@@ -14,7 +14,7 @@ where
 
 impl<'de, T> JsoncDeserializer<'de, T>
 where
-    T: Tokenizer<'de>,
+    T: 'de + Tokenizer<'de>,
 {
     pub fn new(tokenizer: T) -> Self {
         JsoncDeserializer { tokenizer, phantom: std::marker::PhantomData }
@@ -24,6 +24,29 @@ where
         match self.tokenizer.eat_whitespace()? {
             Some((pos, found)) => Err(SyntaxError::ExpectedEof { pos, found })?,
             None => Ok(()),
+        }
+    }
+
+    pub fn deserialize_number_value<V>(&mut self, visitor: V) -> crate::Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        match self.tokenizer.parse_number()? {
+            NumberValue::Integer(i) => visitor.visit_i64(i),
+            NumberValue::Float(f) => visitor.visit_f64(f),
+        }
+    }
+
+    pub fn deserialize_string_value<V>(&mut self, visitor: V) -> crate::Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
+            (_, b'"') => match self.tokenizer.parse_string()? {
+                ParsedString::Borrowed(s) => visitor.visit_borrowed_str(s),
+                ParsedString::Owned(s) => visitor.visit_str(&s),
+            },
+            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
         }
     }
 }
@@ -41,7 +64,7 @@ where
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingValue)? {
             (_, b'n') => self.deserialize_unit(visitor),
             (_, b'f' | b't') => self.deserialize_bool(visitor),
-            (_, b'-' | b'0'..=b'9') => todo!("u64, i64, f64 and so on..."), // TODO number
+            (_, b'-' | b'0'..=b'9') => self.deserialize_number_value(visitor), // TODO number, float
             (_, b'"') => self.deserialize_str(visitor),
             (_, b'[') => self.deserialize_seq(visitor),
             (_, b'{') => self.deserialize_map(visitor),
@@ -155,13 +178,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
-            (_, b'"') => match self.tokenizer.parse_string()? {
-                StringValue::Borrowed(s) => visitor.visit_borrowed_str(s),
-                StringValue::Owned(s) => visitor.visit_str(&s),
-            },
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
-        }
+        self.deserialize_string_value(visitor)
     }
 
     fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>

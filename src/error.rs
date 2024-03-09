@@ -1,7 +1,6 @@
 use serde::de;
+use std::fmt;
 use std::fmt::Display;
-use std::str::Utf8Error;
-use std::{fmt, string::FromUtf8Error};
 use thiserror::Error;
 
 use crate::de::position::{PosRange, Position};
@@ -40,13 +39,23 @@ impl From<std::io::Error> for JsonWithCommentsError {
         JsonWithCommentsError::new(value)
     }
 }
-impl From<FromUtf8Error> for JsonWithCommentsError {
-    fn from(value: FromUtf8Error) -> Self {
+impl From<std::string::FromUtf8Error> for JsonWithCommentsError {
+    fn from(value: std::string::FromUtf8Error) -> Self {
         JsonWithCommentsError::new(value)
     }
 }
-impl From<Utf8Error> for JsonWithCommentsError {
-    fn from(value: Utf8Error) -> Self {
+impl From<std::str::Utf8Error> for JsonWithCommentsError {
+    fn from(value: std::str::Utf8Error) -> Self {
+        JsonWithCommentsError::new(value)
+    }
+}
+impl From<std::num::ParseIntError> for JsonWithCommentsError {
+    fn from(value: std::num::ParseIntError) -> Self {
+        JsonWithCommentsError::new(value)
+    }
+}
+impl From<std::num::ParseFloatError> for JsonWithCommentsError {
+    fn from(value: std::num::ParseFloatError) -> Self {
         JsonWithCommentsError::new(value)
     }
 }
@@ -212,9 +221,6 @@ pub enum SyntaxError {
     #[error("{pos:?}: expect fraction part, but found {found:?}")]
     MissingFraction { pos: Position, found: u8 },
 
-    #[error("{pos:?}: cannot convert {rep:?} to number")]
-    InvalidNumber { pos: Position, rep: String },
-
     #[error("comment starts with `/*` must be ends with `*/`, but got EoF")]
     UnterminatedComment,
 }
@@ -234,9 +240,49 @@ pub enum SemanticError {
 
     #[error("JSON with comments must not be empty")]
     EmptyJsonWithComment,
+
+    #[error("{pos:?}: cannot convert {rep:?} to number")]
+    InvalidNumber { pos: Position, rep: String },
 }
 impl From<SemanticError> for JsonWithCommentsError {
     fn from(err: SemanticError) -> Self {
+        JsonWithCommentsError::new(err)
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum InvalidRepresentsValue {
+    #[error("Only objects can be converted into map")]
+    ShouldObject,
+
+    #[error("Only arrays can be converted into vec")]
+    ShouldArray,
+
+    #[error("Only booleans can be converted into bool")]
+    ShouldBool,
+
+    #[error("Only nulls can be converted into unit")]
+    ShouldNull,
+
+    #[error("Only strings can be converted into string")]
+    ShouldString,
+
+    #[error("Only numbers can be converted into number")]
+    ShouldNumber,
+}
+impl From<InvalidRepresentsValue> for JsonWithCommentsError {
+    fn from(err: InvalidRepresentsValue) -> Self {
+        JsonWithCommentsError::new(err)
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum IndexError {
+    #[error("{value} value cannot be indexed by {index}")]
+    UnmatchedType { index: String, value: String },
+}
+impl From<IndexError> for JsonWithCommentsError {
+    fn from(err: IndexError) -> Self {
         JsonWithCommentsError::new(err)
     }
 }
@@ -254,6 +300,9 @@ pub enum Ensure {
 
     #[error("unescaped string should be owned because of lifetime")]
     OwnedString,
+
+    #[error("same type conversion should be always possible")]
+    CanConvertAlways,
 }
 impl From<Ensure> for JsonWithCommentsError {
     fn from(err: Ensure) -> Self {

@@ -210,7 +210,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        self.deserializer.deserialize_string(visitor)
+        self.deserializer.deserialize_string_value(visitor)
     }
 
     fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
