@@ -1,6 +1,6 @@
-use serde::de;
 use std::fmt;
-use std::fmt::Display;
+
+use serde::de;
 use thiserror::Error;
 
 use crate::de::position::{PosRange, Position};
@@ -28,7 +28,7 @@ impl fmt::Display for JsonWithCommentsError {
 impl de::Error for JsonWithCommentsError {
     fn custom<T>(msg: T) -> Self
     where
-        T: Display,
+        T: fmt::Display,
     {
         JsonWithCommentsError::new(msg.to_string()) // TODO
     }
@@ -278,8 +278,17 @@ impl From<InvalidRepresentsValue> for JsonWithCommentsError {
 
 #[derive(Error, Debug)]
 pub enum IndexError {
-    #[error("{value} value cannot be indexed by {index}")]
-    UnmatchedType { index: String, value: String },
+    #[error("{value} value cannot be indexed by string")]
+    StringIndex { value: String },
+
+    #[error("{value} value cannot be indexed by usize")]
+    UsizeIndex { value: String },
+
+    #[error("{value} value cannot be indexed by slice index")]
+    SliceIndex { value: String },
+
+    #[error("not exist key {key:?}")]
+    NotExistKey { key: String },
 }
 impl From<IndexError> for JsonWithCommentsError {
     fn from(err: IndexError) -> Self {

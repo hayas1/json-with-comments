@@ -44,17 +44,13 @@ impl<I, F> JsoncIndex<JsoncValue<I, F>> for &str {
     fn index(self, value: &JsoncValue<I, F>) -> &Self::Output {
         match value {
             JsoncValue::Object(map) => &map[self],
-            _ => {
-                panic!("{}", IndexError::UnmatchedType { index: "str".to_string(), value: value.value_type() })
-            }
+            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
         }
     }
     fn index_mut(self, value: &mut JsoncValue<I, F>) -> &mut Self::Output {
         match value {
             JsoncValue::Object(map) => map.get_mut(self).unwrap_or_else(|| panic!("no such key: \"{self}\"")),
-            _ => {
-                panic!("{}", IndexError::UnmatchedType { index: "str".to_string(), value: value.value_type() })
-            }
+            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
         }
     }
 }
@@ -69,17 +65,13 @@ impl<I, F> JsoncIndex<JsoncValue<I, F>> for usize {
     fn index(self, value: &JsoncValue<I, F>) -> &Self::Output {
         match value {
             JsoncValue::Array(v) => &v[self],
-            _ => {
-                panic!("{}", IndexError::UnmatchedType { index: "num".to_string(), value: value.value_type() })
-            }
+            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
         }
     }
     fn index_mut(self, value: &mut JsoncValue<I, F>) -> &mut Self::Output {
         match value {
             JsoncValue::Array(v) => &mut v[self],
-            _ => {
-                panic!("{}", IndexError::UnmatchedType { index: "num".to_string(), value: value.value_type() })
-            }
+            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
         }
     }
 }
@@ -98,17 +90,13 @@ impl<I, F, R: std::slice::SliceIndex<[JsoncValue<I, F>]>> JsoncIndex<JsoncValue<
     fn index(self, value: &JsoncValue<I, F>) -> &Self::Output {
         match value {
             JsoncValue::Array(v) => &v[self.0],
-            _ => {
-                panic!("{}", IndexError::UnmatchedType { index: "str".to_string(), value: value.value_type() })
-            }
+            _ => panic!("{}", IndexError::SliceIndex { value: value.value_type() }),
         }
     }
     fn index_mut(self, value: &mut JsoncValue<I, F>) -> &mut Self::Output {
         match value {
             JsoncValue::Array(v) => &mut v[self.0],
-            _ => {
-                panic!("{}", IndexError::UnmatchedType { index: "str".to_string(), value: value.value_type() })
-            }
+            _ => panic!("{}", IndexError::SliceIndex { value: value.value_type() }),
         }
     }
 }
