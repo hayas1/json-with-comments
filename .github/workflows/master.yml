@@ -38,8 +38,8 @@ jobs:
       uses: ./.github/actions/versions
       id: detect-version
 
-    - run: echo ${{ steps.detect-version.outputs.expected-git-tag }}
-    - run: echo ${{ steps.detect-version.outputs.should-release }}
+    - run: "echo expected-git-tag: ${{ steps.detect-version.outputs.expected-git-tag }}"
+    - run: "echo should-release: ${{ steps.detect-version.outputs.should-release }}"
 
   # deploy:
   #   needs: build
