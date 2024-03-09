@@ -3,15 +3,18 @@ use crate::error::InvalidRepresentsValue;
 use super::{number::NumberValue, JsoncValue, MapImpl};
 
 impl<I, F> JsoncValue<I, F> {
+    /// TODO doc
     pub fn is_object(&self) -> bool {
         matches!(self, JsoncValue::Object(_))
     }
+    /// TODO doc
     pub fn as_object(&self) -> Option<&MapImpl<String, Self>> {
         match self {
             JsoncValue::Object(m) => Some(m),
             _ => None,
         }
     }
+    /// TODO doc
     pub fn as_object_mut(&mut self) -> Option<&mut MapImpl<String, Self>> {
         match self {
             JsoncValue::Object(m) => Some(m),
@@ -19,15 +22,18 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
+    /// TODO doc
     pub fn is_array(&self) -> bool {
         matches!(self, JsoncValue::Array(_))
     }
+    /// TODO doc
     pub fn as_array(&self) -> Option<&Vec<Self>> {
         match self {
             JsoncValue::Array(v) => Some(v),
             _ => None,
         }
     }
+    /// TODO doc
     pub fn as_array_mut(&mut self) -> Option<&mut Vec<Self>> {
         match self {
             JsoncValue::Array(v) => Some(v),
@@ -35,15 +41,18 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
+    /// TODO doc
     pub fn is_bool(&self) -> bool {
         matches!(self, JsoncValue::Bool(_))
     }
+    /// TODO doc
     pub fn as_bool(&self) -> Option<&bool> {
         match self {
             JsoncValue::Bool(v) => Some(v),
             _ => None,
         }
     }
+    /// TODO doc
     pub fn as_bool_mut(&mut self) -> Option<&mut bool> {
         match self {
             JsoncValue::Bool(v) => Some(v),
@@ -51,9 +60,11 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
+    /// TODO doc
     pub fn is_null(&self) -> bool {
         matches!(self, JsoncValue::Null)
     }
+    /// TODO doc
     pub fn as_null(&self) -> Option<()> {
         match self {
             JsoncValue::Null => Some(()),
@@ -61,15 +72,18 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
+    /// TODO doc
     pub fn is_string(&self) -> bool {
         matches!(self, JsoncValue::String(_))
     }
+    /// TODO doc
     pub fn as_str(&self) -> Option<&str> {
         match self {
             JsoncValue::String(v) => Some(v),
             _ => None,
         }
     }
+    /// TODO doc
     pub fn as_str_mut(&mut self) -> Option<&mut str> {
         match self {
             JsoncValue::String(v) => Some(v),
@@ -77,15 +91,18 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
+    /// TODO doc
     pub fn is_number(&self) -> bool {
         matches!(self, JsoncValue::Number(_))
     }
+    /// TODO doc
     pub fn as_number(&self) -> Option<&NumberValue<I, F>> {
         match self {
             JsoncValue::Number(v) => Some(v),
             _ => None,
         }
     }
+    /// TODO doc
     pub fn as_number_mut(&mut self) -> Option<&mut NumberValue<I, F>> {
         match self {
             JsoncValue::Number(v) => Some(v),
@@ -93,15 +110,18 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
+    /// TODO doc
     pub fn is_integer(&self) -> bool {
         matches!(self, JsoncValue::Number(NumberValue::Integer(_)))
     }
+    /// TODO doc
     pub fn as_integer(&self) -> Option<&I> {
         match self {
             JsoncValue::Number(NumberValue::Integer(i)) => Some(i),
             _ => None,
         }
     }
+    /// TODO doc
     pub fn as_integer_mut(&mut self) -> Option<&mut I> {
         match self {
             JsoncValue::Number(NumberValue::Integer(i)) => Some(i),
@@ -109,15 +129,18 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
+    /// TODO doc
     pub fn is_float(&self) -> bool {
         matches!(self, JsoncValue::Number(NumberValue::Float(_)))
     }
+    /// TODO doc
     pub fn as_float(&self) -> Option<&F> {
         match self {
             JsoncValue::Number(NumberValue::Float(f)) => Some(f),
             _ => None,
         }
     }
+    /// TODO doc
     pub fn as_float_mut(&mut self) -> Option<&mut F> {
         match self {
             JsoncValue::Number(NumberValue::Float(f)) => Some(f),
