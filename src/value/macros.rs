@@ -1,10 +1,21 @@
 #[macro_export]
 macro_rules! jsonc {
+    ($($json:tt)*) => {
+        {
+            let value: $crate::Value = jsonc_generics!($($json)*);
+            value
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! jsonc_generics {
+    // TODO comments
     ([ $($elems:tt),* $(,)? ]) => {
-        $crate::value::JsoncValue::Array(vec![$(jsonc!($elems)),*])
+        $crate::value::JsoncValue::Array(vec![$(jsonc_generics!($elems)),*])
     };
     ({ $($key:tt: $value:tt),* $(,)? }) => {
-        $crate::value::JsoncValue::Object({vec![$(($key.into(), jsonc!($value))),*].into_iter().collect()})
+        $crate::value::JsoncValue::Object({vec![$(($key.into(), jsonc_generics!($value))),*].into_iter().collect()})
     };
     (null) => {
         $crate::value::JsoncValue::Null
@@ -16,7 +27,10 @@ macro_rules! jsonc {
 
 #[cfg(test)]
 mod tests {
-    use crate::{value::number::Number, Value};
+    use crate::{
+        value::{number::Number, JsoncValue},
+        Value,
+    };
 
     #[test]
     fn test_jsonc_macro_literal() {
@@ -30,8 +44,9 @@ mod tests {
 
     #[test]
     fn test_jsonc_macro() {
-        let value: crate::Value = r#"[null, true, 2, [[], [[]], [[], [[]]]], {"four": 5.0}]"#.parse().unwrap();
-        assert_eq!(value, jsonc!([null, true, 2, [[], [[]], [[], [[]]]], {"four": 5.0}]));
-        assert_eq!(crate::Value::Null, jsonc!(null));
+        let value: JsoncValue<u32, f32> = r#"[null, true, 2, [[], [[]], [[], [[]]]], {"four": 5.0}]"#.parse().unwrap();
+        assert_eq!(value, jsonc_generics!([null, true, 2, [[], [[]], [[], [[]]]], {"four": 5.0}]));
+        assert_eq!(crate::Value::Null, jsonc_generics!(null));
+        dbg!(jsonc!({ "name": "json-with-comments" }));
     }
 }
