@@ -19,7 +19,8 @@ runs:
   steps:
     - uses: actions/checkout@v4
       with:
-        fetch-tags: "true"
+        # fetch-tags: true # do not work?
+        fetch-depth: 0 # to fetch the latest tags, but all history is fetched
     - name: Find version in Cargo.toml
       id: crate-version
       uses: mikefarah/yq@v4
