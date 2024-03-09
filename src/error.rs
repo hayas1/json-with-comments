@@ -277,6 +277,17 @@ impl From<InvalidRepresentsValue> for JsonWithCommentsError {
 }
 
 #[derive(Error, Debug)]
+pub enum IndexError {
+    #[error("{value} value cannot indexed by {index}")]
+    UnmatchedType { index: String, value: String },
+}
+impl From<IndexError> for JsonWithCommentsError {
+    fn from(err: IndexError) -> Self {
+        JsonWithCommentsError::new(err)
+    }
+}
+
+#[derive(Error, Debug)]
 pub enum Ensure {
     #[error("next should return peeked value")]
     NextAfterPeek,

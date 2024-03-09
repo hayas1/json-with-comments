@@ -1,5 +1,6 @@
 pub mod de;
 pub mod from;
+pub mod index;
 pub mod into;
 pub mod number;
 pub mod string;
@@ -39,9 +40,24 @@ impl<I, F> JsoncValue<I, F> {
             _ => None,
         })
     }
+
     /// TODO doc
     pub fn take(&mut self) -> Self {
         std::mem::take(self)
+    }
+
+    /// TODO doc
+    /// get the value type representation of [`JsoncValue`]
+    pub fn value_type(&self) -> String {
+        match self {
+            JsoncValue::Object(_) => "Object",
+            JsoncValue::Array(_) => "Array",
+            JsoncValue::Bool(_) => "Boolean",
+            JsoncValue::Null => "Null",
+            JsoncValue::String(_) => "String",
+            JsoncValue::Number(_) => "Number",
+        }
+        .to_string()
     }
 }
 
