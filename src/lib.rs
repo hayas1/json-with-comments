@@ -56,17 +56,9 @@
 //! }"#;
 //!
 //! let data: json_with_comments::Value = from_str(json).unwrap();
-//! assert_eq!(
-//!     data,
-//!     JsoncValue::Object(MapImpl::from([
-//!         ("name".into(), JsoncValue::String("John Doe".into())),
-//!         ("address".into(), JsoncValue::Object(MapImpl::from([
-//!             ("street".into(), JsoncValue::String("Main".into())),
-//!             ("number".into(), JsoncValue::Number(NumberValue::Integer(42))),
-//!         ]))),
-//!     ])),
-//! );
-//! assert_eq!(data.query("address.street"), Some(&JsoncValue::String("Main".into())));
+//! assert_eq!(data["name"], JsoncValue::String("John Doe".into()));
+//! assert_eq!(data["address"]["street"], JsoncValue::String("Main".into()));
+//! assert_eq!(data.query("address.number"), Some(&42.into()));
 //! ```
 //!
 //! # Testing
