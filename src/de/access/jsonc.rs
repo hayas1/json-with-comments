@@ -1,12 +1,8 @@
 use serde::de::{self, IgnoredAny};
 
-use crate::{
-    de::token::Tokenizer,
-    error::SyntaxError,
-    value::{number::NumberValue, string::StringValue},
-};
+use crate::{de::token::Tokenizer, error::SyntaxError, value::number::NumberValue};
 
-use super::{map::MapDeserializer, r#enum::EnumDeserializer, seq::SeqDeserializer};
+use super::{map::MapDeserializer, r#enum::EnumDeserializer, seq::SeqDeserializer, string::StringValue};
 
 pub struct JsoncDeserializer<'de, T>
 where

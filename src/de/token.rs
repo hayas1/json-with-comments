@@ -3,13 +3,13 @@ pub mod read;
 pub mod slice;
 pub mod str;
 
-use crate::{
-    error::{Ensure, SyntaxError},
-    value::string::StringValue,
-};
+use crate::error::{Ensure, SyntaxError};
 
 use super::{
-    access::number::{FromNumberBuilder, NumberBuilder},
+    access::{
+        number::{FromNumberBuilder, NumberBuilder},
+        string::StringValue,
+    },
     position::{PosRange, Position},
 };
 

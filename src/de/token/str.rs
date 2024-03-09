@@ -1,4 +1,7 @@
-use crate::{de::position::Position, error::Ensure, value::string::StringValue};
+use crate::{
+    de::{access::string::StringValue, position::Position},
+    error::Ensure,
+};
 
 use super::{slice::SliceTokenizer, Tokenizer};
 

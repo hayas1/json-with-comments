@@ -3,7 +3,6 @@ pub mod from;
 pub mod index;
 pub mod into;
 pub mod number;
-pub mod string;
 
 pub type MapImpl<K, V> = std::collections::HashMap<K, V>;
 

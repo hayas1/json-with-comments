@@ -3,3 +3,4 @@ pub mod jsonc;
 pub mod map;
 pub mod number;
 pub mod seq;
+pub mod string;

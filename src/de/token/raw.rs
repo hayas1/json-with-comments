@@ -1,4 +1,4 @@
-use crate::{de::position::Position, value::string::StringValue};
+use crate::de::{access::string::StringValue, position::Position};
 
 use super::{slice::SliceTokenizer, Tokenizer};
 
