@@ -2,6 +2,7 @@ pub mod de;
 pub mod from;
 pub mod index;
 pub mod into;
+pub mod macros;
 pub mod number;
 
 pub type MapImpl<K, V> = std::collections::HashMap<K, V>;
