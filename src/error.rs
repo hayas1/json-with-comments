@@ -278,7 +278,7 @@ impl From<InvalidRepresentsValue> for JsonWithCommentsError {
 
 #[derive(Error, Debug)]
 pub enum IndexError {
-    #[error("{value} value cannot indexed by {index}")]
+    #[error("{value} value cannot be indexed by {index}")]
     UnmatchedType { index: String, value: String },
 }
 impl From<IndexError> for JsonWithCommentsError {
