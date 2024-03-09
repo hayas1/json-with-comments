@@ -17,8 +17,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        # fetch-tags: true # do not work ?
-        fetch-depth: 0 # to fetch all tags
+        fetch-tags: true
+        fetch-depth: 0 # to fetch the latest tags, but all history is fetched
     # - uses: dtolnay/rust-toolchain@stable
 
     # - name: Release test
