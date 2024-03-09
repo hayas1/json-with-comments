@@ -18,6 +18,8 @@ runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-tags: true
     - name: Find version in Cargo.toml
       id: crate-version
       uses: mikefarah/yq@v4
