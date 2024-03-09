@@ -2,7 +2,7 @@ use serde::de::{self, IgnoredAny};
 
 use crate::{de::token::Tokenizer, error::SyntaxError, value::number::NumberValue};
 
-use super::{map::MapDeserializer, r#enum::EnumDeserializer, seq::SeqDeserializer, string::StringValue};
+use super::{map::MapDeserializer, r#enum::EnumDeserializer, seq::SeqDeserializer, string::ParsedString};
 
 pub struct JsoncDeserializer<'de, T>
 where
@@ -43,8 +43,8 @@ where
     {
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
             (_, b'"') => match self.tokenizer.parse_string()? {
-                StringValue::Borrowed(s) => visitor.visit_borrowed_str(s),
-                StringValue::Owned(s) => visitor.visit_str(&s),
+                ParsedString::Borrowed(s) => visitor.visit_borrowed_str(s),
+                ParsedString::Owned(s) => visitor.visit_str(&s),
             },
             (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingString { pos, found })?,
         }

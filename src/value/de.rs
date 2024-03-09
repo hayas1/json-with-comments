@@ -204,7 +204,6 @@ impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Visitor<'de> for JsoncVa
     {
         let mut v = MapImpl::new();
         while let Some((key, value)) = map.next_entry::<JsoncValue<I, F>, JsoncValue<I, F>>()? {
-            // TODO jsoncValue should convert Option<StringValue>
             match key {
                 JsoncValue::String(s) => v.insert(s, value),
                 _ => Err(A::Error::custom(SemanticError::AnyMapKey))?,

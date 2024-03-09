@@ -8,7 +8,7 @@ use crate::error::{Ensure, SyntaxError};
 use super::{
     access::{
         number::{FromNumberBuilder, NumberBuilder},
-        string::StringValue,
+        string::ParsedString,
     },
     position::{PosRange, Position},
 };
@@ -113,7 +113,7 @@ pub trait Tokenizer<'de> {
         }
     }
 
-    fn parse_string(&mut self) -> crate::Result<StringValue<'de>> {
+    fn parse_string(&mut self) -> crate::Result<ParsedString<'de>> {
         match self.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingString)? {
             (_, b'"') => {
                 let value = self.parse_string_content()?;
@@ -126,15 +126,15 @@ pub trait Tokenizer<'de> {
         }
     }
 
-    fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {
+    fn parse_string_content(&mut self) -> crate::Result<ParsedString<'de>> {
         self.parse_string_content_super()
     }
-    fn parse_string_content_super(&mut self) -> crate::Result<StringValue<'de>> {
+    fn parse_string_content_super(&mut self) -> crate::Result<ParsedString<'de>> {
         let mut buff = Vec::new();
         while let Some((pos, found)) = self.look()? {
             match found {
                 b'\\' => self.parse_escape_sequence(&mut buff)?,
-                b'"' => return Ok(StringValue::Owned(String::from_utf8(buff)?)),
+                b'"' => return Ok(ParsedString::Owned(String::from_utf8(buff)?)),
                 c if c.is_ascii_control() => Err(SyntaxError::ControlCharacterWhileParsingString { pos, c })?,
                 _ => buff.push(self.eat()?.ok_or(Ensure::EatAfterLook)?.1),
             }
@@ -384,8 +384,8 @@ mod tests {
     pub fn behavior_parse_raw_string<'a, T: 'a + Tokenizer<'a>, F: Fn(&'a str) -> T>(from: F) {
         fn parse<'a>(mut tokenizer: impl Tokenizer<'a>) -> &'a str {
             match tokenizer.parse_string().unwrap() {
-                StringValue::Borrowed(s) => s,
-                StringValue::Owned(s) => panic!("expected borrowed string, got owned: {}", s),
+                ParsedString::Borrowed(s) => s,
+                ParsedString::Owned(s) => panic!("expected borrowed string, got owned: {}", s),
             }
         }
 

@@ -1,33 +1,33 @@
 #[derive(Debug, Clone, Hash)]
-pub enum StringValue<'a> {
+pub enum ParsedString<'a> {
     Borrowed(&'a str),
     Owned(String),
 }
-impl<'a> From<String> for StringValue<'a> {
+impl<'a> From<String> for ParsedString<'a> {
     fn from(t: String) -> Self {
-        StringValue::Owned(t)
+        ParsedString::Owned(t)
     }
 }
-impl<'a> From<&'a str> for StringValue<'a> {
+impl<'a> From<&'a str> for ParsedString<'a> {
     fn from(s: &'a str) -> Self {
-        StringValue::Borrowed(s)
+        ParsedString::Borrowed(s)
     }
 }
-impl<'a> std::fmt::Display for StringValue<'a> {
+impl<'a> std::fmt::Display for ParsedString<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            StringValue::Borrowed(s) => write!(f, "{}", s), // TODO escape
-            StringValue::Owned(s) => write!(f, "{}", s),
+            ParsedString::Borrowed(s) => write!(f, "{}", s), // TODO escape
+            ParsedString::Owned(s) => write!(f, "{}", s),
         }
     }
 }
-impl<'a> Eq for StringValue<'a> {}
+impl<'a> Eq for ParsedString<'a> {}
 // TODO do not use std::fmt::Display for Eq, PartialEq
-impl<'a, Rhs: std::fmt::Display> PartialEq<Rhs> for StringValue<'a> {
+impl<'a, Rhs: std::fmt::Display> PartialEq<Rhs> for ParsedString<'a> {
     fn eq(&self, other: &Rhs) -> bool {
         match self {
-            StringValue::Borrowed(s) => *s == other.to_string(),
-            StringValue::Owned(s) => *s == other.to_string(),
+            ParsedString::Borrowed(s) => *s == other.to_string(),
+            ParsedString::Owned(s) => *s == other.to_string(),
         }
     }
 }

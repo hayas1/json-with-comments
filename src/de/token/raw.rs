@@ -1,4 +1,4 @@
-use crate::de::{access::string::StringValue, position::Position};
+use crate::de::{access::string::ParsedString, position::Position};
 
 use super::{slice::SliceTokenizer, Tokenizer};
 
@@ -20,11 +20,11 @@ impl<'de> Tokenizer<'de> for RawTokenizer<'de> {
         self.delegate.look()
     }
 
-    fn parse_string_content(&mut self) -> crate::Result<StringValue<'de>> {
+    fn parse_string_content(&mut self) -> crate::Result<ParsedString<'de>> {
         let offset = self.delegate.current;
         let _ = self.parse_string_content_super()?;
         let raw = &self.delegate.slice[offset..self.delegate.current];
-        Ok(StringValue::Borrowed(std::str::from_utf8(raw)?))
+        Ok(ParsedString::Borrowed(std::str::from_utf8(raw)?))
     }
 }
 
