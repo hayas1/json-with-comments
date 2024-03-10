@@ -20,18 +20,16 @@ macro_rules! jsonc {
 macro_rules! jsonc_generics {
     // TODO comments
 
-    ([ $($elems:tt),* $(,)? ]) => {
-        $crate::value::JsoncValue::Array(vec![$(jsonc_generics!($elems)),*])
-    };
-    ([ $($elems:expr),* $(,)? ]) => {
-        $crate::value::JsoncValue::Array(vec![$(jsonc_generics!($elems)),*])
+    ([ $($($tts:tt),+ $($exprs:expr),*),* $(,)? ]) => {
+        $crate::value::JsoncValue::Array(
+            vec![$(jsonc_generics!($($tts)*), $(jsonc_generics!($($exprs)*))?)*]
+        )
     };
 
-    ({ $($key:tt: $value:tt),* $(,)? }) => {
-        $crate::value::JsoncValue::Object({vec![$(($key.into(), jsonc_generics!($value))),*].into_iter().collect()})
-    };
-    ({ $($key:tt: $value:expr),* $(,)? }) => {
-        $crate::value::JsoncValue::Object({vec![$(($key.into(), jsonc_generics!($value))),*].into_iter().collect()})
+    ({ $($($key_tts:tt: $value_tts:tt),+, $($key_exprs:tt: $value_exprs:expr),*),* $(,)? }) => {
+        $crate::value::JsoncValue::Object(
+            {vec![$($(($key_tts.into(), jsonc_generics!($value_tts))),* $(($key_exprs.into(), jsonc_generics!($value_exprs))),*)*].into_iter().collect()}
+        )
     };
 
     (null) => {
@@ -86,7 +84,7 @@ mod tests {
     fn test_jsonc_macro_spec() {
         assert_eq!(crate::Value::Number(Number::Integer(2)), jsonc!(1 + 1));
         assert_eq!(crate::Value::Array(vec![1.into(), 2.into()]), jsonc!([1, 1 + 1]));
-        // assert_eq!(crate::Value::Array(vec![().into(), 1.into(), 2.into()]), jsonc!([null, 1, 1 + 1]));
+        assert_eq!(crate::Value::Array(vec![().into(), 1.into(), 2.into()]), jsonc!([null, 1, 1 + 1]));
         assert_eq!(
             crate::Value::Object(vec![("add".into(), 2.into())].into_iter().collect()),
             jsonc!({ "add": 1 + 1 })
