@@ -19,17 +19,26 @@ macro_rules! jsonc {
 #[macro_export]
 macro_rules! jsonc_generics {
     // TODO comments
+
     ([ $($elems:tt),* $(,)? ]) => {
         $crate::value::JsoncValue::Array(vec![$(jsonc_generics!($elems)),*])
     };
+    ([ $($elems:expr),* $(,)? ]) => {
+        $crate::value::JsoncValue::Array(vec![$(jsonc_generics!($elems)),*])
+    };
+
     ({ $($key:tt: $value:tt),* $(,)? }) => {
         $crate::value::JsoncValue::Object({vec![$(($key.into(), jsonc_generics!($value))),*].into_iter().collect()})
     };
+    ({ $($key:tt: $value:expr),* $(,)? }) => {
+        $crate::value::JsoncValue::Object({vec![$(($key.into(), jsonc_generics!($value))),*].into_iter().collect()})
+    };
+
     (null) => {
         $crate::value::JsoncValue::Null
     };
-    ($other:expr) => {
-        $crate::value::JsoncValue::from($other)
+    ($instance:expr) => {
+        $crate::value::JsoncValue::from($instance)
     };
 }
 
@@ -55,7 +64,6 @@ mod tests {
         let value: JsoncValue<u32, f32> = r#"[null, true, 2, [[], [[]], [[], [[]]]], {"four": 5.0}]"#.parse().unwrap();
         assert_eq!(value, jsonc_generics!([null, true, 2, [[], [[]], [[], [[]]]], {"four": 5.0}]));
         assert_eq!(crate::Value::Null, jsonc_generics!(null));
-        // assert_eq!(crate::Value::Object(vec![("add".into(), 2.into())].into_iter().collect()), jsonc!({ "add": 1+1 }));
     }
 
     #[test]
@@ -71,6 +79,17 @@ mod tests {
         assert_eq!(
             JsoncValue::Object(vec![("key".into(), "value".into())].into_iter().collect()),
             jsonc!({"key": "value",})
+        );
+    }
+
+    #[test]
+    fn test_jsonc_macro_spec() {
+        assert_eq!(crate::Value::Number(Number::Integer(2)), jsonc!(1 + 1));
+        assert_eq!(crate::Value::Array(vec![1.into(), 2.into()]), jsonc!([1, 1 + 1]));
+        // assert_eq!(crate::Value::Array(vec![().into(), 1.into(), 2.into()]), jsonc!([null, 1, 1 + 1]));
+        assert_eq!(
+            crate::Value::Object(vec![("add".into(), 2.into())].into_iter().collect()),
+            jsonc!({ "add": 1 + 1 })
         );
     }
 }
