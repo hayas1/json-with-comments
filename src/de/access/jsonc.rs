@@ -64,7 +64,7 @@ where
         match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingValue)? {
             (_, b'n') => self.deserialize_unit(visitor),
             (_, b'f' | b't') => self.deserialize_bool(visitor),
-            (_, b'-' | b'0'..=b'9') => self.deserialize_number_value(visitor), // TODO number, float
+            (_, b'-' | b'0'..=b'9') => self.deserialize_number_value(visitor),
             (_, b'"') => self.deserialize_str(visitor),
             (_, b'[') => self.deserialize_seq(visitor),
             (_, b'{') => self.deserialize_map(visitor),
