@@ -1,4 +1,4 @@
-name: Test
+name: Pull Request
 
 on:
   pull_request:
@@ -31,3 +31,15 @@ jobs:
 
     - run: cargo install cargo-readme && cargo readme > README.md
     - run: git add -N . && git diff --exit-code -- README.md
+
+  version:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check version in Cargo.toml and git tag
+      uses: ./.github/actions/versions
+      id: detect-version
+    - name: Add label
+      if: steps.detect-version.outputs.should-release == 'true'
+      run: |
+        gh pr edit ${{ github.event.pull_request.number }} --add-label "release"
