@@ -21,7 +21,7 @@ macro_rules! jsonc_generics {
     // TODO comments
 
     ([$($tt:tt)*]) => {
-        array!([] $($tt)*)
+        array!([] [$($tt)*])
     };
 
     ({$($tt:tt)*}) => {
@@ -39,44 +39,44 @@ macro_rules! jsonc_generics {
 
 macro_rules! array {
     // Done building the array (only 1 array argument with trailing comma)
-    ([$($built:expr,)*]) => {
+    ([$($built:expr,)*] []) => {
         $crate::value::JsoncValue::Array(vec![$($built),*])
     };
 
     // Next value is an array
-    ([$($built:expr,)*] [$($array:tt)*], $($rest:tt)+) => {
-        array!([$($built,)* jsonc_generics!([$($array)*]),] $($rest)+)
+    ([$($built:expr,)*] [[$($array:tt)*], $($rest:tt)+]) => {
+        array!([$($built,)* jsonc_generics!([$($array)*]),] [$($rest)+])
     };
     // Next value is an array and the last value
-    ([$($built:expr,)*] [$($array:tt)*] $(,)?) => {
-        array!([$($built,)* jsonc_generics!([$($array)*]),])
+    ([$($built:expr,)*] [[$($array:tt)*] $(,)?]) => {
+        array!([$($built,)* jsonc_generics!([$($array)*]),] [])
     };
 
     // Next value is an object
-    ([$($built:expr,)*] {$($object:tt)*}, $($rest:tt)+) => {
-        array!([$($built,)* jsonc_generics!({$($object)*}),] $($rest)*)
+    ([$($built:expr,)*] [{$($object:tt)*}, $($rest:tt)+]) => {
+        array!([$($built,)* jsonc_generics!({$($object)*}),] [$($rest)+])
     };
     // Next value is an object and the last value
-    ([$($built:expr,)*] {$($object:tt)*} $(,)?) => {
-        array!([$($built,)* jsonc_generics!({$($object)*}),])
+    ([$($built:expr,)*] [{$($object:tt)*} $(,)?]) => {
+        array!([$($built,)* jsonc_generics!({$($object)*}),] [])
     };
 
     // Next value is `null`
-    ([$($built:expr,)*] null, $($rest:tt)+) => {
-        array!([$($built,)* jsonc_generics!(null),] $($rest)+)
+    ([$($built:expr,)*] [null, $($rest:tt)+]) => {
+        array!([$($built,)* jsonc_generics!(null),] [$($rest)+])
     };
     // Next value is `null` and the last value
-    ([$($built:expr,)*] null $(,)?) => {
-        array!([$($built,)* jsonc_generics!(null),])
+    ([$($built:expr,)*] [null $(,)?]) => {
+        array!([$($built,)* jsonc_generics!(null),] [])
     };
 
     // Next value is an expression
-    ([$($built:expr,)*] $next:expr, $($rest:tt)+) => {
-        array!([$($built,)* jsonc_generics!($next),] $($rest)+)
+    ([$($built:expr,)*] [$next:expr, $($rest:tt)+]) => {
+        array!([$($built,)* jsonc_generics!($next),] [$($rest)+])
     };
     // Next value is an expression and the last value
-    ([$($built:expr,)*] $next:expr $(,)?) => {
-        array!([$($built,)* jsonc_generics!($next),])
+    ([$($built:expr,)*] [$next:expr $(,)?]) => {
+        array!([$($built,)* jsonc_generics!($next),] [])
     };
 }
 
