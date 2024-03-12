@@ -87,19 +87,18 @@ macro_rules! object {
         $crate::value::JsoncValue::Object([$($built,)*].into_iter().collect())
     };
 
-
     // Next value is an array
     ([$($built:expr,)*] ($($key:tt)*) {: [$($array:tt)*], $($rest:tt)+}) => {
-        object!([$($built,)* ($($key)*into(), jsonc_generics!([$($array)*])),] {$($rest)+})
+        object!([$($built,)* ($($key)*.into(), jsonc_generics!([$($array)*])),] () {$($rest)+})
     };
     // Next value is an array and the last value
     ([$($built:expr,)*] ($($key:tt)*) {: [$($array:tt)*] $(,)?}) => {
-        object!([$($built,)* ($($key)*into(), jsonc_generics!([$($array)*])),])
+        object!([$($built,)* ($($key)*.into(), jsonc_generics!([$($array)*])),] () {})
     };
 
     // Next value is an object
     ([$($built:expr,)*] ($($key:tt)*) {: {$($object:tt)*}, $($rest:tt)+}) => {
-        object!([$($built,)* ($($key)*.into(), jsonc_generics!({$($object)*})),] {$($rest)+})
+        object!([$($built,)* ($($key)*.into(), jsonc_generics!({$($object)*})),] () {$($rest)+})
     };
     // Next value is an object and the last value
     ([$($built:expr,)*] ($($key:tt)*) {: {$($object:tt)*} $(,)?}) => {
@@ -201,6 +200,45 @@ mod tests {
             r#"[null, true, 2, [[], [[]], [[], [[]]]], {"four": 5.0}]"#.parse().unwrap()
         );
         assert_eq!(jsonc!(null), crate::Value::Null);
+        assert_eq!(jsonc!(()), crate::Value::Null);
+        assert_eq!(
+            jsonc!({"a": {"b": {"c": {"d": { "e": {}}}}}, "abc": "def"}),
+            r#"{"a": {"b": {"c": {"d": { "e": {}}}}}, "abc": "def"}"#.parse().unwrap()
+        );
+        assert_eq!(
+            jsonc!({
+                "object": {
+                    "object": {},
+                    "array": [],
+                    "bool": true,
+                    "null": null,
+                    "string": "String".to_string(),
+                    "number": 1,
+                },
+                "array": [{}, [], false, (), "str", 2.5,],
+                "bool": true,
+                "null": null,
+                "string": "SSSSSSSSSSSSSSSS".to_string(),
+                "number": 1111111111111111,
+            }),
+            r#"{
+                "object": {
+                    "object": {},
+                    "array": [],
+                    "bool": true,
+                    "null": null,
+                    "string": "String",
+                    "number": 1
+                },
+                "array": [{}, [], false, null, "str", 2.5],
+                "bool": true,
+                "null": null,
+                "string": "SSSSSSSSSSSSSSSS",
+                "number": 1111111111111111
+            }"#
+            .parse()
+            .unwrap()
+        )
     }
 
     #[test]
@@ -209,11 +247,8 @@ mod tests {
         assert_eq!(jsonc!([1]), Value::Array(vec![1.into()]));
         assert_eq!(jsonc!([1,]), Value::Array(vec![1.into()]));
         assert_eq!(jsonc!({}), Value::Object(MapImpl::new()));
-        assert_eq!(jsonc!({"key": "value"}), Value::Object(vec![("key".into(), "value".into())].into_iter().collect()),);
-        assert_eq!(
-            jsonc!({"key": "value",}),
-            Value::Object(vec![("key".into(), "value".into())].into_iter().collect()),
-        );
+        assert_eq!(jsonc!({"key": "val"}), Value::Object(vec![("key".into(), "val".into())].into_iter().collect()),);
+        assert_eq!(jsonc!({"key": "val",}), Value::Object(vec![("key".into(), "val".into())].into_iter().collect()),);
     }
 
     #[test]
@@ -224,6 +259,10 @@ mod tests {
         assert_eq!(
             jsonc!({ "add": 1 + 1 }),
             crate::Value::Object(vec![("add".into(), 2.into())].into_iter().collect()),
+        );
+        assert_eq!(
+            jsonc!({"string".to_string(): 1, "str": 2}),
+            crate::Value::Object(vec![("string".into(), 1.into()), ("str".into(), 2.into())].into_iter().collect())
         );
     }
 }
