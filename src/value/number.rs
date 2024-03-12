@@ -1,16 +1,16 @@
 use crate::de::access::number::{FromNumberBuilder, NumberBuilder};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum NumberValue<I, F> {
+pub enum Number<I, F> {
     Integer(I),
     Float(F),
 }
-impl FromNumberBuilder for NumberValue<i64, f64> {
+impl FromNumberBuilder for Number<i64, f64> {
     type Err = crate::Error;
     fn from_number_builder(builder: NumberBuilder) -> Result<Self, Self::Err> {
         match builder.ty() {
-            NumberValue::Integer(()) => Ok(NumberValue::Integer(i64::from_number_builder(builder)?)),
-            NumberValue::Float(()) => Ok(NumberValue::Float(f64::from_number_builder(builder)?)),
+            Number::Integer(()) => Ok(Number::Integer(i64::from_number_builder(builder)?)),
+            Number::Float(()) => Ok(Number::Float(f64::from_number_builder(builder)?)),
         }
     }
 }

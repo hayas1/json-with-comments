@@ -1,4 +1,4 @@
-use crate::value::number::NumberValue;
+use crate::value::number::Number;
 
 pub trait FromNumberBuilder: Sized {
     type Err;
@@ -13,7 +13,7 @@ impl<T: std::str::FromStr> FromNumberBuilder for T {
 
 pub struct NumberBuilder {
     buff: Vec<u8>,
-    ty: NumberValue<(), ()>,
+    ty: Number<(), ()>,
 }
 impl Default for NumberBuilder {
     fn default() -> Self {
@@ -22,10 +22,10 @@ impl Default for NumberBuilder {
 }
 impl NumberBuilder {
     pub fn new() -> Self {
-        Self { buff: Vec::new(), ty: NumberValue::Integer(()) }
+        Self { buff: Vec::new(), ty: Number::Integer(()) }
     }
 
-    pub fn ty(&self) -> &NumberValue<(), ()> {
+    pub fn ty(&self) -> &Number<(), ()> {
         &self.ty
     }
 
@@ -42,12 +42,12 @@ impl NumberBuilder {
     }
 
     pub fn visit_fraction_dot(&mut self, dot: u8) {
-        self.ty = NumberValue::Float(());
+        self.ty = Number::Float(());
         self.buff.push(dot)
     }
 
     pub fn visit_exponent_e(&mut self, exp: u8) {
-        self.ty = NumberValue::Float(());
+        self.ty = Number::Float(());
         self.buff.push(exp)
     }
 }

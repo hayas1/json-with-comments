@@ -43,9 +43,10 @@
 //!
 //! # Parse JSONC as any value
 //! Any valid JSONC text can be parsed as [`Value`].
+//! See [`jsonc!`] macro also.
 //! ```
 //! use json_with_comments::{from_str, Value, value::JsoncValue};
-//! use json_with_comments::value::{number::NumberValue, MapImpl};
+//! use json_with_comments::value::{number::Number, MapImpl};
 //!
 //! let json = r#"{
 //!     "name": "John Doe", // John Doe is a fictional character
@@ -73,4 +74,6 @@ pub mod value;
 
 pub use de::{from_file, from_path, from_read, from_str, from_str_raw};
 pub use error::{JsonWithCommentsError as Error, Result};
+
+/// [`Value`] is type alias for [`value::JsoncValue<i64, f64>`].
 pub type Value = value::JsoncValue<i64, f64>;

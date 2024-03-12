@@ -47,9 +47,10 @@ assert!(matches!(
 
 ## Parse JSONC as any value
 Any valid JSONC text can be parsed as [`Value`].
+See [`jsonc!`] macro also.
 ```rust
 use json_with_comments::{from_str, Value, value::JsoncValue};
-use json_with_comments::value::{number::NumberValue, MapImpl};
+use json_with_comments::value::{number::Number, MapImpl};
 
 let json = r#"{
     "name": "John Doe", // John Doe is a fictional character

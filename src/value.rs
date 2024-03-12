@@ -2,6 +2,7 @@ pub mod de;
 pub mod from;
 pub mod index;
 pub mod into;
+pub mod macros;
 pub mod number;
 
 pub type MapImpl<K, V> = std::collections::HashMap<K, V>;
@@ -15,7 +16,7 @@ pub enum JsoncValue<I, F> {
     Bool(bool),
     Null,
     String(String),
-    Number(number::NumberValue<I, F>),
+    Number(number::Number<I, F>),
 }
 
 impl<I, F> Default for JsoncValue<I, F> {
