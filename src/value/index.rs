@@ -48,8 +48,12 @@ impl<I, F> JsoncIndex<JsoncValue<I, F>> for &str {
         }
     }
     fn index_mut(self, value: &mut JsoncValue<I, F>) -> &mut Self::Output {
+        //  `IndexMut` is not implemented for `std::collections::HashMap`
         match value {
-            JsoncValue::Object(map) => map.get_mut(self).unwrap_or_else(|| panic!("no such key: \"{self}\"")),
+            JsoncValue::Object(map) => match map.get_mut(self) {
+                Some(v) => v,
+                None => panic!("{}", IndexError::NotExistKey { key: self.to_string() }),
+            },
             _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
         }
     }
