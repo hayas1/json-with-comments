@@ -80,6 +80,7 @@ impl<I, F> JsoncIndex<JsoncValue<I, F>> for usize {
     }
 }
 
+/// TODO doc
 pub struct Range<R>(R);
 // conflicting implementations of trait `value::index::JsoncIndex<value::JsoncValue<_, _>>` for type `&str`
 // upstream crates may add a new impl of trait `std::slice::SliceIndex<[value::JsoncValue<_, _>]>` for type `&str` in future versions
