@@ -139,49 +139,55 @@ mod tests {
 
     #[test]
     fn test_jsonc_macro_literal() {
-        assert_eq!(jsonc!(null), Value::Null);
-        assert_eq!(jsonc!(true), Value::Bool(true));
-        assert_eq!(jsonc!(false), Value::Bool(false));
-        assert_eq!(jsonc!("string"), Value::String("string".to_string()));
-        assert_eq!(jsonc!(123), Value::Number(Number::Integer(123)));
-        assert_eq!(jsonc!(4.56), Value::Number(Number::Float(4.56)));
+        assert_eq!(jsonc_generics!(null), JsoncValue::<u8, f32>::Null);
+        assert_eq!(jsonc_generics!(true), JsoncValue::<u32, f64>::Bool(true));
+        assert_eq!(jsonc_generics!(false), JsoncValue::<u128, f32>::Bool(false));
+        assert_eq!(jsonc_generics!("string"), JsoncValue::<i8, f64>::String("string".to_string()));
+        assert_eq!(jsonc_generics!(123), JsoncValue::<i32, f32>::Number(Number::Integer(123)));
+        assert_eq!(jsonc_generics!(4.56), JsoncValue::<i128, f64>::Number(Number::Float(4.56)));
     }
 
     #[test]
     fn test_jsonc_macro_array() {
-        assert_eq!(jsonc!([]), Value::Array(vec![]));
-        assert_eq!(jsonc!([1]), Value::Array(vec![1.into()]));
-        assert_eq!(jsonc!([1,]), Value::Array(vec![1.into()]));
-        assert_eq!(jsonc!([1, 2]), Value::Array(vec![1.into(), 2.into()]));
-        assert_eq!(jsonc!([1, 2,]), Value::Array(vec![1.into(), 2.into()]));
-        assert_eq!(jsonc!([1, 1 + 1]), Value::Array(vec![1.into(), 2.into()]));
-        assert_eq!(jsonc!([1, 1 + 1,]), Value::Array(vec![1.into(), 2.into()]));
-        assert_eq!(jsonc!([1, "two".to_string()]), Value::Array(vec![1.into(), "two".into()]));
-        assert_eq!(jsonc!([null]), Value::Array(vec![().into()]));
-        assert_eq!(jsonc!([null,]), Value::Array(vec![().into()]));
-        assert_eq!(jsonc!([[]]), Value::Array(vec![vec![].into()]));
-        assert_eq!(jsonc!([null, [], 1 + 1]), Value::Array(vec![().into(), vec![].into(), 2.into()]));
+        assert_eq!(jsonc_generics!([]), Value::Array(vec![]));
+        assert_eq!(jsonc_generics!([1]), Value::Array(vec![1.into()]));
+        assert_eq!(jsonc_generics!([1,]), Value::Array(vec![1.into()]));
+        assert_eq!(jsonc_generics!([1, 2]), Value::Array(vec![1.into(), 2.into()]));
+        assert_eq!(jsonc_generics!([1, 2,]), Value::Array(vec![1.into(), 2.into()]));
+        assert_eq!(jsonc_generics!([1, 1 + 1]), Value::Array(vec![1.into(), 2.into()]));
+        assert_eq!(jsonc_generics!([1, 1 + 1,]), Value::Array(vec![1.into(), 2.into()]));
+        assert_eq!(jsonc_generics!([1, "two".to_string()]), Value::Array(vec![1.into(), "two".into()]));
+        assert_eq!(jsonc_generics!([null]), Value::Array(vec![().into()]));
+        assert_eq!(jsonc_generics!([null,]), Value::Array(vec![().into()]));
+        assert_eq!(jsonc_generics!([[]]), Value::Array(vec![vec![].into()]));
+        assert_eq!(jsonc_generics!([null, [], 1 + 1]), Value::Array(vec![().into(), vec![].into(), 2.into()]));
     }
 
     #[test]
     fn test_jsonc_macro_object() {
-        assert_eq!(jsonc!({}), Value::Object(MapImpl::new()));
-        assert_eq!(jsonc!({"key": "val"}), Value::Object(vec![("key".into(), "val".into())].into_iter().collect()));
-        assert_eq!(jsonc!({"key": "val",}), Value::Object(vec![("key".into(), "val".into())].into_iter().collect()));
+        assert_eq!(jsonc_generics!({}), Value::Object(MapImpl::new()));
         assert_eq!(
-            jsonc!({"one": 1, "two": 2}),
+            jsonc_generics!({"key": "val"}),
+            Value::Object(vec![("key".into(), "val".into())].into_iter().collect())
+        );
+        assert_eq!(
+            jsonc_generics!({"key": "val",}),
+            Value::Object(vec![("key".into(), "val".into())].into_iter().collect())
+        );
+        assert_eq!(
+            jsonc_generics!({"one": 1, "two": 2}),
             Value::Object(vec![("one".into(), 1.into()), ("two".into(), 2.into())].into_iter().collect())
         );
         assert_eq!(
-            jsonc!({"one": 1, "two": 2,}),
+            jsonc_generics!({"one": 1, "two": 2,}),
             Value::Object(vec![("one".into(), 1.into()), ("two".into(), 2.into())].into_iter().collect())
         );
         assert_eq!(
-            jsonc!({("null".to_string()): null,}),
+            jsonc_generics!({("null".to_string()): null,}),
             Value::Object(vec![("null".into(), ().into())].into_iter().collect())
         );
         assert_eq!(
-            jsonc!({"dict": {"key": "val"}}),
+            jsonc_generics!({"dict": {"key": "val"}}),
             Value::Object(
                 vec![("dict".into(), vec![("key".into(), "val".into())].into_iter().collect())].into_iter().collect()
             )
@@ -190,35 +196,34 @@ mod tests {
 
     #[test]
     fn test_jsonc_macro() {
-        let value: JsoncValue<u32, f32> = r#"[null, true, 2, [[], [[]], [[], [[]]]], {"four": 5.0}]"#.parse().unwrap();
-        assert_eq!(value, jsonc_generics!([null, true, 2, [[], [[]], [[], [[]]]], {"four": 5.0}]));
-        assert_eq!(crate::Value::Null, jsonc_generics!(null));
+        assert_eq!(
+            jsonc!([null, true, 2, [[], [[]], [[], [[]]]], {"four": 5.0}]),
+            r#"[null, true, 2, [[], [[]], [[], [[]]]], {"four": 5.0}]"#.parse().unwrap()
+        );
+        assert_eq!(jsonc!(null), crate::Value::Null);
     }
 
     #[test]
     fn test_jsonc_macro_syntax() {
-        assert_eq!(JsoncValue::Array(Vec::new()), jsonc!([]));
-        assert_eq!(JsoncValue::Array(vec![1.into()]), jsonc!([1]));
-        assert_eq!(JsoncValue::Array(vec![1.into()]), jsonc!([1,]));
-        assert_eq!(JsoncValue::Object(MapImpl::new()), jsonc!({}));
+        assert_eq!(jsonc!([]), Value::Array(Vec::new()));
+        assert_eq!(jsonc!([1]), Value::Array(vec![1.into()]));
+        assert_eq!(jsonc!([1,]), Value::Array(vec![1.into()]));
+        assert_eq!(jsonc!({}), Value::Object(MapImpl::new()));
+        assert_eq!(jsonc!({"key": "value"}), Value::Object(vec![("key".into(), "value".into())].into_iter().collect()),);
         assert_eq!(
-            JsoncValue::Object(vec![("key".into(), "value".into())].into_iter().collect()),
-            jsonc!({"key": "value"})
-        );
-        assert_eq!(
-            JsoncValue::Object(vec![("key".into(), "value".into())].into_iter().collect()),
-            jsonc!({"key": "value",})
+            jsonc!({"key": "value",}),
+            Value::Object(vec![("key".into(), "value".into())].into_iter().collect()),
         );
     }
 
     #[test]
     fn test_jsonc_macro_spec() {
-        assert_eq!(crate::Value::Number(Number::Integer(2)), jsonc!(1 + 1));
-        assert_eq!(crate::Value::Array(vec![1.into(), 2.into()]), jsonc!([1, 1 + 1]));
-        assert_eq!(crate::Value::Array(vec![().into(), 1.into(), 2.into()]), jsonc!([null, 1, 1 + 1]));
+        assert_eq!(jsonc!(1 + 1), crate::Value::Number(Number::Integer(2)));
+        assert_eq!(jsonc!([1, 1 + 1]), crate::Value::Array(vec![1.into(), 2.into()]));
+        assert_eq!(jsonc!([null, 1, 1 + 1]), crate::Value::Array(vec![().into(), 1.into(), 2.into()]));
         assert_eq!(
+            jsonc!({ "add": 1 + 1 }),
             crate::Value::Object(vec![("add".into(), 2.into())].into_iter().collect()),
-            jsonc!({ "add": 1 + 1 })
         );
     }
 }
