@@ -1,8 +1,29 @@
-/// Construct a [`crate::Value`] from rust value
+/// Construct a [`crate::Value`] from rust value.
 ///
 /// # Examples
-/// TODO
-#[macro_export]
+/// ```
+/// use json_with_comments::{jsonc, Value, value::number::Number};
+///
+/// assert_eq!(jsonc!({
+///         "object": {"key": "value"},
+///         "array": [null, 1, 1 + 1],
+///         "bool": true,
+///         "null": null,
+///         "string": "String".to_string(),
+///         "number": 1,
+///     }),
+///     Value::Object(([
+///         ("object".to_string(), Value::Object(vec![("key".into(), "value".into())].into_iter().collect())),
+///         ("array".to_string(), Value::Array(vec![().into(), 1.into(), 2.into()])),
+///         ("bool".to_string(), Value::Bool(true)),
+///         ("null".to_string(), Value::Null),
+///         ("string".to_string(), Value::String("String".to_string())),
+///         ("number".to_string(), Value::Number(Number::Integer(1))),
+///     ].into_iter().collect())),
+/// );
+///
+/// ```
+#[macro_export(local_inner_macros)]
 macro_rules! jsonc {
     ($($json:tt)*) => {
         {
@@ -12,20 +33,42 @@ macro_rules! jsonc {
     };
 }
 
-/// Construct a [`crate::value::JsoncValue`] from rust value
+/// Construct a [`crate::value::JsoncValue`] from rust value.
+/// If use without generics, see [`jsonc!`] also.
 ///
 /// # Examples
-/// TODO
-#[macro_export]
+/// ```
+/// use json_with_comments::{jsonc_generics, value::{JsoncValue, number::Number}};
+///
+/// assert_eq!(jsonc_generics!({
+///         "object": {"key": "value"},
+///         "array": [null, 1, 1 + 1],
+///         "bool": true,
+///         "null": null,
+///         "string": "String".to_string(),
+///         "number": 1,
+///     }),
+///     JsoncValue::<u8, f32>::Object(([
+///         ("object".to_string(), JsoncValue::Object(vec![("key".into(), "value".into())].into_iter().collect())),
+///         ("array".to_string(), JsoncValue::Array(vec![().into(), 1.into(), 2.into()])),
+///         ("bool".to_string(), JsoncValue::Bool(true)),
+///         ("null".to_string(), JsoncValue::Null),
+///         ("string".to_string(), JsoncValue::String("String".to_string())),
+///         ("number".to_string(), JsoncValue::Number(Number::Integer(1))),
+///     ].into_iter().collect())),
+/// );
+///
+/// ```
+#[macro_export(local_inner_macros)]
 macro_rules! jsonc_generics {
     // TODO comments
 
-    ([$($tt:tt)*]) => {
-        array!([] [$($tt)*])
+    ([$($array:tt)*]) => {
+        array!([] [$($array)*])
     };
 
-    ({$($tt:tt)*}) => {
-        object!([] () {$($tt)*})
+    ({$($object:tt)*}) => {
+        object!([] () {$($object)*})
     };
 
     (null) => {
@@ -37,10 +80,33 @@ macro_rules! jsonc_generics {
     };
 }
 
+/// This is inner macro to construct a [`crate::value::JsoncValue::Array`] from rust value.
+///
+/// # How it works
+/// [`array!`]: crate::array!
+/// [`array!`] macro has two array arguments.
+/// First is built array, and second is rest of the array.
+/// For example, parse array `[1, 2, 3]` with [`jsonc_generics!`].
+/// - [`jsonc_generics!`] call [`array!`] with `array!([] [1, 2, 3])`.
+/// - [`array!`] call [`array!`] with `array!([1,] [2, 3])`.
+/// - [`array!`] call [`array!`] with `array!([1, 2,] [3])`.
+/// - [`array!`] call [`array!`] with `array!([1, 2, 3,] [])`.
+/// - then, rest array is empty, so [`array!`] return array `[1, 2, 3]`
+///
+/// # Examples
+/// ```
+/// use json_with_comments::{array, value::JsoncValue};
+///
+/// assert_eq!(
+///     array!([] [1, 2, 3]),
+///     JsoncValue::<u32, f32>::Array(vec![1.into(), 2.into(), 3.into()])
+/// );
+/// ```
+#[macro_export(local_inner_macros)]
 macro_rules! array {
-    // Done building the array (only 1 array argument with trailing comma)
+    // Done building the array
     ([$($built:expr,)*] []) => {
-        $crate::value::JsoncValue::Array(vec![$($built),*])
+        $crate::value::JsoncValue::Array([$($built),*].into())
     };
 
     // Next value is an array
@@ -80,8 +146,32 @@ macro_rules! array {
     };
 }
 
+/// This is inner macro to construct a [`crate::value::JsoncValue::Object`] from rust value.
+///
+/// # How it works
+/// [`object!`]: crate::object!
+/// [`object!`] macro has three arguments.
+/// First is built (key, value) pair array, and second is building key, and rest of the object.
+/// For example, parse object `{"a": 1, "b": 2}` with [`jsonc_generics!`].
+/// - [`jsonc_generics!`] call [`object!`] with `object!([] () {"a": 1, "b": 2})`.
+/// - [`object!`] munch token tree and call [`object!`] with `object!([] ("a") {: 1, "b": 2})`.
+/// - [`object!`] consume built key and call [`object!`] with `object!([("a", 1),] () {"b": 2})`.
+/// - [`object!`] munch token tree and call [`object!`] with `object!([("a", 1),] ("b") {: 2})`.
+/// - [`object!`] consume built key and call [`object!`] with `object!([("a", 1), ("b", 2),] () {})`.
+/// - then, rest object is empty, so [`object!`] return object `{"a": 1, "b": 2}`
+///
+/// # Examples
+/// ```
+/// use json_with_comments::{object, value::JsoncValue};
+///
+/// assert_eq!(
+///     object!([] () {"a": 1, "b": 2}),
+///     JsoncValue::<u32, f32>::Object(vec![("a".into(), 1.into()), ("b".into(), 2.into())].into_iter().collect())
+/// );
+/// ```
+#[macro_export(local_inner_macros)]
 macro_rules! object {
-    // Done building the object (only 1 (key, value) pair array argument with trailing comma)
+    // Done building the object
     ([$($built:expr,)*] () {}) => {
         // TODO? why do not match ([$(($built_key:expr, $built_value:expr),)*] () {})
         $crate::value::JsoncValue::Object([$($built,)*].into_iter().collect())
