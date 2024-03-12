@@ -45,7 +45,7 @@
 //! Any valid JSONC text can be parsed as [`Value`].
 //! See [`jsonc!`] macro also.
 //! ```
-//! use json_with_comments::{from_str, Value, value::JsoncValue};
+//! use json_with_comments::{from_str, Value, jsonc, value::JsoncValue};
 //! use json_with_comments::value::{number::Number, MapImpl};
 //!
 //! let json = r#"{
@@ -60,6 +60,7 @@
 //! assert_eq!(data["name"], JsoncValue::String("John Doe".into()));
 //! assert_eq!(data["address"]["street"], JsoncValue::String("Main".into()));
 //! assert_eq!(data.query("address.number"), Some(&42.into()));
+//! assert_eq!(data, jsonc!({ "name": "John Doe", "address": { "street": "Main", "number": 42 }}));
 //! ```
 //!
 //! # Testing
