@@ -1,23 +1,10 @@
 pub mod jsonc;
+pub mod number;
+pub mod seq;
 
 use serde::ser;
 pub struct Temp {}
-impl ser::SerializeSeq for Temp {
-    type Ok = ();
 
-    type Error = crate::Error;
-
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
-    where
-        T: ser::Serialize,
-    {
-        todo!()
-    }
-
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-}
 impl ser::SerializeTuple for Temp {
     type Ok = ();
 
@@ -119,5 +106,17 @@ impl ser::SerializeStructVariant for Temp {
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
         todo!()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::ser::to_str;
+
+    #[test]
+    fn test_serialize_vec() {
+        assert_eq!(to_str(vec![1, 2, 3]).unwrap(), "[1,2,3]");
+        // assert_eq!(to_str(vec!["str", "string"]).unwrap(), r#"["str","string"]"#);
+        assert_eq!(to_str(vec![vec![], vec![false], vec![true, false]]).unwrap(), "[[],[false],[true,false]]");
     }
 }
