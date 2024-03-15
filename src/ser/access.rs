@@ -111,6 +111,8 @@ impl ser::SerializeStructVariant for Temp {
 
 #[cfg(test)]
 mod tests {
+    use serde::Serialize;
+
     use crate::ser::to_str;
 
     #[test]
@@ -138,13 +140,10 @@ mod tests {
         assert_eq!(to_str(((), true, 2)).unwrap(), "[null,true,2]");
         assert_eq!(to_str(((), true, ((), [()]))).unwrap(), "[null,true,[null,[null]]]");
         assert_eq!(to_str((false, 1, "two")).unwrap(), r#"[false,1,"two"]"#);
-    }
 
-    // #[test]
-    // fn test_serialize_struct() {
-    //     #[derive(Serialize)]
-    //     struct Lattice(usize, usize);
-    //     assert_eq!(to_str(Lattice(1, 2)).unwrap(), "[1,2]");
-    //     assert_eq!(to_str(vec![Lattice(1, 2), Lattice(3, 4)]).unwrap(), "[[1,2],[3,4]]");
-    // }
+        #[derive(Serialize)]
+        struct Lattice(usize, usize);
+        assert_eq!(to_str(Lattice(1, 2)).unwrap(), "[1,2]");
+        assert_eq!(to_str(vec![Lattice(1, 2), Lattice(3, 4)]).unwrap(), "[[1,2],[3,4]]");
+    }
 }
