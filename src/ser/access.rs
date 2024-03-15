@@ -114,13 +114,30 @@ mod tests {
     use crate::ser::to_str;
 
     #[test]
+    fn test_serialize_literal() {
+        assert_eq!(to_str(()).unwrap(), "null");
+        assert_eq!(to_str(true).unwrap(), "true");
+        assert_eq!(to_str(false).unwrap(), "false");
+        assert_eq!(to_str(123).unwrap(), "123");
+        assert_eq!(to_str(123.45).unwrap(), "123.45");
+        assert_eq!(to_str(6.02214076E23).unwrap(), "602214076000000000000000"); // TODO
+
+        assert_eq!(to_str("string").unwrap(), r#""string""#);
+        assert_eq!(to_str("linefeed\n").unwrap(), r#""linefeed\n""#);
+        assert_eq!(to_str("linefeed\u{000A}").unwrap(), r#""linefeed\n""#);
+        assert_eq!(to_str("null\u{0000}").unwrap(), r#""null\u0000""#);
+        assert_eq!(to_str("del\u{007f}").unwrap(), r#""del\u007F""#);
+    }
+
+    #[test]
     fn test_serialize_seq() {
         assert_eq!(to_str(vec![1, 2, 3]).unwrap(), "[1,2,3]");
-        // assert_eq!(to_str(vec!["str", "string"]).unwrap(), r#"["str","string"]"#);
+        assert_eq!(to_str(vec!["str", "string"]).unwrap(), r#"["str","string"]"#);
         assert_eq!(to_str(vec![vec![], vec![false], vec![true, false]]).unwrap(), "[[],[false],[true,false]]");
 
         assert_eq!(to_str(((), true, 2)).unwrap(), "[null,true,2]");
         assert_eq!(to_str(((), true, ((), [()]))).unwrap(), "[null,true,[null,[null]]]");
+        assert_eq!(to_str((false, 1, "two")).unwrap(), r#"[false,1,"two"]"#);
     }
 
     // #[test]

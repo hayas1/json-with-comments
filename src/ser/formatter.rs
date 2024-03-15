@@ -17,8 +17,27 @@ pub trait JsoncFormatter {
     }
 
     fn write_str<W: std::io::Write>(&self, write: &mut W, value: &str) -> crate::Result<()> {
-        todo!("escape"); // TODO
-        Ok(write.write_all(value.as_bytes())?)
+        write.write_all(b"\"")?;
+        for &b in value.as_bytes() {
+            match b {
+                b'"' => write.write_all(br#"""#)?,
+                b'\\' => write.write_all(br"\\")?,
+                b'/' => write.write_all(br"/")?,
+                b'\x08' => write.write_all(br"\b")?,
+                b'\x0C' => write.write_all(br"\f")?,
+                b'\n' => write.write_all(br"\n")?,
+                b'\r' => write.write_all(br"\r")?,
+                b'\t' => write.write_all(br"\t")?,
+                b @ (b'\x00'..=b'\x1F' | b'\x7F' | b'\x80'..=b'\x9F') => {
+                    let (big, little) = (b >> 4, b & 0x0F);
+                    let bb = if big < 10 { b'0' + big } else { b'A' + big - 10 };
+                    let lb = if little < 10 { b'0' + little } else { b'A' + little - 10 };
+                    write.write_all(&[b'\\', b'u', b'0', b'0', bb, lb])?
+                }
+                b => write.write_all(&[b])?,
+            };
+        }
+        Ok(write.write_all(b"\"")?)
     }
 
     fn write_array_start<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
