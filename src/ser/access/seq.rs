@@ -20,7 +20,7 @@ where
 {
     pub fn start(serializer: &'a mut JsoncSerializer<W, F>, len: Option<usize>) -> crate::Result<Self> {
         serializer.formatter.write_array_start(&mut serializer.write)?;
-        Ok(SeqSerializer { serializer, index: 0, len })
+        Ok(Self { serializer, index: 0, len })
     }
 }
 
