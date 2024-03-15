@@ -114,9 +114,20 @@ mod tests {
     use crate::ser::to_str;
 
     #[test]
-    fn test_serialize_vec() {
+    fn test_serialize_seq() {
         assert_eq!(to_str(vec![1, 2, 3]).unwrap(), "[1,2,3]");
         // assert_eq!(to_str(vec!["str", "string"]).unwrap(), r#"["str","string"]"#);
         assert_eq!(to_str(vec![vec![], vec![false], vec![true, false]]).unwrap(), "[[],[false],[true,false]]");
+
+        assert_eq!(to_str(((), true, 2)).unwrap(), "[null,true,2]");
+        assert_eq!(to_str(((), true, ((), [()]))).unwrap(), "[null,true,[null,[null]]]");
     }
+
+    // #[test]
+    // fn test_serialize_struct() {
+    //     #[derive(Serialize)]
+    //     struct Lattice(usize, usize);
+    //     assert_eq!(to_str(Lattice(1, 2)).unwrap(), "[1,2]");
+    //     assert_eq!(to_str(vec![Lattice(1, 2), Lattice(3, 4)]).unwrap(), "[[1,2],[3,4]]");
+    // }
 }

@@ -47,3 +47,42 @@ where
         self.serializer.formatter.wite_array_end(&mut self.serializer.write)
     }
 }
+
+impl<'a, W, F> ser::SerializeTuple for SeqSerializer<'a, W, F>
+where
+    W: std::io::Write,
+    F: JsoncFormatter,
+{
+    type Ok = ();
+    type Error = crate::Error;
+
+    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    where
+        T: ser::Serialize,
+    {
+        <Self as ser::SerializeSeq>::serialize_element(self, value)
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        <Self as ser::SerializeSeq>::end(self)
+    }
+}
+impl<'a, W, F> ser::SerializeTupleStruct for SeqSerializer<'a, W, F>
+where
+    W: std::io::Write,
+    F: JsoncFormatter,
+{
+    type Ok = ();
+    type Error = crate::Error;
+
+    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    where
+        T: ser::Serialize,
+    {
+        <Self as ser::SerializeSeq>::serialize_element(self, value)
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        <Self as ser::SerializeSeq>::end(self)
+    }
+}

@@ -32,8 +32,8 @@ where
     type Error = crate::Error;
 
     type SerializeSeq = SeqSerializer<'a, W, F>;
-    type SerializeTuple = Temp;
-    type SerializeTupleStruct = Temp;
+    type SerializeTuple = SeqSerializer<'a, W, F>;
+    type SerializeTupleStruct = SeqSerializer<'a, W, F>;
     type SerializeTupleVariant = Temp;
     type SerializeMap = Temp;
     type SerializeStruct = Temp;
@@ -148,8 +148,7 @@ where
     }
 
     fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        // self.serialize_seq(Some(len))
-        todo!()
+        self.serialize_seq(Some(len))
     }
 
     fn serialize_tuple_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeTupleStruct, Self::Error> {
