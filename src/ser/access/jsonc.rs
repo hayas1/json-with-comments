@@ -36,7 +36,7 @@ where
     type SerializeTupleStruct = SeqSerializer<'a, W, F>;
     type SerializeTupleVariant = Temp;
     type SerializeMap = MapSerializer<'a, W, F>;
-    type SerializeStruct = Temp;
+    type SerializeStruct = MapSerializer<'a, W, F>;
     type SerializeStructVariant = Temp;
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
@@ -173,8 +173,8 @@ where
         Self::SerializeMap::start(self, len)
     }
 
-    fn serialize_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
-        todo!()
+    fn serialize_struct(self, _name: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
+        self.serialize_map(Some(len))
     }
 
     fn serialize_struct_variant(

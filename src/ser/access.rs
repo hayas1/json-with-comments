@@ -154,6 +154,15 @@ mod tests {
     fn test_serialize_map() {
         assert_eq!(to_str(HashMap::<(), ()>::new()).unwrap(), "{}");
         assert_eq!(to_str(HashMap::from([("key", "value")])).unwrap(), r#"{"key":"value"}"#);
+        assert!([
+            r#"{"one":1,"two":2,"three":3}"#,
+            r#"{"one":1,"three":3,"two":2}"#,
+            r#"{"two":2,"one":1,"three":3}"#,
+            r#"{"two":2,"three":3,"one":1}"#,
+            r#"{"three":3,"one":1,"two":2}"#,
+            r#"{"three":3,"two":2,"one":1}"#,
+        ]
+        .contains(&&to_str(HashMap::from([("one", 1), ("two", 2), ("three", 3)])).unwrap()[..]));
         assert_eq!(
             to_str(BTreeMap::from([(
                 "map1",
@@ -163,13 +172,18 @@ mod tests {
             r#"{"map1":{"map2":{"map3":{"nest":3}}}}"#
         );
 
+        #[derive(Serialize)]
+        struct Linked {
+            data: i32,
+            next: Option<Box<Linked>>,
+        }
         assert_eq!(
-            to_str(BTreeMap::from([(
-                "next",
-                BTreeMap::from([("next", BTreeMap::from([("next", BTreeMap::from([("next", ())]))]))])
-            )]))
+            to_str(Linked {
+                data: 1,
+                next: Some(Box::new(Linked { data: 2, next: Some(Box::new(Linked { data: 3, next: None })) }))
+            })
             .unwrap(),
-            r#"{"next":{"next":{"next":{"next":null}}}}"#
+            r#"{"data":1,"next":{"data":2,"next":{"data":3,"next":null}}}"#
         );
     }
 }

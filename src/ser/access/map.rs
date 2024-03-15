@@ -39,7 +39,7 @@ where
         self.serializer.formatter.write_object_key_start(&mut self.serializer.write, self.index, self.len)?;
         key.serialize(&mut *self.serializer)?;
         self.serializer.formatter.write_object_key_end(&mut self.serializer.write, self.index, self.len)?;
-        Ok(self.index += 1)
+        Ok(())
     }
 
     fn serialize_value<T: ?Sized>(&mut self, value: &T) -> Result<Self::Ok, Self::Error>
@@ -54,5 +54,26 @@ where
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
         self.serializer.formatter.write_object_end(&mut self.serializer.write)
+    }
+}
+
+impl<'a, W, F> ser::SerializeStruct for MapSerializer<'a, W, F>
+where
+    W: std::io::Write,
+    F: JsoncFormatter,
+{
+    type Ok = ();
+
+    type Error = crate::Error;
+
+    fn serialize_field<T: ?Sized>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
+    where
+        T: ser::Serialize,
+    {
+        <Self as ser::SerializeMap>::serialize_entry(self, key, value)
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        <Self as ser::SerializeMap>::end(self)
     }
 }
