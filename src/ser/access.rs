@@ -1,4 +1,5 @@
 pub mod jsonc;
+pub mod map;
 pub mod number;
 pub mod seq;
 
@@ -111,6 +112,8 @@ impl ser::SerializeStructVariant for Temp {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::{BTreeMap, HashMap};
+
     use serde::Serialize;
 
     use crate::ser::to_str;
@@ -145,5 +148,28 @@ mod tests {
         struct Lattice(usize, usize);
         assert_eq!(to_str(Lattice(1, 2)).unwrap(), "[1,2]");
         assert_eq!(to_str(vec![Lattice(1, 2), Lattice(3, 4)]).unwrap(), "[[1,2],[3,4]]");
+    }
+
+    #[test]
+    fn test_serialize_map() {
+        assert_eq!(to_str(HashMap::<(), ()>::new()).unwrap(), "{}");
+        assert_eq!(to_str(HashMap::from([("key", "value")])).unwrap(), r#"{"key":"value"}"#);
+        assert_eq!(
+            to_str(BTreeMap::from([(
+                "map1",
+                BTreeMap::from([("map2", BTreeMap::from([("map3", BTreeMap::from([("nest", 3)]))]))])
+            )]))
+            .unwrap(),
+            r#"{"map1":{"map2":{"map3":{"nest":3}}}}"#
+        );
+
+        assert_eq!(
+            to_str(BTreeMap::from([(
+                "next",
+                BTreeMap::from([("next", BTreeMap::from([("next", BTreeMap::from([("next", ())]))]))])
+            )]))
+            .unwrap(),
+            r#"{"next":{"next":{"next":{"next":null}}}}"#
+        );
     }
 }

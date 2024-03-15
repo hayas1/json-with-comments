@@ -44,7 +44,7 @@ where
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.serializer.formatter.wite_array_end(&mut self.serializer.write)
+        self.serializer.formatter.write_array_end(&mut self.serializer.write)
     }
 }
 
