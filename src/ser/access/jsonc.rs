@@ -2,7 +2,7 @@ use crate::ser::formatter::JsoncFormatter;
 
 use serde::ser;
 
-use super::{map::MapSerializer, seq::SeqSerializer, Temp};
+use super::{map::MapSerializer, r#enum::EnumSerializer, seq::SeqSerializer, Temp};
 
 pub struct JsoncSerializer<W, F>
 where
@@ -34,7 +34,7 @@ where
     type SerializeSeq = SeqSerializer<'a, W, F>;
     type SerializeTuple = SeqSerializer<'a, W, F>;
     type SerializeTupleStruct = SeqSerializer<'a, W, F>;
-    type SerializeTupleVariant = Temp;
+    type SerializeTupleVariant = EnumSerializer<'a, W, F>;
     type SerializeMap = MapSerializer<'a, W, F>;
     type SerializeStruct = MapSerializer<'a, W, F>;
     type SerializeStructVariant = Temp;
@@ -161,12 +161,12 @@ where
 
     fn serialize_tuple_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
+        _name: &'static str,
+        _variant_index: u32,
         variant: &'static str,
         len: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        todo!()
+        Self::SerializeTupleVariant::start(self, variant, len)
     }
 
     fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {

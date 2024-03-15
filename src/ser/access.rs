@@ -1,3 +1,4 @@
+pub mod r#enum;
 pub mod jsonc;
 pub mod map;
 pub mod number;
@@ -185,5 +186,16 @@ mod tests {
             .unwrap(),
             r#"{"data":1,"next":{"data":2,"next":{"data":3,"next":null}}}"#
         );
+    }
+
+    #[test]
+    fn test_serialize_enum() {
+        #[derive(Serialize)]
+        enum Lattice {
+            D2(usize, usize),
+            D3(usize, usize, usize),
+        }
+        assert_eq!(to_str(Lattice::D2(3, 5)).unwrap(), r#"{"D2":[3,5]}"#);
+        assert_eq!(to_str(Lattice::D3(3, 5, 7)).unwrap(), r#"{"D3":[3,5,7]}"#);
     }
 }

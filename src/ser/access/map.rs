@@ -8,7 +8,7 @@ pub struct MapSerializer<'a, W, F>
 where
     F: JsoncFormatter,
 {
-    serializer: &'a mut JsoncSerializer<W, F>,
+    pub serializer: &'a mut JsoncSerializer<W, F>,
     index: usize,
     len: Option<usize>,
 }
