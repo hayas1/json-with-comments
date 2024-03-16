@@ -246,6 +246,7 @@ where
     from_tokenizer(ReadTokenizer::new(read))
 }
 
+/// TODO doc
 pub fn from_raw<'de, D>(s: &'de [u8]) -> crate::Result<D>
 where
     D: de::Deserialize<'de>,
@@ -253,6 +254,7 @@ where
     from_tokenizer(RawTokenizer::new(s))
 }
 
+/// TODO doc
 pub fn from_tokenizer<'de, T, D>(tokenizer: T) -> crate::Result<D>
 where
     T: 'de + Tokenizer<'de>,

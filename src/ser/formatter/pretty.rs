@@ -1,5 +1,6 @@
 use super::JsoncFormatter;
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PrettySettings {
     pub indent: Vec<u8>, // TODO &'a [u8]
     pub trailing_comma: bool,
