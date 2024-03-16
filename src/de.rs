@@ -211,8 +211,7 @@ where
 /// {
 ///     "name": "candy",
 ///     "price": 100
-/// }
-/// "#.trim().as_bytes();
+/// }"#.as_bytes();
 /// let product: Product = json_with_comments::from_read(read).unwrap();
 /// assert_eq!(product.name, "candy");
 /// assert_eq!(product.price, 100);
