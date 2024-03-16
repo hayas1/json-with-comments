@@ -126,7 +126,7 @@ where
 /// //  "name": "candy",
 /// //  "price": 100,
 /// // }
-/// let path = std::path::Path::new("tests/data/product.jsonc");
+/// let path = std::path::Path::new("tests/data/product_pretty.jsonc");
 /// let before = std::fs::read_to_string(path).unwrap();
 ///
 /// if path.exists() {
@@ -189,7 +189,7 @@ where
 ///     name: String,
 ///     price: u32,
 /// }
-/// let path = std::path::Path::new("tests/data/product.jsonc");
+/// let path = std::path::Path::new("tests/data/product_pretty.jsonc");
 /// if path.exists() {
 ///     std::fs::remove_file(path).unwrap();
 /// }
