@@ -20,3 +20,18 @@ impl<I: Serialize, F: Serialize> Serialize for JsoncValue<I, F> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{jsonc, to_str};
+
+    #[test]
+    fn test_serialize_value() {
+        let v = jsonc!({
+            "obj": {
+                "arr": [false, true, 2, 3],
+            },
+        });
+        assert_eq!(to_str(v).unwrap(), r#"{"obj":{"arr":[false,true,2,3]}}"#);
+    }
+}
