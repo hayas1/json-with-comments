@@ -4,7 +4,7 @@ use crate::ser::formatter::JsoncFormatter;
 
 use super::jsonc::JsoncSerializer;
 
-pub struct SeqSerializer<'a, W, F>
+pub struct SeqSerialize<'a, W, F>
 where
     F: JsoncFormatter,
 {
@@ -13,7 +13,7 @@ where
     len: Option<usize>,
 }
 
-impl<'a, W, F> SeqSerializer<'a, W, F>
+impl<'a, W, F> SeqSerialize<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
@@ -24,7 +24,7 @@ where
     }
 }
 
-impl<'a, W, F> ser::SerializeSeq for SeqSerializer<'a, W, F>
+impl<'a, W, F> ser::SerializeSeq for SeqSerialize<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
@@ -48,7 +48,7 @@ where
     }
 }
 
-impl<'a, W, F> ser::SerializeTuple for SeqSerializer<'a, W, F>
+impl<'a, W, F> ser::SerializeTuple for SeqSerialize<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
@@ -67,7 +67,7 @@ where
         <Self as ser::SerializeSeq>::end(self)
     }
 }
-impl<'a, W, F> ser::SerializeTupleStruct for SeqSerializer<'a, W, F>
+impl<'a, W, F> ser::SerializeTupleStruct for SeqSerialize<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,

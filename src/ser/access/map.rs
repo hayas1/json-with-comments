@@ -4,7 +4,7 @@ use crate::ser::formatter::JsoncFormatter;
 
 use super::jsonc::JsoncSerializer;
 
-pub struct MapSerializer<'a, W, F>
+pub struct MapSerialize<'a, W, F>
 where
     F: JsoncFormatter,
 {
@@ -13,7 +13,7 @@ where
     len: Option<usize>,
 }
 
-impl<'a, W, F> MapSerializer<'a, W, F>
+impl<'a, W, F> MapSerialize<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
@@ -24,7 +24,7 @@ where
     }
 }
 
-impl<'a, W, F> ser::SerializeMap for MapSerializer<'a, W, F>
+impl<'a, W, F> ser::SerializeMap for MapSerialize<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
@@ -57,7 +57,7 @@ where
     }
 }
 
-impl<'a, W, F> ser::SerializeStruct for MapSerializer<'a, W, F>
+impl<'a, W, F> ser::SerializeStruct for MapSerialize<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,

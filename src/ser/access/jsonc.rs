@@ -2,7 +2,7 @@ use crate::ser::formatter::JsoncFormatter;
 
 use serde::ser;
 
-use super::{map::MapSerializer, r#enum::EnumSerializer, seq::SeqSerializer};
+use super::{map::MapSerialize, r#enum::EnumSerialize, seq::SeqSerialize};
 
 pub struct JsoncSerializer<W, F>
 where
@@ -31,13 +31,13 @@ where
 
     type Error = crate::Error;
 
-    type SerializeSeq = SeqSerializer<'a, W, F>;
-    type SerializeTuple = SeqSerializer<'a, W, F>;
-    type SerializeTupleStruct = SeqSerializer<'a, W, F>;
-    type SerializeTupleVariant = EnumSerializer<'a, W, F>;
-    type SerializeMap = MapSerializer<'a, W, F>;
-    type SerializeStruct = MapSerializer<'a, W, F>;
-    type SerializeStructVariant = EnumSerializer<'a, W, F>;
+    type SerializeSeq = SeqSerialize<'a, W, F>;
+    type SerializeTuple = SeqSerialize<'a, W, F>;
+    type SerializeTupleStruct = SeqSerialize<'a, W, F>;
+    type SerializeTupleVariant = EnumSerialize<'a, W, F>;
+    type SerializeMap = MapSerialize<'a, W, F>;
+    type SerializeStruct = MapSerialize<'a, W, F>;
+    type SerializeStructVariant = EnumSerialize<'a, W, F>;
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
         self.formatter.write_bool(&mut self.write, v)

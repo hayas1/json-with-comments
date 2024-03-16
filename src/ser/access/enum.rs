@@ -5,21 +5,21 @@ use serde::{
 
 use crate::ser::formatter::JsoncFormatter;
 
-use super::{jsonc::JsoncSerializer, map::MapSerializer, seq::SeqSerializer};
+use super::{jsonc::JsoncSerializer, map::MapSerialize, seq::SeqSerialize};
 
 enum Delegate<S, M> {
     Seq(S),
     Map(M),
 }
 
-pub struct EnumSerializer<'a, W, F>
+pub struct EnumSerialize<'a, W, F>
 where
     F: JsoncFormatter,
 {
-    delegate: Delegate<SeqSerializer<'a, W, F>, MapSerializer<'a, W, F>>,
+    delegate: Delegate<SeqSerialize<'a, W, F>, MapSerialize<'a, W, F>>,
 }
 
-impl<'a, W, F> EnumSerializer<'a, W, F>
+impl<'a, W, F> EnumSerialize<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
@@ -51,14 +51,14 @@ where
         serializer.serialize_str(variant)?;
         serializer.formatter.write_object_key_end(&mut serializer.write, 0, Some(1))?;
         let delegate = match delegate_type {
-            Delegate::Seq(_) => Delegate::Seq(SeqSerializer::start(serializer, Some(len))?),
-            Delegate::Map(_) => Delegate::Map(MapSerializer::start(serializer, Some(len))?),
+            Delegate::Seq(_) => Delegate::Seq(SeqSerialize::start(serializer, Some(len))?),
+            Delegate::Map(_) => Delegate::Map(MapSerialize::start(serializer, Some(len))?),
         };
         Ok(Self { delegate })
     }
 }
 
-impl<'a, W, F> ser::SerializeTupleVariant for EnumSerializer<'a, W, F>
+impl<'a, W, F> ser::SerializeTupleVariant for EnumSerialize<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
@@ -88,7 +88,7 @@ where
     }
 }
 
-impl<'a, W, F> ser::SerializeStructVariant for EnumSerializer<'a, W, F>
+impl<'a, W, F> ser::SerializeStructVariant for EnumSerialize<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
