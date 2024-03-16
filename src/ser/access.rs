@@ -106,7 +106,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_pretty_seq() {
+    fn test_serialize_pretty() {
         assert_eq!(
             to_str_pretty(vec!["string", "string", "string", "string", "string", "string"], Default::default())
                 .unwrap(),
@@ -122,5 +122,30 @@ mod tests {
             ]
             .join("\n")
         );
+
+        assert_eq!(
+            to_str_pretty(
+                ((), 1, "two", HashMap::from([("hoge", HashMap::from([("fuga", "piyo")]))]), vec![true, false]),
+                Default::default()
+            )
+            .unwrap(),
+            [
+                r#"["#,
+                r#"  null,"#,
+                r#"  1,"#,
+                r#"  "two","#,
+                r#"  {"#,
+                r#"    "hoge": {"#,
+                r#"      "fuga": "piyo","#,
+                r#"    },"#,
+                r#"  },"#,
+                r#"  ["#,
+                r#"    true,"#,
+                r#"    false,"#,
+                r#"  ],"#,
+                r#"]"#,
+            ]
+            .join("\n")
+        )
     }
 }
