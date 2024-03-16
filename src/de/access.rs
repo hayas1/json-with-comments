@@ -7,6 +7,8 @@ pub mod string;
 
 #[cfg(test)]
 mod tests {
+    use std::collections::{BTreeMap, HashMap};
+
     use crate::from_str;
 
     #[test]
@@ -35,5 +37,33 @@ mod tests {
         assert_eq!(from_str::<i128>("-99999999999999999").unwrap(), -99999999999999999);
         assert_eq!(from_str::<f32>("3.1415926535").unwrap(), 3.1415926535);
         assert_eq!(from_str::<f64>("6.02214076e23").unwrap(), 6.02214076E23);
+    }
+
+    #[test]
+    fn test_deserialize_seq() {
+        assert_eq!(from_str::<Vec<()>>("[]").unwrap(), vec![]);
+        assert_eq!(from_str::<Vec<i32>>("[1,2,3]").unwrap(), vec![1, 2, 3]);
+        assert_eq!(
+            from_str::<((), bool, String)>(r#"[null, true, "string"]"#).unwrap(),
+            ((), true, "string".to_string())
+        );
+        assert_eq!(from_str::<((), Vec<bool>)>(r#"[null, [false, true]]"#).unwrap(), ((), vec![false, true]));
+    }
+
+    #[test]
+    fn test_deserialize_map() {
+        assert_eq!(from_str::<HashMap<(), ()>>("{}").unwrap(), HashMap::new());
+        assert_eq!(
+            from_str::<HashMap<String, String>>(r#"{"key":"value"}"#).unwrap(),
+            HashMap::from([("key".to_string(), "value".to_string())])
+        );
+        assert_eq!(
+            from_str::<BTreeMap<i64, &str>>(r#"{"1": "one", "2": "two", "3": "three"}"#).unwrap(),
+            BTreeMap::from([(1, "one"), (2, "two"), (3, "three")])
+        );
+        assert_eq!(
+            from_str::<BTreeMap<&str, HashMap<&str, &str>>>(r#"{"hoge":{"fuga":"piyo"},"foo":{"bar":"baz"}}"#).unwrap(),
+            BTreeMap::from([("hoge", HashMap::from([("fuga", "piyo")])), ("foo", HashMap::from([("bar", "baz")]))])
+        )
     }
 }
