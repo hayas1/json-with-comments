@@ -2,7 +2,7 @@ use crate::ser::formatter::JsoncFormatter;
 
 use serde::ser;
 
-use super::{map::MapSerializer, r#enum::EnumSerializer, seq::SeqSerializer, Temp};
+use super::{map::MapSerializer, r#enum::EnumSerializer, seq::SeqSerializer};
 
 pub struct JsoncSerializer<W, F>
 where
@@ -37,7 +37,7 @@ where
     type SerializeTupleVariant = EnumSerializer<'a, W, F>;
     type SerializeMap = MapSerializer<'a, W, F>;
     type SerializeStruct = MapSerializer<'a, W, F>;
-    type SerializeStructVariant = Temp;
+    type SerializeStructVariant = EnumSerializer<'a, W, F>;
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
         self.formatter.write_bool(&mut self.write, v)
@@ -132,15 +132,15 @@ where
 
     fn serialize_newtype_variant<T: ?Sized>(
         self,
-        name: &'static str,
-        variant_index: u32,
-        variant: &'static str,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
         value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
         T: ser::Serialize,
     {
-        todo!()
+        value.serialize(self)
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
@@ -166,7 +166,7 @@ where
         variant: &'static str,
         len: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        Self::SerializeTupleVariant::start(self, variant, len)
+        Self::SerializeTupleVariant::start_tuple_variant(self, variant, len)
     }
 
     fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
@@ -179,11 +179,11 @@ where
 
     fn serialize_struct_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
+        _name: &'static str,
+        _variant_index: u32,
         variant: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
-        todo!()
+        Self::SerializeStructVariant::start_struct_variant(self, variant, len)
     }
 }

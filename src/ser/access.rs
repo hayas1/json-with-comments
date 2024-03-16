@@ -4,113 +4,6 @@ pub mod map;
 pub mod number;
 pub mod seq;
 
-use serde::ser;
-pub struct Temp {}
-
-impl ser::SerializeTuple for Temp {
-    type Ok = ();
-
-    type Error = crate::Error;
-
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
-    where
-        T: ser::Serialize,
-    {
-        todo!()
-    }
-
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-}
-impl ser::SerializeTupleStruct for Temp {
-    type Ok = ();
-
-    type Error = crate::Error;
-
-    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
-    where
-        T: ser::Serialize,
-    {
-        todo!()
-    }
-
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-}
-impl ser::SerializeTupleVariant for Temp {
-    type Ok = ();
-
-    type Error = crate::Error;
-
-    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
-    where
-        T: ser::Serialize,
-    {
-        todo!()
-    }
-
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-}
-impl ser::SerializeMap for Temp {
-    type Ok = ();
-
-    type Error = crate::Error;
-
-    fn serialize_key<T: ?Sized>(&mut self, key: &T) -> Result<(), Self::Error>
-    where
-        T: ser::Serialize,
-    {
-        todo!()
-    }
-
-    fn serialize_value<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
-    where
-        T: ser::Serialize,
-    {
-        todo!()
-    }
-
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-}
-impl ser::SerializeStruct for Temp {
-    type Ok = ();
-
-    type Error = crate::Error;
-
-    fn serialize_field<T: ?Sized>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
-    where
-        T: ser::Serialize,
-    {
-        todo!()
-    }
-
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-}
-impl ser::SerializeStructVariant for Temp {
-    type Ok = ();
-
-    type Error = crate::Error;
-
-    fn serialize_field<T: ?Sized>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
-    where
-        T: ser::Serialize,
-    {
-        todo!()
-    }
-
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        todo!()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::{BTreeMap, HashMap};
@@ -197,5 +90,18 @@ mod tests {
         }
         assert_eq!(to_str(Lattice::D2(3, 5)).unwrap(), r#"{"D2":[3,5]}"#);
         assert_eq!(to_str(Lattice::D3(3, 5, 7)).unwrap(), r#"{"D3":[3,5,7]}"#);
+
+        #[derive(Serialize)]
+        enum Enum {
+            Unit,
+            Tuple(usize, isize, String),
+            Struct { num: u64, text: String, bool: bool },
+        }
+        assert_eq!(to_str(Enum::Unit).unwrap(), r#""Unit""#);
+        assert_eq!(to_str(Enum::Tuple(1, -2, "three".to_string())).unwrap(), r#"{"Tuple":[1,-2,"three"]}"#);
+        assert_eq!(
+            to_str(Enum::Struct { num: 1, text: "two".to_string(), bool: true }).unwrap(),
+            r#"{"Struct":{"num":1,"text":"two","bool":true}}"#
+        );
     }
 }
