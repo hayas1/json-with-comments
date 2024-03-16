@@ -49,7 +49,7 @@ assert!(matches!(
 Any valid JSONC text can be parsed as [`Value`].
 See [`jsonc!`] macro also.
 ```rust
-use json_with_comments::{from_str, Value, value::JsoncValue};
+use json_with_comments::{from_str, Value, jsonc, value::JsoncValue};
 use json_with_comments::value::{number::Number, MapImpl};
 
 let json = r#"{
@@ -64,7 +64,45 @@ let data: json_with_comments::Value = from_str(json).unwrap();
 assert_eq!(data["name"], JsoncValue::String("John Doe".into()));
 assert_eq!(data["address"]["street"], JsoncValue::String("Main".into()));
 assert_eq!(data.query("address.number"), Some(&42.into()));
+assert_eq!(data, jsonc!({ "name": "John Doe", "address": { "street": "Main", "number": 42 }}));
 ```
+
+## Format struct as JSONC text
+Any type that implements [`serde::Serialize`] can be serialized into JSONC text.
+```rust
+use serde::Serialize;
+#[derive(Serialize)]
+struct Person<'a> {
+    name: &'a str,
+    address: Address<'a>,
+}
+#[derive(Serialize)]
+struct Address<'a> {
+    street: &'a str,
+    number: u32,
+}
+
+let person = Person {
+    name: "John Doe",
+    address: Address {
+        street: "Main",
+        number: 42,
+    },
+};
+
+let minify = r#"{"name":"John Doe","address":{"street":"Main","number":42}}"#;
+assert_eq!(json_with_comments::to_str(&person).unwrap(), minify);
+
+let pretty = r#"{
+  "name": "John Doe",
+  "address": {
+    "street": "Main",
+    "number": 42,
+  },
+}"#;
+assert_eq!(json_with_comments::to_str_pretty(&person, Default::default()).unwrap(), pretty);
+```
+
 
 ## Testing
 Coverage can be checked [https://hayas1.github.io/json-with-comments/tarpaulin-report](https://hayas1.github.io/json-with-comments/tarpaulin-report)

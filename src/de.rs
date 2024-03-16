@@ -22,16 +22,15 @@ use self::{access::jsonc::JsoncDeserializer, token::str::StrTokenizer};
 ///     regions: Vec<String>,
 /// }
 /// let jp = r#"
-///     {
-///         "name": "Japan",
-///         "code": 81,
-///         "regions": [
-///             "Hokkaido",
-///             "Kanto",
-///             "Kyushu-Okinawa",
-///         ],
-///     }
-/// "#;
+/// {
+///     "name": "Japan",
+///     "code": 81,
+///     "regions": [
+///         "Hokkaido",
+///         "Kanto",
+///         "Kyushu-Okinawa",
+///     ],
+/// }"#;
 /// let japan: Country = json_with_comments::from_str(jp).unwrap();
 /// assert_eq!(japan.name, "Japan");
 /// assert_eq!(japan.code, 81);
@@ -207,12 +206,12 @@ where
 ///     price: u32,
 /// }
 ///
-/// // {
-/// //     "name": "candy",
-/// //     "price": 100
-/// // }
-/// let read = std::fs::File::open("tests/data/product.json").unwrap();
-/// let product: Product = json_with_comments::from_read(&read).unwrap();
+/// let read = r#"
+/// {
+///     "name": "candy",
+///     "price": 100
+/// }"#.as_bytes();
+/// let product: Product = json_with_comments::from_read(read).unwrap();
 /// assert_eq!(product.name, "candy");
 /// assert_eq!(product.price, 100);
 /// ```
@@ -246,6 +245,7 @@ where
     from_tokenizer(ReadTokenizer::new(read))
 }
 
+/// TODO doc
 pub fn from_raw<'de, D>(s: &'de [u8]) -> crate::Result<D>
 where
     D: de::Deserialize<'de>,
@@ -253,6 +253,7 @@ where
     from_tokenizer(RawTokenizer::new(s))
 }
 
+/// TODO doc
 pub fn from_tokenizer<'de, T, D>(tokenizer: T) -> crate::Result<D>
 where
     T: 'de + Tokenizer<'de>,

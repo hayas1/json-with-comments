@@ -1,6 +1,6 @@
 use std::fmt;
 
-use serde::de;
+use serde::{de, ser};
 use thiserror::Error;
 
 use crate::de::position::{PosRange, Position};
@@ -26,6 +26,14 @@ impl fmt::Display for JsonWithCommentsError {
     }
 }
 impl de::Error for JsonWithCommentsError {
+    fn custom<T>(msg: T) -> Self
+    where
+        T: fmt::Display,
+    {
+        JsonWithCommentsError::new(msg.to_string()) // TODO
+    }
+}
+impl ser::Error for JsonWithCommentsError {
     fn custom<T>(msg: T) -> Self
     where
         T: fmt::Display,
