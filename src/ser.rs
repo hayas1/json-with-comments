@@ -15,6 +15,15 @@ where
     Ok(String::from_utf8(write)?)
 }
 
+pub fn to_str_pretty<S>(value: S, settings: formatter::pretty::PrettySettings) -> crate::Result<String>
+where
+    S: ser::Serialize,
+{
+    let mut write = Vec::new();
+    to_write(&mut write, formatter::pretty::PrettyFormatter::new(settings), value)?;
+    Ok(String::from_utf8(write)?)
+}
+
 pub fn to_write<W, F, S>(write: W, formatter: F, value: S) -> crate::Result<()>
 where
     W: io::Write,

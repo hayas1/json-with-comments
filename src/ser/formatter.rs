@@ -44,9 +44,21 @@ pub trait JsoncFormatter {
     }
 
     fn write_array_start<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+        self.write_array_start_super(write)
+    }
+    fn write_array_start_super<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
         Ok(write.write_all(b"[")?)
     }
+
     fn write_array_value_start<W: std::io::Write>(
+        &self,
+        write: &mut W,
+        index: usize,
+        len: Option<usize>,
+    ) -> crate::Result<()> {
+        self.write_array_value_start_super(write, index, len)
+    }
+    fn write_array_value_start_super<W: std::io::Write>(
         &self,
         _write: &mut W,
         _index: usize,
@@ -54,7 +66,16 @@ pub trait JsoncFormatter {
     ) -> crate::Result<()> {
         Ok(())
     }
+
     fn write_array_value_end<W: std::io::Write>(
+        &self,
+        write: &mut W,
+        index: usize,
+        len: Option<usize>,
+    ) -> crate::Result<()> {
+        self.write_array_value_end_super(write, index, len)
+    }
+    fn write_array_value_end_super<W: std::io::Write>(
         &self,
         write: &mut W,
         index: usize,
@@ -65,14 +86,30 @@ pub trait JsoncFormatter {
             _ => Ok(()),
         }
     }
+
     fn write_array_end<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+        self.write_array_end_super(write)
+    }
+    fn write_array_end_super<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
         Ok(write.write_all(b"]")?)
     }
 
     fn write_object_start<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+        self.write_object_start_super(write)
+    }
+    fn write_object_start_super<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
         Ok(write.write_all(b"{")?)
     }
+
     fn write_object_key_start<W: std::io::Write>(
+        &self,
+        write: &mut W,
+        index: usize,
+        len: Option<usize>,
+    ) -> crate::Result<()> {
+        self.write_object_key_start_super(write, index, len)
+    }
+    fn write_object_key_start_super<W: std::io::Write>(
         &self,
         _write: &mut W,
         _index: usize,
@@ -80,7 +117,16 @@ pub trait JsoncFormatter {
     ) -> crate::Result<()> {
         Ok(())
     }
+
     fn write_object_key_end<W: std::io::Write>(
+        &self,
+        write: &mut W,
+        index: usize,
+        len: Option<usize>,
+    ) -> crate::Result<()> {
+        self.write_object_key_end_super(write, index, len)
+    }
+    fn write_object_key_end_super<W: std::io::Write>(
         &self,
         write: &mut W,
         _index: usize,
@@ -88,7 +134,16 @@ pub trait JsoncFormatter {
     ) -> crate::Result<()> {
         Ok(write.write_all(b":")?)
     }
+
     fn write_object_value_start<W: std::io::Write>(
+        &self,
+        write: &mut W,
+        index: usize,
+        len: Option<usize>,
+    ) -> crate::Result<()> {
+        self.write_object_value_start_super(write, index, len)
+    }
+    fn write_object_value_start_super<W: std::io::Write>(
         &self,
         _write: &mut W,
         _index: usize,
@@ -96,7 +151,16 @@ pub trait JsoncFormatter {
     ) -> crate::Result<()> {
         Ok(())
     }
+
     fn write_object_value_end<W: std::io::Write>(
+        &self,
+        write: &mut W,
+        index: usize,
+        len: Option<usize>,
+    ) -> crate::Result<()> {
+        self.write_object_value_end_super(write, index, len)
+    }
+    fn write_object_value_end_super<W: std::io::Write>(
         &self,
         write: &mut W,
         index: usize,
@@ -107,7 +171,11 @@ pub trait JsoncFormatter {
             _ => Ok(()),
         }
     }
+
     fn write_object_end<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+        self.write_object_end_super(write)
+    }
+    fn write_object_end_super<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
         Ok(write.write_all(b"}")?)
     }
 }

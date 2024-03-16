@@ -10,7 +10,7 @@ mod tests {
 
     use serde::Serialize;
 
-    use crate::ser::to_str;
+    use crate::ser::{to_str, to_str_pretty};
 
     #[test]
     fn test_serialize_literal() {
@@ -102,6 +102,25 @@ mod tests {
         assert_eq!(
             to_str(Enum::Struct { num: 1, text: "two".to_string(), bool: true }).unwrap(),
             r#"{"Struct":{"num":1,"text":"two","bool":true}}"#
+        );
+    }
+
+    #[test]
+    fn test_serialize_pretty_seq() {
+        assert_eq!(
+            to_str_pretty(vec!["string", "string", "string", "string", "string", "string"], Default::default())
+                .unwrap(),
+            [
+                r#"["#,
+                r#"  "string","#,
+                r#"  "string","#,
+                r#"  "string","#,
+                r#"  "string","#,
+                r#"  "string","#,
+                r#"  "string","#,
+                r#"]"#
+            ]
+            .join("\n")
         );
     }
 }
