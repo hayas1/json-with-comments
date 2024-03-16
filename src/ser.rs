@@ -53,16 +53,16 @@ where
 ///     regions: vec!["Hokkaido", "Kanto", "Kyushu-Okinawa"],
 /// };
 /// let jp = json_with_comments::to_str_pretty(japan, Default::default()).unwrap();
-/// assert_eq!(jp, vec![
-///     r#"{"#,
-///     r#"  "name": "Japan","#,
-///     r#"  "code": 81,"#,
-///     r#"  "regions": ["#,
-///     r#"    "Hokkaido","#,
-///     r#"    "Kanto","#,
-///     r#"    "Kyushu-Okinawa","#,
-///     r#"  ],"#,
-///     r#"}"#].join("\n"));
+/// let pretty = r#"{
+///   "name": "Japan",
+///   "code": 81,
+///   "regions": [
+///     "Hokkaido",
+///     "Kanto",
+///     "Kyushu-Okinawa",
+///   ],
+/// }"#;
+/// assert_eq!(jp, pretty);
 /// ```
 pub fn to_str_pretty<S>(value: S, settings: formatter::pretty::PrettySettings) -> crate::Result<String>
 where
@@ -196,11 +196,11 @@ where
 /// let mut file = std::fs::File::create(path).unwrap();
 /// let product = Product { name: "candy".to_string(), price: 100 };
 /// json_with_comments::to_file_pretty(product, &mut file, Default::default()).unwrap();
-/// assert_eq!(std::fs::read_to_string(path).unwrap(), vec![
-///     r#"{"#,
-///     r#"  "name": "candy","#,
-///     r#"  "price": 100,"#,
-///     r#"}"#].join("\n"));
+/// let pretty = r#"{
+///   "name": "candy",
+///   "price": 100,
+/// }"#;
+/// assert_eq!(std::fs::read_to_string(path).unwrap(), pretty);
 /// ```
 pub fn to_file_pretty(
     value: impl ser::Serialize,

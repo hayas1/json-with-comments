@@ -22,16 +22,15 @@ use self::{access::jsonc::JsoncDeserializer, token::str::StrTokenizer};
 ///     regions: Vec<String>,
 /// }
 /// let jp = r#"
-///     {
-///         "name": "Japan",
-///         "code": 81,
-///         "regions": [
-///             "Hokkaido",
-///             "Kanto",
-///             "Kyushu-Okinawa",
-///         ],
-///     }
-/// "#;
+/// {
+///     "name": "Japan",
+///     "code": 81,
+///     "regions": [
+///         "Hokkaido",
+///         "Kanto",
+///         "Kyushu-Okinawa",
+///     ],
+/// }"#;
 /// let japan: Country = json_with_comments::from_str(jp).unwrap();
 /// assert_eq!(japan.name, "Japan");
 /// assert_eq!(japan.code, 81);
