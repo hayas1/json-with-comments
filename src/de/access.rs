@@ -21,6 +21,12 @@ mod tests {
         assert_eq!(from_str::<String>(r#""hello world""#).unwrap(), "hello world".to_string());
         assert_eq!(from_str::<&str>(r#""12345""#).unwrap(), "12345");
         assert_eq!(from_str::<String>(r#""🥒💯""#).unwrap(), "🥒💯".to_string());
+
+        assert_eq!(from_str::<String>(r#""linefeed\n""#).unwrap(), "linefeed\n");
+        assert_eq!(from_str::<String>(r#""tab\tspace""#).unwrap(), "tab\tspace");
+        assert_eq!(from_str::<String>(r#""linefeed\u000A""#).unwrap(), "linefeed\n");
+        assert_eq!(from_str::<String>(r#""null\u0000""#).unwrap(), "null\u{0000}");
+        assert_eq!(from_str::<String>(r#""del\u007f""#).unwrap(), "del\u{007F}");
     }
 
     #[test]

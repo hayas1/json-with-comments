@@ -17,15 +17,23 @@ mod tests {
         assert_eq!(to_str(()).unwrap(), "null");
         assert_eq!(to_str(true).unwrap(), "true");
         assert_eq!(to_str(false).unwrap(), "false");
-        assert_eq!(to_str(123).unwrap(), "123");
-        assert_eq!(to_str(123.45).unwrap(), "123.45");
-        assert_eq!(to_str(6.02214076E23).unwrap(), "602214076000000000000000"); // TODO
+    }
 
+    #[test]
+    fn test_serialize_string() {
         assert_eq!(to_str("string").unwrap(), r#""string""#);
         assert_eq!(to_str("linefeed\n").unwrap(), r#""linefeed\n""#);
         assert_eq!(to_str("linefeed\u{000A}").unwrap(), r#""linefeed\n""#);
         assert_eq!(to_str("null\u{0000}").unwrap(), r#""null\u0000""#);
         assert_eq!(to_str("del\u{007f}").unwrap(), r#""del\u007F""#);
+    }
+
+    #[test]
+    fn test_serialize_number() {
+        assert_eq!(to_str(123).unwrap(), "123");
+        assert_eq!(to_str(123.45).unwrap(), "123.45");
+        assert_eq!(to_str(-119).unwrap(), "-119");
+        assert_eq!(to_str(6.02214076E23).unwrap(), "602214076000000000000000"); // TODO
     }
 
     #[test]
