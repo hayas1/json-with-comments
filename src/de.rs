@@ -207,12 +207,13 @@ where
 ///     price: u32,
 /// }
 ///
-/// // {
-/// //     "name": "candy",
-/// //     "price": 100
-/// // }
-/// let read = std::fs::File::open("tests/data/product.json").unwrap();
-/// let product: Product = json_with_comments::from_read(&read).unwrap();
+/// let read = r#"
+/// {
+///     "name": "candy",
+///     "price": 100
+/// }
+/// "#.trim().as_bytes();
+/// let product: Product = json_with_comments::from_read(read).unwrap();
 /// assert_eq!(product.name, "candy");
 /// assert_eq!(product.price, 100);
 /// ```

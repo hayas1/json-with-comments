@@ -13,6 +13,7 @@ use super::{
     position::{PosRange, Position},
 };
 
+/// TODO doc
 pub trait Tokenizer<'de> {
     fn eat(&mut self) -> crate::Result<Option<(Position, u8)>>;
     fn look(&mut self) -> crate::Result<Option<(Position, u8)>>;

@@ -1,5 +1,5 @@
-mod access;
-mod formatter;
+pub mod access;
+pub mod formatter;
 
 use serde::ser;
 use std::{fs::File, io, path::Path};
@@ -211,7 +211,21 @@ pub fn to_file_pretty(
     Ok(())
 }
 
-/// TODO doc
+/// Serialize struct `S` as a JSON with comments text of the given writer.
+///
+/// # Examples
+/// ```
+/// use serde::Serialize;
+/// #[derive(Serialize)]
+/// struct Product {
+///     name: String,
+///     price: u32,
+/// }
+/// let mut write = Vec::new();
+/// let product = Product { name: "candy".to_string(), price: 100 };
+/// json_with_comments::to_write(product, &mut write, json_with_comments::MinifyFormatter).unwrap();
+/// assert_eq!(String::from_utf8(write).unwrap(), r#"{"name":"candy","price":100}"#);
+/// ```
 pub fn to_write<W, F, S>(value: S, write: W, formatter: F) -> crate::Result<()>
 where
     W: io::Write,

@@ -3,6 +3,7 @@ pub mod pretty;
 
 use super::access::number::ToNumberRepresentation;
 
+/// TODO doc
 pub trait JsoncFormatter {
     fn write_bool<W: std::io::Write>(&mut self, write: &mut W, value: bool) -> crate::Result<()> {
         Ok(write.write_all(if value { b"true" } else { b"false" })?)
