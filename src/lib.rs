@@ -10,7 +10,7 @@
 //!
 //! # Parse JSONC as typed struct
 //! Any type that implements [`serde::Deserialize`] can be deserialized from JSONC text.
-//! ```rust
+//! ```
 //! use serde::Deserialize;
 //! #[derive(Deserialize)]
 //! struct Person<'a> {
@@ -65,7 +65,7 @@
 //!
 //! # Format struct as JSONC text
 //! Any type that implements [`serde::Serialize`] can be serialized into JSONC text.
-//! ```rust
+//! ```
 //! use serde::Serialize;
 //! #[derive(Serialize)]
 //! struct Person<'a> {
