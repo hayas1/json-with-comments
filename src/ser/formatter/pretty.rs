@@ -3,7 +3,7 @@ use super::JsoncFormatter;
 pub struct PrettySettings {
     pub indent: Vec<u8>, // TODO &'a [u8]
     pub trailing_comma: bool,
-    pub max_width: Option<usize>,
+    pub max_width: Option<usize>, // TODO implement
 }
 impl Default for PrettySettings {
     fn default() -> Self {
@@ -19,17 +19,21 @@ impl PrettyFormatter {
     pub fn new(settings: PrettySettings) -> Self {
         Self { settings, indent: 0 }
     }
+
+    pub fn should_write_trailing_comma(&self, index: usize, len: Option<usize>) -> bool {
+        matches!(len.map(|l| index + 1 == l), Some(true)) && self.settings.trailing_comma
+    }
 }
 impl JsoncFormatter for PrettyFormatter {
-    fn write_array_start<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+    fn write_array_start<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         let sup = self.write_array_start_super(write)?;
-        // self.indent += 1;
+        self.indent += 1;
         write.write_all(b"\n")?;
         Ok(sup)
     }
 
     fn write_array_value_start<W: std::io::Write>(
-        &self,
+        &mut self,
         write: &mut W,
         index: usize,
         len: Option<usize>,
@@ -40,15 +44,24 @@ impl JsoncFormatter for PrettyFormatter {
     }
 
     fn write_array_value_end<W: std::io::Write>(
-        &self,
+        &mut self,
         write: &mut W,
         index: usize,
         len: Option<usize>,
     ) -> crate::Result<()> {
         let sup = self.write_array_value_end_super(write, index, len)?;
-        // self.indent -= 1;
+        if self.should_write_trailing_comma(index, len) {
+            write.write_all(b",\n")?;
+        } else {
+            write.write_all(b"\n")?;
+        }
+        Ok(sup)
+    }
+
+    fn write_array_end<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
+        let sup = self.write_array_end_super(write)?;
+        self.indent -= 1;
         write.write_all(&self.settings.indent.repeat(self.indent))?;
-        write.write_all(b"\n")?;
         Ok(sup)
     }
 }

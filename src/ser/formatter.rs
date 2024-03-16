@@ -4,22 +4,26 @@ pub mod pretty;
 use super::access::number::ToNumberRepresentation;
 
 pub trait JsoncFormatter {
-    fn write_bool<W: std::io::Write>(&self, write: &mut W, value: bool) -> crate::Result<()> {
+    fn write_bool<W: std::io::Write>(&mut self, write: &mut W, value: bool) -> crate::Result<()> {
         Ok(write.write_all(if value { b"true" } else { b"false" })?)
     }
 
-    fn write_null<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+    fn write_null<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         Ok(write.write_all(b"null")?)
     }
 
-    fn write_number<W: std::io::Write, N: ToNumberRepresentation>(&self, write: &mut W, value: N) -> crate::Result<()>
+    fn write_number<W: std::io::Write, N: ToNumberRepresentation>(
+        &mut self,
+        write: &mut W,
+        value: N,
+    ) -> crate::Result<()>
     where
         crate::Error: From<N::Err>,
     {
         Ok(write.write_all(&value.to_number_representation()?)?)
     }
 
-    fn write_str<W: std::io::Write>(&self, write: &mut W, value: &str) -> crate::Result<()> {
+    fn write_str<W: std::io::Write>(&mut self, write: &mut W, value: &str) -> crate::Result<()> {
         write.write_all(b"\"")?;
         for &b in value.as_bytes() {
             match b {
@@ -43,15 +47,15 @@ pub trait JsoncFormatter {
         Ok(write.write_all(b"\"")?)
     }
 
-    fn write_array_start<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+    fn write_array_start<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         self.write_array_start_super(write)
     }
-    fn write_array_start_super<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+    fn write_array_start_super<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         Ok(write.write_all(b"[")?)
     }
 
     fn write_array_value_start<W: std::io::Write>(
-        &self,
+        &mut self,
         write: &mut W,
         index: usize,
         len: Option<usize>,
@@ -59,7 +63,7 @@ pub trait JsoncFormatter {
         self.write_array_value_start_super(write, index, len)
     }
     fn write_array_value_start_super<W: std::io::Write>(
-        &self,
+        &mut self,
         _write: &mut W,
         _index: usize,
         _len: Option<usize>,
@@ -68,7 +72,7 @@ pub trait JsoncFormatter {
     }
 
     fn write_array_value_end<W: std::io::Write>(
-        &self,
+        &mut self,
         write: &mut W,
         index: usize,
         len: Option<usize>,
@@ -76,7 +80,7 @@ pub trait JsoncFormatter {
         self.write_array_value_end_super(write, index, len)
     }
     fn write_array_value_end_super<W: std::io::Write>(
-        &self,
+        &mut self,
         write: &mut W,
         index: usize,
         len: Option<usize>,
@@ -87,22 +91,22 @@ pub trait JsoncFormatter {
         }
     }
 
-    fn write_array_end<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+    fn write_array_end<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         self.write_array_end_super(write)
     }
-    fn write_array_end_super<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+    fn write_array_end_super<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         Ok(write.write_all(b"]")?)
     }
 
-    fn write_object_start<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+    fn write_object_start<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         self.write_object_start_super(write)
     }
-    fn write_object_start_super<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+    fn write_object_start_super<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         Ok(write.write_all(b"{")?)
     }
 
     fn write_object_key_start<W: std::io::Write>(
-        &self,
+        &mut self,
         write: &mut W,
         index: usize,
         len: Option<usize>,
@@ -110,7 +114,7 @@ pub trait JsoncFormatter {
         self.write_object_key_start_super(write, index, len)
     }
     fn write_object_key_start_super<W: std::io::Write>(
-        &self,
+        &mut self,
         _write: &mut W,
         _index: usize,
         _len: Option<usize>,
@@ -119,7 +123,7 @@ pub trait JsoncFormatter {
     }
 
     fn write_object_key_end<W: std::io::Write>(
-        &self,
+        &mut self,
         write: &mut W,
         index: usize,
         len: Option<usize>,
@@ -127,7 +131,7 @@ pub trait JsoncFormatter {
         self.write_object_key_end_super(write, index, len)
     }
     fn write_object_key_end_super<W: std::io::Write>(
-        &self,
+        &mut self,
         write: &mut W,
         _index: usize,
         _len: Option<usize>,
@@ -136,7 +140,7 @@ pub trait JsoncFormatter {
     }
 
     fn write_object_value_start<W: std::io::Write>(
-        &self,
+        &mut self,
         write: &mut W,
         index: usize,
         len: Option<usize>,
@@ -144,7 +148,7 @@ pub trait JsoncFormatter {
         self.write_object_value_start_super(write, index, len)
     }
     fn write_object_value_start_super<W: std::io::Write>(
-        &self,
+        &mut self,
         _write: &mut W,
         _index: usize,
         _len: Option<usize>,
@@ -153,7 +157,7 @@ pub trait JsoncFormatter {
     }
 
     fn write_object_value_end<W: std::io::Write>(
-        &self,
+        &mut self,
         write: &mut W,
         index: usize,
         len: Option<usize>,
@@ -161,7 +165,7 @@ pub trait JsoncFormatter {
         self.write_object_value_end_super(write, index, len)
     }
     fn write_object_value_end_super<W: std::io::Write>(
-        &self,
+        &mut self,
         write: &mut W,
         index: usize,
         len: Option<usize>,
@@ -172,10 +176,10 @@ pub trait JsoncFormatter {
         }
     }
 
-    fn write_object_end<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+    fn write_object_end<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         self.write_object_end_super(write)
     }
-    fn write_object_end_super<W: std::io::Write>(&self, write: &mut W) -> crate::Result<()> {
+    fn write_object_end_super<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         Ok(write.write_all(b"}")?)
     }
 }
