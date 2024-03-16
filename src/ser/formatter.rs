@@ -1,3 +1,6 @@
+pub mod minify;
+pub mod pretty;
+
 use super::access::number::ToNumberRepresentation;
 
 pub trait JsoncFormatter {
@@ -108,9 +111,3 @@ pub trait JsoncFormatter {
         Ok(write.write_all(b"}")?)
     }
 }
-
-pub struct MinifyFormatter {}
-impl JsoncFormatter for MinifyFormatter {}
-
-pub struct PrettyFormatter {}
-impl JsoncFormatter for PrettyFormatter {}

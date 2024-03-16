@@ -11,7 +11,7 @@ where
     S: ser::Serialize,
 {
     let mut write = Vec::new();
-    to_write(&mut write, formatter::MinifyFormatter {}, value)?;
+    to_write(&mut write, formatter::minify::MinifyFormatter, value)?;
     Ok(String::from_utf8(write)?)
 }
 
