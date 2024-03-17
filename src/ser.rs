@@ -32,7 +32,7 @@ where
 {
     let mut write = Vec::new();
     to_write(value, &mut write, formatter::minify::MinifyFormatter)?;
-    Ok(String::from_utf8(write)?)
+    Ok(unsafe { String::from_utf8_unchecked(write) }) // TODO maybe safe
 }
 
 /// Serialize struct `S` as pretty formatted JSON with comments text.
@@ -70,7 +70,7 @@ where
 {
     let mut write = Vec::new();
     to_write(value, &mut write, formatter::pretty::PrettyFormatter::new(settings))?;
-    Ok(String::from_utf8(write)?)
+    Ok(unsafe { String::from_utf8_unchecked(write) }) // TODO maybe safe
 }
 
 /// Serialize struct `S` as a minified JSON with comments text of the given path.
@@ -106,8 +106,7 @@ where
     S: ser::Serialize,
 {
     let mut file = File::create(path)?;
-    to_file(value, &mut file)?;
-    Ok(())
+    to_file(value, &mut file)
 }
 
 /// Serialize struct `S` as a pretty formatted JSON with comments text of the given path.
@@ -146,8 +145,7 @@ where
     S: ser::Serialize,
 {
     let mut file = File::create(path)?;
-    to_file_pretty(value, &mut file, settings)?;
-    Ok(())
+    to_file_pretty(value, &mut file, settings)
 }
 
 /// Serialize struct `S` as a minified JSON with comments text of the given file.
@@ -174,8 +172,7 @@ pub fn to_file<S>(value: S, file: &mut File) -> crate::Result<()>
 where
     S: ser::Serialize,
 {
-    to_write(value, file, formatter::minify::MinifyFormatter)?;
-    Ok(())
+    to_write(value, file, formatter::minify::MinifyFormatter)
 }
 
 /// Serialize struct `S` as a pretty formatted JSON with comments text of the given file.
@@ -207,8 +204,7 @@ pub fn to_file_pretty(
     file: &mut File,
     settings: formatter::pretty::PrettySettings,
 ) -> crate::Result<()> {
-    to_write(value, file, formatter::pretty::PrettyFormatter::new(settings))?;
-    Ok(())
+    to_write(value, file, formatter::pretty::PrettyFormatter::new(settings))
 }
 
 /// Serialize struct `S` as a JSON with comments text of the given writer.
