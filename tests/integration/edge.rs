@@ -11,60 +11,17 @@ fn test_cannot_deserialize_empty() {
 }
 
 #[test]
-fn test_deserialize_string_literal() {
-    let target = "\"\"";
-    let data: String = from_str(target).unwrap();
-    assert_eq!(data, "");
-
-    let target_hello = "\"hello\"";
-    let data: &str = from_str(target_hello).unwrap();
-    assert_eq!(data, "hello");
-}
-
-#[test]
-fn test_deserialize_number_literal() {
-    let target0 = "0";
-    let data: u32 = from_str(target0).unwrap();
-    assert_eq!(data, 0);
-
-    let target100 = "100";
-    let data: u32 = from_str(target100).unwrap();
-    assert_eq!(data, 100);
-
-    let target_100 = "-100";
-    let data: i32 = from_str(target_100).unwrap();
-    assert_eq!(data, -100);
-
-    let target100_0 = "100.0";
-    let data: f64 = from_str(target100_0).unwrap();
-    assert_eq!(data, 100.0);
-}
-
-#[test]
-fn test_deserialize_bool_literal() {
-    let target_true = "true";
-    let data: bool = from_str(target_true).unwrap();
-    assert_eq!(data, true);
-
-    let target_false = "false";
-    let data: bool = from_str(target_false).unwrap();
-    assert_eq!(data, false);
-}
-
-#[test]
-fn test_deserialize_null_literal() {
-    let target_null = "null";
-    let data: () = from_str(target_null).unwrap();
-    assert_eq!(data, ());
-
-    let target_null2 = "null";
-    let data: Option<u64> = from_str(target_null2).unwrap();
-    assert_eq!(data, None);
-
-    let target_null3 = "null";
-    let data: Option<()> = from_str(target_null3).unwrap();
-    // assert_eq!(data, Some(()));
-    assert_eq!(data, None);
+fn test_multiple_jsonc() {
+    let target = r#"
+        {
+            "hoge": "fuga"
+        }
+        {
+            "foo": "bar"
+        }
+    "#;
+    let err = from_str::<HashMap<String, String>>(target).unwrap_err();
+    assert!(matches!(err.into_inner().downcast_ref().unwrap(), SyntaxError::ExpectedEof { .. }));
 }
 
 #[test]
@@ -101,6 +58,63 @@ fn test_cannot_deserialize_only_comma_array() {
     let target = "[,]";
     let data = from_str::<Vec<String>>(target);
     assert!(matches!(data, Err(_)));
+}
+
+#[test]
+fn test_deserialize_single_string_literal() {
+    let target = "\"\"";
+    let data: String = from_str(target).unwrap();
+    assert_eq!(data, "");
+
+    let target_hello = "\"hello\"";
+    let data: &str = from_str(target_hello).unwrap();
+    assert_eq!(data, "hello");
+}
+
+#[test]
+fn test_deserialize_single_number_literal() {
+    let target0 = "0";
+    let data: u32 = from_str(target0).unwrap();
+    assert_eq!(data, 0);
+
+    let target100 = "100";
+    let data: u32 = from_str(target100).unwrap();
+    assert_eq!(data, 100);
+
+    let target_100 = "-100";
+    let data: i32 = from_str(target_100).unwrap();
+    assert_eq!(data, -100);
+
+    let target100_0 = "100.0";
+    let data: f64 = from_str(target100_0).unwrap();
+    assert_eq!(data, 100.0);
+}
+
+#[test]
+fn test_deserialize_single_bool_literal() {
+    let target_true = "true";
+    let data: bool = from_str(target_true).unwrap();
+    assert_eq!(data, true);
+
+    let target_false = "false";
+    let data: bool = from_str(target_false).unwrap();
+    assert_eq!(data, false);
+}
+
+#[test]
+fn test_deserialize_single_null_literal() {
+    let target_null = "null";
+    let data: () = from_str(target_null).unwrap();
+    assert_eq!(data, ());
+
+    let target_null2 = "null";
+    let data: Option<u64> = from_str(target_null2).unwrap();
+    assert_eq!(data, None);
+
+    let target_null3 = "null";
+    let data: Option<()> = from_str(target_null3).unwrap();
+    // assert_eq!(data, Some(()));
+    assert_eq!(data, None);
 }
 
 #[test]
