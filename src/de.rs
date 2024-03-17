@@ -270,6 +270,8 @@ where
 mod tests {
     use std::collections::{BTreeMap, HashMap};
 
+    use serde::Deserialize;
+
     use super::*;
 
     #[test]
@@ -330,7 +332,7 @@ mod tests {
 
     #[test]
     fn test_deserialize_struct() {
-        #[derive(serde::Deserialize)]
+        #[derive(Deserialize)]
         struct Person<'a> {
             name: &'a str,
             age: Option<u32>,
@@ -341,7 +343,7 @@ mod tests {
 
     #[test]
     fn test_deserialize_enum() {
-        #[derive(serde::Deserialize)]
+        #[derive(Deserialize)]
         enum House {
             Detached,
             Apartment { floor: i32, rooms: u32 },
@@ -356,13 +358,13 @@ mod tests {
 
     #[test]
     fn test_deserialize_struct_and_enum() {
-        #[derive(serde::Deserialize)]
+        #[derive(Deserialize)]
         struct Person<'a> {
             name: &'a str,
             age: Option<u32>,
             family: Family<'a>,
         }
-        #[derive(serde::Deserialize)]
+        #[derive(Deserialize)]
         enum Family<'a> {
             Single,
             Parent(&'a str),
@@ -394,7 +396,7 @@ mod tests {
             ],
         }"#;
 
-        #[derive(serde::Deserialize, Debug, PartialEq)]
+        #[derive(Deserialize, Debug, PartialEq)]
         struct Jsonc<'a> {
             name: &'a str,
             keywords: Vec<&'a str>,
@@ -407,7 +409,7 @@ mod tests {
 
     #[test]
     fn test_deserialize_ignored() {
-        #[derive(serde::Deserialize)]
+        #[derive(Deserialize)]
         #[serde(rename_all = "camelCase")]
         struct Setting {
             name: &'static str,
