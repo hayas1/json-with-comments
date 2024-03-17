@@ -281,9 +281,9 @@ mod tests {
 
     #[test]
     fn test_deserialize_string() {
-        assert_eq!(from_str::<String>(r#""hello world""#).unwrap(), "hello world".to_string());
+        assert_eq!(from_str::<&str>(r#""hello world""#).unwrap(), "hello world".to_string());
         assert_eq!(from_str::<&str>(r#""12345""#).unwrap(), "12345");
-        assert_eq!(from_str::<String>(r#""🥒💯""#).unwrap(), "🥒💯".to_string());
+        assert_eq!(from_str::<&str>(r#""🥒💯""#).unwrap(), "🥒💯".to_string());
 
         assert_eq!(from_str::<String>(r#""linefeed\n""#).unwrap(), "linefeed\n");
         assert_eq!(from_str::<String>(r#""tab\tspace""#).unwrap(), "tab\tspace");
@@ -326,6 +326,32 @@ mod tests {
             from_str::<BTreeMap<&str, HashMap<&str, &str>>>(r#"{"hoge":{"fuga":"piyo"},"foo":{"bar":"baz"}}"#).unwrap(),
             BTreeMap::from([("hoge", HashMap::from([("fuga", "piyo")])), ("foo", HashMap::from([("bar", "baz")]))])
         )
+    }
+
+    #[test]
+    fn test_deserialize_struct() {
+        #[derive(serde::Deserialize)]
+        struct Person<'a> {
+            name: &'a str,
+            age: Option<u32>,
+        }
+        assert!(matches!(from_str(r#"{"name": "John", "age": 30}"#), Ok(Person { name: "John", age: Some(30) })));
+        assert!(matches!(from_str(r#"{"name": "Jin", "age": null}"#), Ok(Person { name: "Jin", age: None })));
+    }
+
+    #[test]
+    fn test_deserialize_enum() {
+        #[derive(serde::Deserialize)]
+        enum House {
+            Detached,
+            Apartment { floor: i32, rooms: u32 },
+        }
+
+        assert!(matches!(from_str(r#""Detached""#), Ok(House::Detached)));
+        assert!(matches!(
+            from_str(r#"{"Apartment": {"floor": -1, "rooms": 3}}"#),
+            Ok(House::Apartment { floor: -1, rooms: 3 })
+        ));
     }
 
     #[test]
