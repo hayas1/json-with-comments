@@ -11,7 +11,7 @@ fn test_cannot_deserialize_empty() {
 }
 
 #[test]
-fn test_multiple_jsonc() {
+fn test_deserialize_multiple_jsonc() {
     let target = r#"
         {
             "hoge": "fuga"
