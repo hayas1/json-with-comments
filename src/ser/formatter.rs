@@ -36,8 +36,7 @@ pub trait JsoncFormatter {
                 b'\n' => write.write_all(br"\n")?,
                 b'\r' => write.write_all(br"\r")?,
                 b'\t' => write.write_all(br"\t")?,
-                // b @ (b'\x00'..=b'\x1F' | b'\x7F' | b'\x80'..=b'\x9F') => {
-                b @ (b'\x00'..=b'\x1F' | b'\x7F') => {
+                b if b.is_ascii_control() => {
                     let (big, little) = (b >> 4, b & 0x0F);
                     let bb = if big < 10 { b'0' + big } else { b'A' + big - 10 };
                     let lb = if little < 10 { b'0' + little } else { b'A' + little - 10 };
