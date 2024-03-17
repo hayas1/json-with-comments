@@ -23,7 +23,7 @@ impl<I: Serialize, F: Serialize> Serialize for JsoncValue<I, F> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{jsonc, to_str};
+    use crate::{jsonc, to_string};
 
     #[test]
     fn test_serialize_value() {
@@ -32,6 +32,6 @@ mod tests {
                 "arr": [false, true, 2, 3],
             },
         });
-        assert_eq!(to_str(v).unwrap(), r#"{"obj":{"arr":[false,true,2,3]}}"#);
+        assert_eq!(to_string(v).unwrap(), r#"{"obj":{"arr":[false,true,2,3]}}"#);
     }
 }

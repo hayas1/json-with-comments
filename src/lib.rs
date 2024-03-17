@@ -87,7 +87,7 @@
 //! };
 //!
 //! let minify = r#"{"name":"John Doe","address":{"street":"Main","number":42}}"#;
-//! assert_eq!(json_with_comments::to_str(&person).unwrap(), minify);
+//! assert_eq!(json_with_comments::to_string(&person).unwrap(), minify);
 //!
 //! let pretty = r#"{
 //!   "name": "John Doe",
@@ -96,7 +96,7 @@
 //!     "number": 42,
 //!   },
 //! }"#;
-//! assert_eq!(json_with_comments::to_str_pretty(&person, Default::default()).unwrap(), pretty);
+//! assert_eq!(json_with_comments::to_string_pretty(&person, Default::default()).unwrap(), pretty);
 //! ```
 //!
 //!
@@ -113,7 +113,7 @@ pub mod value;
 
 pub use de::{from_file, from_path, from_read, from_str, from_str_raw};
 pub use error::{JsonWithCommentsError as Error, Result};
-pub use ser::{to_file, to_file_pretty, to_path, to_path_pretty, to_str, to_str_pretty, to_write};
+pub use ser::{to_file, to_file_pretty, to_path, to_path_pretty, to_string, to_string_pretty, to_write};
 
 pub use ser::formatter::{
     minify::MinifyFormatter,

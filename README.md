@@ -91,7 +91,7 @@ let person = Person {
 };
 
 let minify = r#"{"name":"John Doe","address":{"street":"Main","number":42}}"#;
-assert_eq!(json_with_comments::to_str(&person).unwrap(), minify);
+assert_eq!(json_with_comments::to_string(&person).unwrap(), minify);
 
 let pretty = r#"{
   "name": "John Doe",
@@ -100,7 +100,7 @@ let pretty = r#"{
     "number": 42,
   },
 }"#;
-assert_eq!(json_with_comments::to_str_pretty(&person, Default::default()).unwrap(), pretty);
+assert_eq!(json_with_comments::to_string_pretty(&person, Default::default()).unwrap(), pretty);
 ```
 
 
