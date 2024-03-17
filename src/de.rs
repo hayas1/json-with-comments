@@ -329,7 +329,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_struct() {
+    fn test_deserialize_struct_and_enum() {
         #[derive(serde::Deserialize)]
         struct Person<'a> {
             name: &'a str,
@@ -355,5 +355,27 @@ mod tests {
             from_str(r#"{"name":"John","age":55,"family":{"Children": {"brother": "Jim", "sister": "Kate"}}}"#),
             Ok(Person { name: "John", age: Some(55), family: Family::Children { brother: "Jim", sister: "Kate" } })
         ));
+    }
+
+    #[test]
+    fn test_deserialize_with_comments() {
+        let target = r#"{
+            "name": "JSON with comments", // JSON with comments allow JavaScript style comments.
+            "keywords": [
+                "JSON",
+                "JSONC",
+                "trailing comma", /* JSON with comments allow trailing comma */
+            ],
+        }"#;
+
+        #[derive(serde::Deserialize, Debug, PartialEq)]
+        struct Jsonc<'a> {
+            name: &'a str,
+            keywords: Vec<&'a str>,
+        }
+        assert_eq!(
+            from_str::<Jsonc>(target).unwrap(),
+            Jsonc { name: "JSON with comments", keywords: vec!["JSON", "JSONC", "trailing comma"] }
+        );
     }
 }
