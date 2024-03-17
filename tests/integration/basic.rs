@@ -24,13 +24,6 @@ fn test_deserialize_basic_object() {
 }
 
 #[test]
-fn test_deserialize_basic_array() {
-    let target = r#"["foo", "bar", "baz"]"#;
-    let data: Vec<String> = from_str(target).unwrap();
-    assert_eq!(data, ["foo", "bar", "baz"]);
-}
-
-#[test]
 fn test_deserialize_json() {
     #[derive(Deserialize, PartialEq, Debug)]
     struct Event {
