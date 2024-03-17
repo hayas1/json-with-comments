@@ -66,4 +66,25 @@ mod tests {
             BTreeMap::from([("hoge", HashMap::from([("fuga", "piyo")])), ("foo", HashMap::from([("bar", "baz")]))])
         )
     }
+
+    #[test]
+    fn test_deserialize_struct() {
+        #[derive(serde::Deserialize)]
+        struct Person<'a> {
+            name: &'a str,
+            age: u32,
+            family: Family<'a>,
+        }
+        #[derive(serde::Deserialize)]
+        enum Family<'a> {
+            Single,
+            Parent(&'a str),
+            Children { brother: &'a str, sister: &'a str },
+        }
+        let person = from_str::<Person>(r#"{"name":"John","age":30,"family":"Single"}"#).unwrap();
+        assert!(matches!(
+            from_str(r#"{"name":"John","age":30,"family":"Single"}"#),
+            Ok(Person { name: "John", age: 30, family: Family::Single })
+        ));
+    }
 }

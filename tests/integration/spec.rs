@@ -131,9 +131,9 @@ fn test_deserialize_enum() {
         "name": "web",
         "port": 8080,
         "ip": "127.0.0.1",
-        "kind": {"Web": null},
-        "host": {"Local": null},
-        "machine": {"Local": null},
+        "kind": "Web",
+        "host": "Local",
+        "machine": "Local",
     }"#;
     let server = from_str::<Server>(target_web_server).unwrap();
     assert_eq!(
