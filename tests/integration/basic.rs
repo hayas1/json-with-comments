@@ -105,6 +105,10 @@ fn test_json() {
     assert_eq!(events, expected);
 
     // serialize
+    let jsonc = to_string(&events).unwrap();
+    let re: Vec<Event> = from_str(&jsonc).unwrap();
+    assert_eq!(events, re);
+
     // let jsonc = to_string_pretty(events, Default::default()).unwrap();
     // for (tl, jl) in jsonc.lines().zip(target.lines()) {
     //     assert_eq!(tl.trim(), jl.trim());
