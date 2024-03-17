@@ -247,13 +247,15 @@ mod tests {
     #[test]
     fn test_serialize_literal() {
         assert_eq!(to_str(()).unwrap(), "null");
-        assert_eq!(to_str(true).unwrap(), "true");
         assert_eq!(to_str(false).unwrap(), "false");
+        assert_eq!(to_str(true).unwrap(), "true");
     }
 
     #[test]
     fn test_serialize_string() {
-        assert_eq!(to_str("string").unwrap(), r#""string""#);
+        assert_eq!(to_str("str").unwrap(), r#""str""#);
+        assert_eq!(to_str("string".to_string()).unwrap(), r#""string""#);
+
         assert_eq!(to_str("linefeed\n").unwrap(), r#""linefeed\n""#);
         assert_eq!(to_str("linefeed\u{000A}").unwrap(), r#""linefeed\n""#);
         assert_eq!(to_str("null\u{0000}").unwrap(), r#""null\u0000""#);
@@ -277,11 +279,6 @@ mod tests {
         assert_eq!(to_str(((), true, 2)).unwrap(), "[null,true,2]");
         assert_eq!(to_str(((), true, ((), [()]))).unwrap(), "[null,true,[null,[null]]]");
         assert_eq!(to_str((false, 1, "two")).unwrap(), r#"[false,1,"two"]"#);
-
-        #[derive(Serialize)]
-        struct Lattice(usize, usize);
-        assert_eq!(to_str(Lattice(1, 2)).unwrap(), "[1,2]");
-        assert_eq!(to_str(vec![Lattice(1, 2), Lattice(3, 4)]).unwrap(), "[[1,2],[3,4]]");
     }
 
     #[test]
@@ -319,6 +316,26 @@ mod tests {
             .unwrap(),
             r#"{"data":1,"next":{"data":2,"next":{"data":3,"next":null}}}"#
         );
+    }
+
+    #[test]
+    fn test_serialize_struct() {
+        #[derive(Serialize)]
+        struct UnitStruct;
+        assert_eq!(to_str(UnitStruct).unwrap(), "null");
+
+        #[derive(Serialize)]
+        struct Lattice(usize, usize);
+        assert_eq!(to_str(Lattice(1, 2)).unwrap(), "[1,2]");
+        assert_eq!(to_str(vec![Lattice(1, 2), Lattice(3, 4)]).unwrap(), "[[1,2],[3,4]]");
+
+        #[derive(Serialize)]
+        struct Person {
+            name: String,
+            age: Option<u32>,
+        }
+        assert_eq!(to_str(Person { name: "Alice".to_string(), age: None }).unwrap(), r#"{"name":"Alice","age":null}"#);
+        assert_eq!(to_str(Person { name: "Bob".to_string(), age: Some(42) }).unwrap(), r#"{"name":"Bob","age":42}"#);
     }
 
     #[test]

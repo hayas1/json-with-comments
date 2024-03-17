@@ -333,6 +333,15 @@ mod tests {
     #[test]
     fn test_deserialize_struct() {
         #[derive(Deserialize)]
+        struct UnitStruct;
+        assert!(matches!(from_str("null"), Ok(UnitStruct)));
+
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct Lattice(usize, usize);
+        assert!(matches!(from_str("[1,2]"), Ok(Lattice(1, 2))));
+        assert_eq!(from_str::<Vec<Lattice>>("[[1, 2], [3, 4]]").unwrap(), [Lattice(1, 2), Lattice(3, 4)]);
+
+        #[derive(Deserialize)]
         struct Person<'a> {
             name: &'a str,
             age: Option<u32>,
