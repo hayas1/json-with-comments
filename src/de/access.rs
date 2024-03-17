@@ -72,7 +72,7 @@ mod tests {
         #[derive(serde::Deserialize)]
         struct Person<'a> {
             name: &'a str,
-            age: u32,
+            age: Option<u32>,
             family: Family<'a>,
         }
         #[derive(serde::Deserialize)]
@@ -81,10 +81,18 @@ mod tests {
             Parent(&'a str),
             Children { brother: &'a str, sister: &'a str },
         }
-        let person = from_str::<Person>(r#"{"name":"John","age":30,"family":"Single"}"#).unwrap();
+
         assert!(matches!(
             from_str(r#"{"name":"John","age":30,"family":"Single"}"#),
-            Ok(Person { name: "John", age: 30, family: Family::Single })
+            Ok(Person { name: "John", age: Some(30), family: Family::Single })
+        ));
+        assert!(matches!(
+            from_str(r#"{"name":"Jin","age":null,"family":{"Parent": "Jane"}}"#),
+            Ok(Person { name: "Jin", age: None, family: Family::Parent("Jane") })
+        ));
+        assert!(matches!(
+            from_str(r#"{"name":"John","age":55,"family":{"Children": {"brother": "Jim", "sister": "Kate"}}}"#),
+            Ok(Person { name: "John", age: Some(55), family: Family::Children { brother: "Jim", sister: "Kate" } })
         ));
     }
 }
