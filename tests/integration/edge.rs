@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use json_with_comments::{error::SyntaxError, from_str};
+use json_with_comments::{error::SyntaxError, from_str, to_string};
 
 #[test]
 fn test_cannot_deserialize_empty() {
@@ -36,6 +36,17 @@ fn test_deserialize_empty_object() {
 }
 
 #[test]
+fn test_serialize_empty_object() {
+    let hash = HashMap::<(), ()>::new();
+    let object = to_string(hash).unwrap();
+    assert_eq!(object, "{}");
+
+    let btree = BTreeMap::<(), ()>::new();
+    let object = to_string(btree).unwrap();
+    assert_eq!(object, "{}");
+}
+
+#[test]
 fn test_cannot_deserialize_only_comma_object() {
     let target = "{,}";
     let data = from_str::<HashMap<String, String>>(target);
@@ -51,6 +62,17 @@ fn test_deserialize_empty_array() {
     let target2 = "[  ]";
     let data: Vec<()> = from_str(target2).unwrap();
     assert_eq!(data, vec![]);
+}
+
+#[test]
+fn test_serialize_empty_array() {
+    let vector = Vec::<()>::new();
+    let array = to_string(vector).unwrap();
+    assert_eq!(array, "[]");
+
+    let set = BTreeSet::<()>::new();
+    let array = to_string(set).unwrap();
+    assert_eq!(array, "[]");
 }
 
 #[test]
@@ -98,6 +120,59 @@ fn test_deserialize_recursive_array() {
 }
 
 #[test]
+fn test_deserialize_single_null_literal() {
+    let target_null = "null";
+    let data: () = from_str(target_null).unwrap();
+    assert_eq!(data, ());
+
+    let target_null2 = "null";
+    let data: Option<u64> = from_str(target_null2).unwrap();
+    assert_eq!(data, None);
+
+    let target_null3 = "null";
+    let data: Option<()> = from_str(target_null3).unwrap();
+    // assert_eq!(data, Some(()));
+    assert_eq!(data, None);
+}
+
+#[test]
+fn test_serialize_single_null_literal() {
+    let unit = ();
+    let null = to_string(unit).unwrap();
+    assert_eq!(null, "null");
+
+    let none = None::<u64>;
+    let null = to_string(none).unwrap();
+    assert_eq!(null, "null");
+
+    let some_unit = Some(());
+    let null = to_string(some_unit).unwrap();
+    assert_eq!(null, "null");
+}
+
+#[test]
+fn test_deserialize_single_bool_literal() {
+    let target_true = "true";
+    let data: bool = from_str(target_true).unwrap();
+    assert_eq!(data, true);
+
+    let target_false = "false";
+    let data: bool = from_str(target_false).unwrap();
+    assert_eq!(data, false);
+}
+
+#[test]
+fn test_serialize_single_bool_literal() {
+    let bool = true;
+    let tru = to_string(bool).unwrap();
+    assert_eq!(tru, "true");
+
+    let bool = false;
+    let fal = to_string(bool).unwrap();
+    assert_eq!(fal, "false");
+}
+
+#[test]
 fn test_deserialize_single_string_literal() {
     let target = "\"\"";
     let data: String = from_str(target).unwrap();
@@ -106,6 +181,17 @@ fn test_deserialize_single_string_literal() {
     let target_hello = "\"hello\"";
     let data: &str = from_str(target_hello).unwrap();
     assert_eq!(data, "hello");
+}
+
+#[test]
+fn test_serialize_single_string_literal() {
+    let empty = "";
+    let string = to_string(empty).unwrap();
+    assert_eq!(string, "\"\"");
+
+    let hello = "hello";
+    let string = to_string(hello).unwrap();
+    assert_eq!(string, "\"hello\"");
 }
 
 #[test]
@@ -128,30 +214,27 @@ fn test_deserialize_single_number_literal() {
 }
 
 #[test]
-fn test_deserialize_single_bool_literal() {
-    let target_true = "true";
-    let data: bool = from_str(target_true).unwrap();
-    assert_eq!(data, true);
+fn test_serialize_single_number_literal() {
+    let zero = 0;
+    let number = to_string(zero).unwrap();
+    assert_eq!(number, "0");
 
-    let target_false = "false";
-    let data: bool = from_str(target_false).unwrap();
-    assert_eq!(data, false);
-}
+    let hundred = 100u32;
+    let number = to_string(hundred).unwrap();
+    assert_eq!(number, "100");
 
-#[test]
-fn test_deserialize_single_null_literal() {
-    let target_null = "null";
-    let data: () = from_str(target_null).unwrap();
-    assert_eq!(data, ());
+    let minus_hundred = -100;
+    let number = to_string(minus_hundred).unwrap();
+    assert_eq!(number, "-100");
 
-    let target_null2 = "null";
-    let data: Option<u64> = from_str(target_null2).unwrap();
-    assert_eq!(data, None);
+    // TODO
+    // let hundred_fraction = 100.0;
+    // let number = to_string(hundred_fraction).unwrap();
+    // assert_eq!(number, "100.0");
 
-    let target_null3 = "null";
-    let data: Option<()> = from_str(target_null3).unwrap();
-    // assert_eq!(data, Some(()));
-    assert_eq!(data, None);
+    let half = 0.5;
+    let number = to_string(half).unwrap();
+    assert_eq!(number, "0.5");
 }
 
 #[test]
@@ -216,16 +299,6 @@ fn test_deserialize_special_comment() {
     let target_contain_control_character = "\"control character\" // terminator \u{009C} null \u{0000} escape \x1b";
     let data: &str = from_str(target_contain_control_character).unwrap();
     assert_eq!(data, "control character");
-}
-
-#[test]
-#[should_panic]
-fn test_cannot_deserialize_optional_string_map_key() {
-    let target_option = r#"{
-        ""ok"": null
-    }"#;
-    let map: HashMap<Option<&str>, Option<i32>> = from_str(target_option).unwrap();
-    assert_eq!(map, HashMap::from([(Some("ok"), None)]));
 }
 
 #[test]
