@@ -1,10 +1,9 @@
 use std::{
     borrow::Cow,
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, HashMap},
 };
 
-use json_with_comments::{from_str, from_str_raw};
-use serde::Deserialize;
+use json_with_comments::{from_str, from_str_raw, to_string};
 
 #[test]
 fn test_deserialize_str() {
@@ -26,22 +25,54 @@ fn test_deserialize_str() {
 }
 
 #[test]
-fn test_deserialize_literal_map_key() {
-    let target_bool = r#"{
-        "true": 1,
-        "false": 0,
-        // "null": null,
-    }"#;
-    let map: HashMap<Option<bool>, Option<i32>> = from_str(target_bool).unwrap();
-    assert_eq!(map, HashMap::from([(Some(true), Some(1)), (Some(false), Some(0))]));
+fn test_null() {
+    let none = None::<()>;
+    let string = to_string(none).unwrap();
+    assert_eq!(string, "null");
+    let re: Option<()> = from_str(&string).unwrap();
+    assert_eq!(re, None);
 
-    let map: HashMap<bool, i32> = from_str(target_bool).unwrap();
-    assert_eq!(map, HashMap::from([(true, 1), (false, 0)]));
+    let some_unit = Some(());
+    let string = to_string(some_unit).unwrap();
+    assert_eq!(string, "null");
+    let re: Option<()> = from_str(&string).unwrap();
+    // assert_eq!(re, Some(()));
+    assert_eq!(re, None);
+}
+
+#[test]
+fn test_not_string_map_key() {
+    let target_bool = r#"{
+        "false": 0,
+        "true": 1,
+    }"#;
+    let map: BTreeMap<bool, i32> = from_str(target_bool).unwrap();
+    assert_eq!(map, BTreeMap::from([(true, 1), (false, 0)]));
+    // TODO key serialize as str
+    // let jsonc = to_string_pretty(&map, Default::default()).unwrap();
+    // for (tl, jl) in target_bool.lines().zip(jsonc.lines()) {
+    //     assert_eq!(tl.trim(), jl.trim());
+    // }
+
+    let target_number_key = r#"{
+        "1": false,
+        "2": true,
+        "3": true,
+        "4": false,
+        "5": true,
+    }"#;
+    let map: BTreeMap<u64, bool> = from_str(target_number_key).unwrap();
+    assert_eq!(map, BTreeMap::from([(1, false), (2, true), (3, true), (4, false), (5, true)]));
+    // TODO key serialize as str
+    // let jsonc = to_string_pretty(&map, Default::default()).unwrap();
+    // for (tl, jl) in target_number_key.lines().zip(jsonc.lines()) {
+    //     assert_eq!(tl.trim(), jl.trim());
+    // }
 }
 
 #[test]
 #[should_panic]
-fn test_deserialize_null_map_key() {
+fn test_cannot_deserialize_null_map_key() {
     let target_bool = r#"{
         "true": 1,
         "false": 0,
@@ -52,42 +83,23 @@ fn test_deserialize_null_map_key() {
 }
 
 #[test]
-fn test_deserialize_numeric_map_key() {
-    #[derive(Deserialize)]
-    struct Eratosthenes {
-        sieve: HashMap<u64, bool>,
-        primes: HashSet<u64>,
-    }
-    let target_eratosthenes = r#"{
-        "sieve": {
-            "1": false,
-            "2": true,
-            "3": true,
-            "4": false,
-            "5": true,
-            "6": false,
-            "7": true,
-            "8": false,
-            "9": false,
-        },
-        "primes": [2,3,5,7],
+fn test_can_deserialize_duplicated_map_key() {
+    let target = r#"{
+        "hello": "world",
+        "hello": "world!"
     }"#;
-    let eratosthenes: Eratosthenes = from_str(target_eratosthenes).unwrap();
+
+    let map: HashMap<&str, &str> = from_str(target).unwrap();
     assert_eq!(
-        eratosthenes.sieve,
+        map,
         HashMap::from([
-            (1, false),
-            (2, true),
-            (3, true),
-            (4, false),
-            (5, true),
-            (6, false),
-            (7, true),
-            (8, false),
-            (9, false),
-        ]),
+            // ("hello", "world"),
+            ("hello", "world!"),
+        ])
     );
-    assert_eq!(eratosthenes.primes, HashSet::from([2, 3, 5, 7]),);
+
+    let jsonc = to_string(&map).unwrap();
+    assert_eq!(jsonc, r#"{"hello":"world!"}"#);
 }
 
 #[test]

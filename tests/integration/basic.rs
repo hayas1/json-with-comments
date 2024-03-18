@@ -23,7 +23,7 @@ fn test_basic_object() {
 
     // serialize
     let jsonc = to_string_pretty(data, Default::default()).unwrap();
-    for (tl, jl) in jsonc.lines().zip(target.lines()) {
+    for (tl, jl) in target.lines().zip(jsonc.lines()) {
         assert_eq!(tl.trim(), jl.trim());
     }
 }
@@ -110,7 +110,7 @@ fn test_json() {
     assert_eq!(events, re);
 
     // let jsonc = to_string_pretty(events, Default::default()).unwrap();
-    // for (tl, jl) in jsonc.lines().zip(target.lines()) {
+    // for (tl, jl) in target.lines().zip(jsonc.lines()) {
     //     assert_eq!(tl.trim(), jl.trim());
     // }
 }
@@ -146,8 +146,8 @@ fn test_json_with_comment() {
 
     // serialize
     let jsonc = to_string_pretty(setting, Default::default()).unwrap();
-    for (tl, jl) in jsonc.lines().zip(target.lines()) {
-        assert_eq!(tl.trim(), jl.trim());
+    for (jl, tl) in target.lines().zip(jsonc.lines()) {
+        assert_eq!(jl.trim(), tl.trim());
     }
 
     let target2 = r#"
