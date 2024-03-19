@@ -62,11 +62,10 @@ fn test_not_string_map_key() {
     }"#;
     let map: BTreeMap<u64, bool> = from_str(target_number_key).unwrap();
     assert_eq!(map, BTreeMap::from([(1, false), (2, true), (3, true), (4, false), (5, true)]));
-    // TODO key serialize as str
-    // let jsonc = to_string_pretty(&map, Default::default()).unwrap();
-    // for (tl, jl) in target_number_key.lines().zip(jsonc.lines()) {
-    //     assert_eq!(tl.trim(), jl.trim());
-    // }
+    let jsonc = to_string_pretty(&map, Default::default()).unwrap();
+    for (tl, jl) in target_number_key.lines().zip(jsonc.lines()) {
+        assert_eq!(tl.trim(), jl.trim());
+    }
 }
 
 #[test]
