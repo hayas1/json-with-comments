@@ -66,6 +66,16 @@ fn test_not_string_map_key() {
     for (tl, jl) in target_number_key.lines().zip(jsonc.lines()) {
         assert_eq!(tl.trim(), jl.trim());
     }
+
+    let target_unit_key = r#"{
+        "null": false,
+    }"#;
+    let map: HashMap<(), bool> = from_str(target_unit_key).unwrap();
+    assert_eq!(map, HashMap::from([((), false)]));
+    let jsonc = to_string_pretty(&map, Default::default()).unwrap();
+    for (tl, jl) in target_unit_key.lines().zip(jsonc.lines()) {
+        assert_eq!(tl.trim(), jl.trim());
+    }
 }
 
 #[test]

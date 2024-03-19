@@ -193,7 +193,7 @@ where
     }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
-        Err(SemanticError::AnyMapKey)?
+        self.double_quote(|s| ().serialize(&mut *s.serializer))
     }
 
     fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok, Self::Error> {
