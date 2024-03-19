@@ -1,6 +1,6 @@
 use std::fmt::Formatter;
 
-use serde::ser;
+use serde::{ser, Serialize};
 
 use crate::ser::formatter::JsoncFormatter;
 
@@ -126,7 +126,7 @@ where
     type SerializeStructVariant = ser::Impossible<(), Self::Error>;
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
-        self.double_quote(|s| s.serializer.formatter.write_bool(&mut s.serializer.write, v))
+        self.double_quote(|s| v.serialize(&mut *s.serializer))
     }
 
     fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
