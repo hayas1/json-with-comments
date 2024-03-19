@@ -47,7 +47,7 @@ where
         T: ser::Serialize,
     {
         self.serializer.formatter.write_object_value_start(&mut self.serializer.write, self.index, self.len)?;
-        value.serialize(&mut *self.serializer)?;
+        value.serialize(&mut MapKeySerializer::new(self.serializer))?;
         self.serializer.formatter.write_object_value_end(&mut self.serializer.write, self.index, self.len)?;
         Ok(self.index += 1)
     }
@@ -76,4 +76,27 @@ where
     fn end(self) -> Result<Self::Ok, Self::Error> {
         <Self as ser::SerializeMap>::end(self)
     }
+}
+
+pub struct MapKeySerializer<'a, W, F>
+where
+    F: JsoncFormatter,
+{
+    pub serializer: &'a mut JsoncSerializer<W, F>,
+}
+
+impl<'a, W, F> MapKeySerializer<'a, W, F>
+where
+    F: JsoncFormatter,
+{
+    pub fn new(serializer: &'a mut JsoncSerializer<W, F>) -> Self {
+        Self { serializer }
+    }
+}
+
+impl<'a, W, F> ser::Serializer for &'a mut MapKeySerializer<'a, W, F>
+where
+    W: std::io::Write,
+    F: JsoncFormatter,
+{
 }
