@@ -3,7 +3,7 @@ use std::{
     collections::{BTreeMap, HashMap},
 };
 
-use json_with_comments::{from_str, from_str_raw, to_string};
+use json_with_comments::{from_str, from_str_raw, to_string, to_string_pretty};
 
 #[test]
 fn test_deserialize_str() {
@@ -48,11 +48,10 @@ fn test_not_string_map_key() {
     }"#;
     let map: BTreeMap<bool, i32> = from_str(target_bool).unwrap();
     assert_eq!(map, BTreeMap::from([(true, 1), (false, 0)]));
-    // TODO key serialize as str
-    // let jsonc = to_string_pretty(&map, Default::default()).unwrap();
-    // for (tl, jl) in target_bool.lines().zip(jsonc.lines()) {
-    //     assert_eq!(tl.trim(), jl.trim());
-    // }
+    let jsonc = to_string_pretty(&map, Default::default()).unwrap();
+    for (tl, jl) in target_bool.lines().zip(jsonc.lines()) {
+        assert_eq!(tl.trim(), jl.trim());
+    }
 
     let target_number_key = r#"{
         "1": false,

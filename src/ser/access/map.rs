@@ -1,3 +1,5 @@
+use std::fmt::Formatter;
+
 use serde::ser;
 
 use crate::ser::formatter::JsoncFormatter;
@@ -37,7 +39,7 @@ where
         T: ser::Serialize,
     {
         self.serializer.formatter.write_object_key_start(&mut self.serializer.write, self.index, self.len)?;
-        key.serialize(&mut *self.serializer)?;
+        key.serialize(&mut MapKeySerializer::new(self.serializer))?;
         self.serializer.formatter.write_object_key_end(&mut self.serializer.write, self.index, self.len)?;
         Ok(())
     }
@@ -47,7 +49,7 @@ where
         T: ser::Serialize,
     {
         self.serializer.formatter.write_object_value_start(&mut self.serializer.write, self.index, self.len)?;
-        value.serialize(&mut MapKeySerializer::new(self.serializer))?;
+        value.serialize(&mut *self.serializer)?;
         self.serializer.formatter.write_object_value_end(&mut self.serializer.write, self.index, self.len)?;
         Ok(self.index += 1)
     }
@@ -88,9 +90,23 @@ where
 impl<'a, W, F> MapKeySerializer<'a, W, F>
 where
     F: JsoncFormatter,
+    W: std::io::Write,
 {
     pub fn new(serializer: &'a mut JsoncSerializer<W, F>) -> Self {
         Self { serializer }
+    }
+
+    pub fn double_quote<Fn>(&mut self, f: Fn) -> Result<<&'a mut Self as ser::Serializer>::Ok, crate::Error>
+    where
+        Fn: FnOnce(
+            &mut Self,
+        ) -> Result<<&'a mut Self as ser::Serializer>::Ok, <&'a mut Self as ser::Serializer>::Error>,
+        <&'a mut Self as ser::Serializer>::Error: From<crate::Error>,
+    {
+        self.serializer.write.write_all(b"\"")?;
+        f(self)?;
+        self.serializer.write.write_all(b"\"")?;
+        Ok(())
     }
 }
 
@@ -99,4 +115,157 @@ where
     W: std::io::Write,
     F: JsoncFormatter,
 {
+    type Ok = ();
+    type Error = crate::Error;
+    type SerializeSeq = ser::Impossible<(), Self::Error>;
+    type SerializeTuple = ser::Impossible<(), Self::Error>;
+    type SerializeTupleStruct = ser::Impossible<(), Self::Error>;
+    type SerializeTupleVariant = ser::Impossible<(), Self::Error>;
+    type SerializeMap = ser::Impossible<(), Self::Error>;
+    type SerializeStruct = ser::Impossible<(), Self::Error>;
+    type SerializeStructVariant = ser::Impossible<(), Self::Error>;
+
+    fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
+        self.double_quote(|s| s.serializer.formatter.write_bool(&mut s.serializer.write, v))
+    }
+
+    fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_i16(self, v: i16) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_some<T: ?Sized>(self, value: &T) -> Result<Self::Ok, Self::Error>
+    where
+        T: ser::Serialize,
+    {
+        todo!()
+    }
+
+    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_unit_struct(self, name: &'static str) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_unit_variant(
+        self,
+        name: &'static str,
+        variant_index: u32,
+        variant: &'static str,
+    ) -> Result<Self::Ok, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_newtype_struct<T: ?Sized>(self, name: &'static str, value: &T) -> Result<Self::Ok, Self::Error>
+    where
+        T: ser::Serialize,
+    {
+        todo!()
+    }
+
+    fn serialize_newtype_variant<T: ?Sized>(
+        self,
+        name: &'static str,
+        variant_index: u32,
+        variant: &'static str,
+        value: &T,
+    ) -> Result<Self::Ok, Self::Error>
+    where
+        T: ser::Serialize,
+    {
+        todo!()
+    }
+
+    fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_tuple_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeTupleStruct, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_tuple_variant(
+        self,
+        name: &'static str,
+        variant_index: u32,
+        variant: &'static str,
+        len: usize,
+    ) -> Result<Self::SerializeTupleVariant, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
+        todo!()
+    }
+
+    fn serialize_struct_variant(
+        self,
+        name: &'static str,
+        variant_index: u32,
+        variant: &'static str,
+        len: usize,
+    ) -> Result<Self::SerializeStructVariant, Self::Error> {
+        todo!()
+    }
 }
