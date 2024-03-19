@@ -43,10 +43,8 @@ where
     type Error = crate::Error;
 
     fn unit_variant(self) -> Result<(), Self::Error> {
-        match self.deserializer.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileParsingObjectValue)? {
-            (_, b':') => de::Deserialize::deserialize(self.deserializer),
-            (pos, found) => Err(SyntaxError::UnexpectedTokenWhileStartParsingEnumValue { pos, found })?,
-        }
+        // TODO unit variant only
+        Ok(())
     }
 
     fn newtype_variant_seed<S>(self, seed: S) -> Result<S::Value, Self::Error>

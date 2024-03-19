@@ -1,6 +1,10 @@
 use serde::de::{self, IgnoredAny};
 
-use crate::{de::token::Tokenizer, error::SyntaxError, value::number::Number};
+use crate::{
+    de::token::Tokenizer,
+    error::{Ensure, SyntaxError},
+    value::number::Number,
+};
 
 use super::{map::MapDeserializer, r#enum::EnumDeserializer, seq::SeqDeserializer, string::ParsedString};
 
@@ -310,8 +314,10 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingEnum)? {
+        match self.tokenizer.skip_whitespace()?.ok_or(SyntaxError::EofWhileStartParsingEnum)? {
+            (_, b'"') => visitor.visit_enum(EnumDeserializer::new(self)), // unit variant
             (_, b'{') => {
+                self.tokenizer.eat()?.ok_or(Ensure::EatAfterLook)?;
                 let value = visitor.visit_enum(EnumDeserializer::new(self))?;
                 match self.tokenizer.eat_whitespace()?.ok_or(SyntaxError::EofWhileEndParsingEnum)? {
                     (_, b'}') => Ok(value),

@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 pub struct Person<'a> {
@@ -13,14 +13,14 @@ pub struct Address<'a> {
     number: u32,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct OwnedPerson {
     name: String,
     address: OwnedAddress,
     email: String,
     active: bool,
 }
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct OwnedAddress {
     street: String,
     number: u32,
@@ -47,6 +47,7 @@ fn test_deserialize_from_file() {
     assert_eq!(owned_person.email, "x0h5z@example.com");
     assert_eq!(owned_person.active, true);
 }
+
 #[test]
 fn test_deserialize_from_file_content() {
     let content = std::fs::read_to_string("tests/data/john.json").unwrap();
@@ -60,4 +61,25 @@ fn test_deserialize_from_file_content() {
             active: true,
         }
     ));
+}
+
+#[test]
+fn test_serialize_to_file() {
+    let path = std::path::Path::new("tests/data/john2.json");
+    let person = OwnedPerson {
+        name: "John Doe".to_string(),
+        address: OwnedAddress { street: "Second".to_string(), number: 21 },
+        email: "ynqoC@example.com".to_string(),
+        active: true,
+    };
+    json_with_comments::to_path(&person, path).unwrap();
+
+    let content = std::fs::read_to_string(path).unwrap();
+    assert_eq!(
+        content,
+        r#"{"name":"John Doe","address":{"street":"Second","number":21},"email":"ynqoC@example.com","active":true}"#
+    );
+
+    let deserialized: OwnedPerson = json_with_comments::from_path(path).unwrap();
+    assert_eq!(person, deserialized);
 }

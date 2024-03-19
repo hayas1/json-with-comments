@@ -5,11 +5,12 @@ use super::JsoncFormatter;
 pub struct PrettySettings {
     pub indent: Vec<u8>, // TODO &'a [u8]
     pub trailing_comma: bool,
-    pub max_width: Option<usize>, // TODO implement
+    // pub max_width: Option<usize>, // TODO implement
 }
 impl Default for PrettySettings {
     fn default() -> Self {
-        Self { indent: b"  ".to_vec(), trailing_comma: true, max_width: None }
+        // Self { indent: b"  ".to_vec(), trailing_comma: true, max_width: None }
+        Self { indent: b"  ".to_vec(), trailing_comma: true }
     }
 }
 
