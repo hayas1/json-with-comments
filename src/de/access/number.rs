@@ -4,11 +4,76 @@ pub trait FromNumberBuilder: Sized {
     type Err;
     fn from_number_builder(builder: NumberBuilder) -> Result<Self, Self::Err>;
 }
-impl<T: std::str::FromStr> FromNumberBuilder for T {
-    type Err = T::Err;
-    fn from_number_builder(builder: NumberBuilder) -> Result<Self, Self::Err> {
-        Self::from_str(&String::from_utf8_lossy(&builder.buff))
+
+pub enum IntegerBuilder {}
+pub enum FloatBuilder {}
+
+pub trait Builder<N> {
+    type Err;
+    fn build(b: NumberBuilder) -> Result<N, Self::Err>;
+}
+impl<N: std::str::FromStr> Builder<N> for IntegerBuilder {
+    type Err = N::Err;
+    fn build(b: NumberBuilder) -> Result<N, Self::Err> {
+        N::from_str(&String::from_utf8_lossy(&b.buff))
     }
+}
+impl<N: std::str::FromStr> Builder<N> for FloatBuilder {
+    type Err = N::Err;
+    fn build(b: NumberBuilder) -> Result<N, Self::Err> {
+        N::from_str(&String::from_utf8_lossy(&b.buff))
+    }
+}
+
+pub trait Built: Sized {
+    type Builder: Builder<Self>;
+    fn built(b: NumberBuilder) -> Result<Self, <Self::Builder as Builder<Self>>::Err> {
+        Self::Builder::build(b)
+    }
+}
+
+impl<T: Built> FromNumberBuilder for T {
+    type Err = <T::Builder as Builder<T>>::Err;
+    fn from_number_builder(builder: NumberBuilder) -> Result<Self, Self::Err> {
+        Self::built(builder)
+    }
+}
+
+impl Built for u8 {
+    type Builder = IntegerBuilder;
+}
+impl Built for u16 {
+    type Builder = IntegerBuilder;
+}
+impl Built for u32 {
+    type Builder = IntegerBuilder;
+}
+impl Built for u64 {
+    type Builder = IntegerBuilder;
+}
+impl Built for u128 {
+    type Builder = IntegerBuilder;
+}
+impl Built for i8 {
+    type Builder = IntegerBuilder;
+}
+impl Built for i16 {
+    type Builder = IntegerBuilder;
+}
+impl Built for i32 {
+    type Builder = IntegerBuilder;
+}
+impl Built for i64 {
+    type Builder = IntegerBuilder;
+}
+impl Built for i128 {
+    type Builder = IntegerBuilder;
+}
+impl Built for f32 {
+    type Builder = FloatBuilder;
+}
+impl Built for f64 {
+    type Builder = FloatBuilder;
 }
 
 pub struct NumberBuilder {

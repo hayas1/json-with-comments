@@ -34,6 +34,9 @@ jobs:
 
   version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
     - uses: actions/checkout@v4
     - name: Check version in Cargo.toml and git tag
@@ -43,3 +46,5 @@ jobs:
       if: steps.detect-version.outputs.should-release == 'true'
       run: |
         gh pr edit ${{ github.event.pull_request.number }} --add-label "release"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
