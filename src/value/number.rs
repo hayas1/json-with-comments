@@ -6,8 +6,10 @@ pub enum Number<I, F> {
     Float(F),
 }
 
-impl<I: FromNumberBuilder, F: FromNumberBuilder> FromNumberBuilder for Number<I, F>
+impl<I, F> FromNumberBuilder for Number<I, F>
 where
+    I: FromNumberBuilder,
+    F: FromNumberBuilder,
     crate::Error: From<I::Err> + From<F::Err>,
 {
     type Err = crate::Error;
