@@ -265,6 +265,7 @@ mod tests {
         assert_eq!(to_string(-119).unwrap(), "-119");
         assert_eq!(to_string(100.0).unwrap(), "100.0");
         assert_eq!(to_string(6.02214076E23).unwrap(), "6.02214076e23");
+        assert_eq!(to_string(0.0000000000000001).unwrap(), "1e-16");
     }
 
     #[test]
