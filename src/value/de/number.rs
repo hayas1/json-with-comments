@@ -1,13 +1,11 @@
 use serde::de;
 
-use crate::value::{number::Number, JsoncValue};
+use crate::value::number::Number;
 
-impl<'de, I, F> de::Deserializer<'de> for JsoncValue<I, F>
+impl<'de, I, F> de::Deserializer<'de> for Number<I, F>
 where
     I: de::Deserialize<'de>,
-    // crate::Error: From<>,
     F: de::Deserialize<'de>,
-    // crate::Error: From<F::Error>,
 {
     type Error = crate::Error;
 
@@ -15,25 +13,14 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self {
-            // JsoncValue::Object(map) => visitor.visit_map(map),
-            // JsoncValue::Array(vec) => visitor.visit_seq(vec),
-            JsoncValue::Bool(b) => visitor.visit_bool(b),
-            JsoncValue::Null => visitor.visit_none(),
-            JsoncValue::String(s) => visitor.visit_string(s),
-            JsoncValue::Number(n) => n.deserialize_any(visitor),
-            _ => todo!(),
-        }
+        todo!()
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        match self {
-            JsoncValue::Bool(b) => visitor.visit_bool(b),
-            _ => todo!(),
-        }
+        todo!()
     }
 
     fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>

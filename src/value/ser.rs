@@ -1,3 +1,4 @@
+pub mod number;
 pub mod serializer;
 
 use serde::Serialize;
