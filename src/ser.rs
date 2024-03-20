@@ -263,9 +263,8 @@ mod tests {
         assert_eq!(to_string(123).unwrap(), "123");
         assert_eq!(to_string(123.45).unwrap(), "123.45");
         assert_eq!(to_string(-119).unwrap(), "-119");
-        // TODO serialize float
-        assert_eq!(to_string(100.0).unwrap(), "100"); // TODO 100.0
-        assert_eq!(to_string(6.02214076E23).unwrap(), "602214076000000000000000");
+        assert_eq!(to_string(100.0).unwrap(), "100.0");
+        assert_eq!(to_string(6.02214076E23).unwrap(), "6.02214076e23");
     }
 
     #[test]
