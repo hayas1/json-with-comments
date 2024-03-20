@@ -4,6 +4,8 @@ pub mod formatter;
 use serde::ser;
 use std::{fs::File, io, path::Path};
 
+use crate::value::JsoncValue;
+
 use self::access::jsonc::JsoncSerializer;
 
 /// Serialize struct `S` as minified JSON with comments text.
@@ -232,6 +234,18 @@ where
     value.serialize(&mut ser)
 }
 
+/// Serialize `T` to [`JsoncValue`]
+///
+/// # Example
+/// TODO example
+pub fn to_value<T, I, F>(value: T) -> crate::Result<JsoncValue<I, F>>
+where
+    T: serde::Serialize,
+    I: serde::Serialize,
+    F: serde::Serialize,
+{
+    JsoncValue::<I, F>::from_serialize(value)
+}
 #[cfg(test)]
 mod tests {
     use std::collections::{BTreeMap, HashMap};

@@ -6,7 +6,10 @@ use std::{fs::File, io, path::Path};
 
 use serde::de;
 
-use crate::de::token::{raw::RawTokenizer, read::ReadTokenizer, Tokenizer};
+use crate::{
+    de::token::{raw::RawTokenizer, read::ReadTokenizer, Tokenizer},
+    value::JsoncValue,
+};
 
 use self::{access::jsonc::JsoncDeserializer, token::str::StrTokenizer};
 
@@ -264,6 +267,19 @@ where
     de.finish()?;
 
     Ok(value)
+}
+
+/// Deserialize [`JsoncValue`] to `T`
+///
+/// # Example
+/// TODO example
+pub fn from_value<'de, T, I, F>(value: JsoncValue<I, F>) -> crate::Result<T>
+where
+    T: serde::de::Deserialize<'de>,
+    I: serde::de::Deserialize<'de>,
+    F: serde::de::Deserialize<'de>,
+{
+    value.into_deserialize()
 }
 
 #[cfg(test)]

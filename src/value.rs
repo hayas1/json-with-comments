@@ -62,30 +62,32 @@ impl<I, F> JsoncValue<I, F> {
     }
 }
 
-/// Deserialize [`JsoncValue`] to `T`
-///
-/// # Example
-/// TODO example
-pub fn from_value<'de, T, I, F>(value: JsoncValue<I, F>) -> crate::Result<T>
+impl<'de, I, F> JsoncValue<I, F>
 where
-    T: serde::de::Deserialize<'de>,
-    I: serde::de::Deserialize<'de>,
-    F: serde::de::Deserialize<'de>,
+    I: serde::Deserialize<'de>,
+    F: serde::Deserialize<'de>,
 {
-    T::deserialize(value)
+    /// TODO doc
+    pub fn into_deserialize<T>(self) -> crate::Result<T>
+    where
+        T: serde::Deserialize<'de>,
+    {
+        T::deserialize(self)
+    }
 }
 
-/// Serialize `T` to [`JsoncValue`]
-///
-/// # Example
-/// TODO example
-pub fn to_value<T, I, F>(value: T) -> crate::Result<JsoncValue<I, F>>
+impl<I, F> JsoncValue<I, F>
 where
-    T: serde::Serialize,
     I: serde::Serialize,
     F: serde::Serialize,
 {
-    value.serialize(ser::serializer::ValueSerializer::new())
+    /// TODO doc
+    pub fn from_serialize<T>(value: T) -> crate::Result<JsoncValue<I, F>>
+    where
+        T: serde::Serialize,
+    {
+        value.serialize(ser::serializer::ValueSerializer::new())
+    }
 }
 
 #[cfg(test)]
@@ -96,14 +98,13 @@ mod tests {
     #[test]
     fn test_from_value() {
         let v = jsonc!(true);
-        let t: bool = from_value(v).unwrap();
+        let t: bool = v.into_deserialize().unwrap();
         assert_eq!(t, true);
     }
 
     #[test]
     fn test_to_value() {
-        let v = jsonc!(true);
-        let t: JsoncValue<i64, f64> = to_value(v).unwrap();
+        let t = JsoncValue::<i64, f64>::from_serialize(true).unwrap();
         assert_eq!(t, JsoncValue::Bool(true));
     }
 }
