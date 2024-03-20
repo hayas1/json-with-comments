@@ -43,3 +43,5 @@ jobs:
       if: steps.detect-version.outputs.should-release == 'true'
       run: |
         gh pr edit ${{ github.event.pull_request.number }} --add-label "release"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
