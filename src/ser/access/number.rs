@@ -14,16 +14,16 @@ impl<N: itoa::Integer> Representor<N> for IntegerRepresentor {
     type Err = crate::Error;
     fn represent(n: N) -> Result<Vec<u8>, Self::Err> {
         let mut buffer = itoa::Buffer::new();
-        let printed = buffer.format(n);
-        Ok(printed.as_bytes().to_vec())
+        let represented = buffer.format(n);
+        Ok(represented.as_bytes().to_vec())
     }
 }
 impl<N: ryu::Float> Representor<N> for FloatRepresentor {
     type Err = crate::Error;
     fn represent(n: N) -> Result<Vec<u8>, Self::Err> {
         let mut buffer = ryu::Buffer::new();
-        let printed = buffer.format(n);
-        Ok(printed.as_bytes().to_vec())
+        let represented = buffer.format(n);
+        Ok(represented.as_bytes().to_vec())
     }
 }
 
