@@ -79,14 +79,14 @@ where
     T: 'a + Tokenizer<'de>,
     &'a mut Self: de::Deserializer<'de>,
 {
-    pub fn double_quote<V, F>(
+    pub fn double_quote<V, Fn>(
         &mut self,
         visitor: V,
-        f: F,
+        f: Fn,
     ) -> Result<V::Value, <&'a mut Self as de::Deserializer<'de>>::Error>
     where
         V: de::Visitor<'de>,
-        F: FnOnce(&mut Self, V) -> Result<V::Value, <&'a mut Self as de::Deserializer<'de>>::Error>,
+        Fn: FnOnce(&mut Self, V) -> Result<V::Value, <&'a mut Self as de::Deserializer<'de>>::Error>,
         <&'a mut Self as de::Deserializer<'de>>::Error: From<crate::Error>,
     {
         match self.deserializer.tokenizer.eat()?.ok_or(SyntaxError::EofWhileParsingObjectKey.into())? {
