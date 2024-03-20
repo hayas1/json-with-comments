@@ -75,6 +75,19 @@ where
     T::deserialize(value)
 }
 
+/// Serialize `T` to [`JsoncValue`]
+///
+/// # Example
+/// TODO example
+pub fn to_value<T, I, F>(value: T) -> crate::Result<JsoncValue<I, F>>
+where
+    T: serde::Serialize,
+    I: serde::Serialize,
+    F: serde::Serialize,
+{
+    value.serialize(ser::serializer::ValueSerializer::new())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -85,5 +98,12 @@ mod tests {
         let v = jsonc!(true);
         let t: bool = from_value(v).unwrap();
         assert_eq!(t, true);
+    }
+
+    #[test]
+    fn test_to_value() {
+        let v = jsonc!(true);
+        let t: JsoncValue<i64, f64> = to_value(v).unwrap();
+        assert_eq!(t, JsoncValue::Bool(true));
     }
 }

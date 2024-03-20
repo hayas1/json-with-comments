@@ -114,7 +114,7 @@ pub mod value;
 pub use de::{from_file, from_path, from_read, from_str, from_str_raw};
 pub use error::{JsonWithCommentsError as Error, Result};
 pub use ser::{to_file, to_file_pretty, to_path, to_path_pretty, to_string, to_string_pretty, to_write};
-pub use value::from_value;
+pub use value::{from_value, to_value};
 
 pub use ser::formatter::{
     minify::MinifyFormatter,

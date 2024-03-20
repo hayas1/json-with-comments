@@ -1,3 +1,5 @@
+pub mod serializer;
+
 use serde::Serialize;
 
 use super::{number::Number, JsoncValue};
