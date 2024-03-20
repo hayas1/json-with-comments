@@ -227,10 +227,9 @@ fn test_serialize_single_number_literal() {
     let number = to_string(minus_hundred).unwrap();
     assert_eq!(number, "-100");
 
-    // TODO
-    // let hundred_fraction = 100.0;
-    // let number = to_string(hundred_fraction).unwrap();
-    // assert_eq!(number, "100.0");
+    let hundred_fraction = 100.0;
+    let number = to_string(hundred_fraction).unwrap();
+    assert_eq!(number, "100.0");
 
     let half = 0.5;
     let number = to_string(half).unwrap();
