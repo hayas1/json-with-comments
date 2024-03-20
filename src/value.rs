@@ -62,13 +62,28 @@ impl<I, F> JsoncValue<I, F> {
     }
 }
 
-// TODO implement Deserializer for JsoncValue
-// TODO doc
-// pub fn from_value<T, I, F>(value: JsoncValue<I, F>) -> crate::Result<T>
-// where
-//     T: serde::de::DeserializeOwned,
-//     I: num::FromPrimitive,
-//     F: num::FromPrimitive,
-// {
-//     T::deserialize(value)
-// }
+/// Deserialize [`JsoncValue`] to `T`
+///
+/// # Example
+/// TODO example
+pub fn from_value<'de, T, I, F>(value: JsoncValue<I, F>) -> crate::Result<T>
+where
+    T: serde::de::Deserialize<'de>,
+    I: serde::de::Deserialize<'de>,
+    F: serde::de::Deserialize<'de>,
+{
+    T::deserialize(value)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::jsonc;
+
+    #[test]
+    fn test_from_value() {
+        let v = jsonc!(true);
+        let t: bool = from_value(v).unwrap();
+        assert_eq!(t, true);
+    }
+}
