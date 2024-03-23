@@ -64,8 +64,10 @@ impl<I, F> JsoncValue<I, F> {
 
 impl<'de, I, F> JsoncValue<I, F>
 where
-    I: serde::Deserialize<'de>,
-    F: serde::Deserialize<'de>,
+    I: num::ToPrimitive,
+    F: num::ToPrimitive,
+    // I: serde::Deserialize<'de>,
+    // F: serde::Deserialize<'de>,
 {
     /// TODO doc
     pub fn into_deserialize<T>(self) -> crate::Result<T>

@@ -5,9 +5,38 @@ use crate::value::{number::Number, JsoncValue};
 pub struct ValueDeserializer<I, F> {
     value: JsoncValue<I, F>,
 }
-impl<I, F> ValueDeserializer<I, F> {
+
+impl<I, F> ValueDeserializer<I, F>
+where
+    I: num::ToPrimitive,
+    F: num::ToPrimitive,
+{
     pub fn new(value: JsoncValue<I, F>) -> Self {
         Self { value }
+    }
+
+    pub fn invalid_type<E: de::Error>(&self, exp: &dyn de::Expected) -> E {
+        E::invalid_type(self.unexpected(), exp)
+    }
+
+    pub fn unexpected(&self) -> de::Unexpected {
+        match &self.value {
+            JsoncValue::Object(_) => de::Unexpected::Map,
+            JsoncValue::Array(_) => de::Unexpected::Seq,
+            JsoncValue::Bool(b) => de::Unexpected::Bool(*b),
+            JsoncValue::Null => de::Unexpected::Unit,
+            JsoncValue::String(s) => de::Unexpected::Str(s),
+            JsoncValue::Number(n) => match n {
+                Number::Integer(i) => match i.to_i64() {
+                    Some(signed) => de::Unexpected::Signed(signed),
+                    None => de::Unexpected::Other("number"),
+                },
+                Number::Float(f) => match f.to_f64() {
+                    Some(float) => de::Unexpected::Float(float),
+                    None => de::Unexpected::Other("number"),
+                },
+            },
+        }
     }
 }
 
@@ -42,7 +71,7 @@ where
     {
         match self.value {
             JsoncValue::Bool(b) => visitor.visit_bool(b),
-            _ => todo!(),
+            _ => Err(self.invalid_type::<crate::Error>(&visitor))?,
         }
     }
 
