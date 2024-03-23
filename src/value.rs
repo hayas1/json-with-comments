@@ -72,7 +72,7 @@ where
     where
         T: serde::Deserialize<'de>,
     {
-        T::deserialize(self)
+        T::deserialize(de::deserializer::ValueDeserializer::new(self))
     }
 }
 
@@ -82,7 +82,7 @@ where
     F: serde::Serialize,
 {
     /// TODO doc
-    pub fn from_serialize<T>(value: T) -> crate::Result<JsoncValue<I, F>>
+    pub fn from_serialize<T>(value: T) -> crate::Result<Self>
     where
         T: serde::Serialize,
     {

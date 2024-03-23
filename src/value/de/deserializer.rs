@@ -2,7 +2,16 @@ use serde::de;
 
 use crate::value::{number::Number, JsoncValue};
 
-impl<'de, I, F> de::Deserializer<'de> for JsoncValue<I, F>
+pub struct ValueDeserializer<I, F> {
+    value: JsoncValue<I, F>,
+}
+impl<I, F> ValueDeserializer<I, F> {
+    pub fn new(value: JsoncValue<I, F>) -> Self {
+        Self { value }
+    }
+}
+
+impl<'de, I, F> de::Deserializer<'de> for ValueDeserializer<I, F>
 where
     I: de::Deserialize<'de>,
     // crate::Error: From<>,
@@ -15,7 +24,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self {
+        match self.value {
             // JsoncValue::Object(map) => visitor.visit_map(map),
             // JsoncValue::Array(vec) => visitor.visit_seq(vec),
             JsoncValue::Bool(b) => visitor.visit_bool(b),
@@ -30,7 +39,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self {
+        match self.value {
             JsoncValue::Bool(b) => visitor.visit_bool(b),
             _ => todo!(),
         }
