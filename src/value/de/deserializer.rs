@@ -1,8 +1,6 @@
 use serde::de;
 
-use crate::value::JsoncValue;
-
-use super::number::NumberDeserializer;
+use crate::value::{number::Number, JsoncValue};
 
 pub struct ValueDeserializer<I, F> {
     value: JsoncValue<I, F>,
@@ -15,10 +13,8 @@ impl<I, F> ValueDeserializer<I, F> {
 
 impl<'de, I, F> de::Deserializer<'de> for ValueDeserializer<I, F>
 where
-    I: de::Deserialize<'de>,
-    // crate::Error: From<>,
-    F: de::Deserialize<'de>,
-    // crate::Error: From<F::Error>,
+    I: num::ToPrimitive,
+    F: num::ToPrimitive,
 {
     type Error = crate::Error;
 
@@ -32,7 +28,10 @@ where
             JsoncValue::Bool(b) => visitor.visit_bool(b),
             JsoncValue::Null => visitor.visit_none(),
             JsoncValue::String(s) => visitor.visit_string(s),
-            JsoncValue::Number(n) => NumberDeserializer::new(n).deserialize_any(visitor),
+            JsoncValue::Number(n) => match n {
+                Number::Integer(i) => visitor.visit_i64(i.to_i64().unwrap()), // TODO other number type
+                Number::Float(f) => visitor.visit_f64(f.to_f64().unwrap()),
+            },
             _ => todo!(),
         }
     }
