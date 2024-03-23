@@ -1,6 +1,8 @@
 use serde::de;
 
-use crate::value::{number::Number, JsoncValue};
+use crate::value::JsoncValue;
+
+use super::number::NumberDeserializer;
 
 pub struct ValueDeserializer<I, F> {
     value: JsoncValue<I, F>,
@@ -30,7 +32,7 @@ where
             JsoncValue::Bool(b) => visitor.visit_bool(b),
             JsoncValue::Null => visitor.visit_none(),
             JsoncValue::String(s) => visitor.visit_string(s),
-            JsoncValue::Number(n) => n.deserialize_any(visitor),
+            JsoncValue::Number(n) => NumberDeserializer::new(n).deserialize_any(visitor),
             _ => todo!(),
         }
     }

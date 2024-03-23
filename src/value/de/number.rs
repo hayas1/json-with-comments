@@ -2,7 +2,17 @@ use serde::de;
 
 use crate::value::number::Number;
 
-impl<'de, I, F> de::Deserializer<'de> for Number<I, F>
+pub struct NumberDeserializer<I, F> {
+    number: Number<I, F>,
+}
+
+impl<I, F> NumberDeserializer<I, F> {
+    pub fn new(number: Number<I, F>) -> Self {
+        Self { number }
+    }
+}
+
+impl<'de, I, F> de::Deserializer<'de> for NumberDeserializer<I, F>
 where
     I: de::Deserialize<'de>,
     F: de::Deserialize<'de>,
