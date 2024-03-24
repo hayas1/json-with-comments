@@ -109,8 +109,8 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self.value {
-            JsoncValue::Number(number) => visitor.visit_u8(FromNumber::from_number(number)?),
+        match self.value.as_number() {
+            Some(number) => visitor.visit_u8(FromNumber::from_number(number)?),
             _ => Err(self.invalid_type::<crate::Error>(&visitor))?,
         }
     }

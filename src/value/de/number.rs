@@ -1,5 +1,3 @@
-use serde::de;
-
 use crate::{error::ConvertError, value::number::Number};
 
 pub trait FromNumber<I, F>: Sized
@@ -8,7 +6,7 @@ where
     F: num::ToPrimitive,
 {
     type Err;
-    fn from_number(number: Number<I, F>) -> Result<Self, Self::Err>;
+    fn from_number(number: &Number<I, F>) -> Result<Self, Self::Err>;
 }
 
 pub enum IntegerConverter {}
@@ -20,7 +18,7 @@ where
     F: num::ToPrimitive,
 {
     type Err;
-    fn convert<N: Converted<I, F>>(n: Number<I, F>) -> Result<N, Self::Err>;
+    fn convert<N: Converted<I, F>>(n: &Number<I, F>) -> Result<N, Self::Err>;
 }
 
 impl<I, F> Converter<I, F> for IntegerConverter
@@ -29,7 +27,7 @@ where
     F: num::ToPrimitive,
 {
     type Err = crate::Error;
-    fn convert<N: Converted<I, F>>(n: Number<I, F>) -> Result<N, Self::Err> {
+    fn convert<N: Converted<I, F>>(n: &Number<I, F>) -> Result<N, Self::Err> {
         match n {
             Number::Integer(i) => Ok(Converted::<I, F>::to_self(i).ok_or(ConvertError::InvalidIntegerConvert)?),
             Number::Float(_) => Err(ConvertError::CannotConvertFloatToInteger)?,
@@ -43,7 +41,7 @@ where
     F: num::ToPrimitive,
 {
     type Err = crate::Error;
-    fn convert<N: Converted<I, F>>(n: Number<I, F>) -> Result<N, Self::Err> {
+    fn convert<N: Converted<I, F>>(n: &Number<I, F>) -> Result<N, Self::Err> {
         match n {
             Number::Integer(_) => Err(ConvertError::CannotConvertIntegerToFloat)?,
             Number::Float(f) => Ok(Converted::<I, F>::to_self(f).ok_or(ConvertError::InvalidIntegerConvert)?),
@@ -57,8 +55,8 @@ where
     F: num::ToPrimitive,
 {
     type Converter: Converter<I, F>;
-    fn to_self<P: num::ToPrimitive>(p: P) -> Option<Self>;
-    fn converted(n: Number<I, F>) -> Result<Self, <Self::Converter as Converter<I, F>>::Err> {
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self>;
+    fn converted(n: &Number<I, F>) -> Result<Self, <Self::Converter as Converter<I, F>>::Err> {
         Self::Converter::convert(n)
     }
 }
@@ -70,249 +68,80 @@ where
     F: num::ToPrimitive,
 {
     type Err = <<T as Converted<I, F>>::Converter as Converter<I, F>>::Err;
-    fn from_number(number: Number<I, F>) -> Result<Self, Self::Err> {
+    fn from_number(number: &Number<I, F>) -> Result<Self, Self::Err> {
         Self::converted(number)
     }
 }
 
-impl<I, F> Converted<I, F> for u8
-where
-    I: num::ToPrimitive,
-    F: num::ToPrimitive,
-{
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for u8 {
     type Converter = IntegerConverter;
-    fn to_self<P: num::ToPrimitive>(p: P) -> Option<Self> {
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
         p.to_u8()
     }
 }
-
-pub struct NumberDeserializer<I, F> {
-    number: Number<I, F>,
-}
-
-impl<I, F> NumberDeserializer<I, F> {
-    pub fn new(number: Number<I, F>) -> Self {
-        Self { number }
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for u16 {
+    type Converter = IntegerConverter;
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
+        p.to_u16()
     }
 }
-
-impl<'de, I, F> de::Deserializer<'de> for NumberDeserializer<I, F>
-where
-    I: de::Deserialize<'de>,
-    F: de::Deserialize<'de>,
-{
-    type Error = crate::Error;
-
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for u32 {
+    type Converter = IntegerConverter;
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
+        p.to_u32()
     }
-
-    fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
+}
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for u64 {
+    type Converter = IntegerConverter;
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
+        p.to_u64()
     }
-
-    fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
+}
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for u128 {
+    type Converter = IntegerConverter;
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
+        p.to_u128()
     }
-
-    fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
+}
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for i8 {
+    type Converter = IntegerConverter;
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
+        p.to_i8()
     }
-
-    fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
+}
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for i16 {
+    type Converter = IntegerConverter;
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
+        p.to_i16()
     }
-
-    fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
+}
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for i32 {
+    type Converter = IntegerConverter;
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
+        p.to_i32()
     }
-
-    fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
+}
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for i64 {
+    type Converter = IntegerConverter;
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
+        p.to_i64()
     }
-
-    fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
+}
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for i128 {
+    type Converter = IntegerConverter;
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
+        p.to_i128()
     }
-
-    fn deserialize_u32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
+}
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for f32 {
+    type Converter = FloatConverter;
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
+        p.to_f32()
     }
-
-    fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_f32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_unit_struct<V>(self, name: &'static str, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_newtype_struct<V>(self, name: &'static str, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_tuple_struct<V>(self, name: &'static str, len: usize, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_struct<V>(
-        self,
-        name: &'static str,
-        fields: &'static [&'static str],
-        visitor: V,
-    ) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_enum<V>(
-        self,
-        name: &'static str,
-        variants: &'static [&'static str],
-        visitor: V,
-    ) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
-    }
-
-    fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: de::Visitor<'de>,
-    {
-        todo!()
+}
+impl<I: num::ToPrimitive, F: num::ToPrimitive> Converted<I, F> for f64 {
+    type Converter = FloatConverter;
+    fn to_self<P: num::ToPrimitive>(p: &P) -> Option<Self> {
+        p.to_f64()
     }
 }
