@@ -17,6 +17,20 @@ where
         Self { value }
     }
 
+    pub fn deserialize_number_value<'de, V, Fn, N>(self, visitor: V, f: Fn) -> crate::Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+        N: FromNumber<I, F>,
+        N::Err: de::Error,
+        crate::Error: From<N::Err>,
+        Fn: FnOnce(V, N) -> Result<V::Value, N::Err>,
+    {
+        match self.value.as_number() {
+            Some(number) => Ok(f(visitor, FromNumber::from_number(number)?)?),
+            _ => Err(self.invalid_type::<crate::Error>(&visitor))?,
+        }
+    }
+
     pub fn invalid_type<E: de::Error>(&self, exp: &dyn de::Expected) -> E {
         E::invalid_type(self.unexpected(), exp)
     }
@@ -81,73 +95,70 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_number_value(visitor, |v, n| v.visit_i8(n))
     }
 
     fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_number_value(visitor, |v, n| v.visit_i16(n))
     }
 
     fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_number_value(visitor, |v, n| v.visit_i32(n))
     }
 
     fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_number_value(visitor, |v, n| v.visit_i64(n))
     }
 
     fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        match self.value.as_number() {
-            Some(number) => visitor.visit_u8(FromNumber::from_number(number)?),
-            _ => Err(self.invalid_type::<crate::Error>(&visitor))?,
-        }
+        self.deserialize_number_value(visitor, |v, n| v.visit_u8(n))
     }
 
     fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_number_value(visitor, |v, n| v.visit_u16(n))
     }
 
     fn deserialize_u32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_number_value(visitor, |v, n| v.visit_u32(n))
     }
 
     fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_number_value(visitor, |v, n| v.visit_u64(n))
     }
 
     fn deserialize_f32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_number_value(visitor, |v, n| v.visit_f32(n))
     }
 
     fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_number_value(visitor, |v, n| v.visit_f64(n))
     }
 
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
