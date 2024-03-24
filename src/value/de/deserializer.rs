@@ -2,6 +2,8 @@ use serde::de;
 
 use crate::value::{number::Number, JsoncValue};
 
+use super::number::FromNumber;
+
 pub struct ValueDeserializer<I, F> {
     value: JsoncValue<I, F>,
 }
@@ -69,9 +71,9 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self.value {
-            JsoncValue::Bool(b) => visitor.visit_bool(b),
-            _ => Err(self.invalid_type::<crate::Error>(&visitor))?,
+        match self.value.as_bool() {
+            Some(&b) => visitor.visit_bool(b),
+            None => Err(self.invalid_type::<crate::Error>(&visitor))?,
         }
     }
 
@@ -107,7 +109,10 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        match self.value {
+            JsoncValue::Number(number) => visitor.visit_u8(FromNumber::from_number(number)?),
+            _ => Err(self.invalid_type::<crate::Error>(&visitor))?,
+        }
     }
 
     fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value, Self::Error>

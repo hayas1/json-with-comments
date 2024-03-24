@@ -1,6 +1,77 @@
 use serde::de;
 
-use crate::value::number::Number;
+use crate::{error::ConvertError, value::number::Number};
+
+pub trait FromNumber<I, F>: Sized
+where
+    I: num::ToPrimitive,
+    F: num::ToPrimitive,
+{
+    type Err;
+    fn from_number(number: Number<I, F>) -> Result<Self, Self::Err>;
+}
+
+pub enum IntegerConverter {}
+pub enum FloatConverter {}
+
+pub trait Converter<I, F>
+where
+    I: num::ToPrimitive,
+    F: num::ToPrimitive,
+{
+    type Err;
+    fn convert<N: FromNumber<I, F>>(n: Number<I, F>) -> Result<N, Self::Err>;
+}
+
+impl<I, F> Converter<I, F> for IntegerConverter
+where
+    I: num::ToPrimitive,
+    F: num::ToPrimitive,
+{
+    type Err = crate::Error;
+    fn convert<N: FromNumber<I, F>>(n: Number<I, F>) -> Result<N, Self::Err> {
+        todo!()
+    }
+}
+
+pub trait Converted<I, F>: Sized
+where
+    I: num::ToPrimitive,
+    F: num::ToPrimitive,
+{
+    type Converter;
+    type Err;
+    fn converted(n: Number<I, F>) -> Result<Self, Self::Err>;
+    // type Converter: Converter<I, F>;
+    // fn converted(n: Number<I, F>) -> Result<Self, <Self::Converter as Converter<I, F>>::Err>;
+}
+
+impl<T, I, F> FromNumber<I, F> for T
+where
+    T: Converted<I, F>,
+    I: num::ToPrimitive,
+    F: num::ToPrimitive,
+{
+    type Err = <T as Converted<I, F>>::Err;
+    fn from_number(number: Number<I, F>) -> Result<Self, Self::Err> {
+        Self::converted(number)
+    }
+}
+
+impl<I, F> Converted<I, F> for u8
+where
+    I: num::ToPrimitive,
+    F: num::ToPrimitive,
+{
+    type Converter = IntegerConverter;
+    type Err = crate::Error;
+    fn converted(n: Number<I, F>) -> Result<Self, Self::Err> {
+        match n {
+            Number::Integer(i) => Ok(i.to_u8().ok_or(ConvertError::CannotConvertToU8)?),
+            Number::Float(_) => Err(ConvertError::CannotConvertFloatToInteger)?,
+        }
+    }
+}
 
 pub struct NumberDeserializer<I, F> {
     number: Number<I, F>,

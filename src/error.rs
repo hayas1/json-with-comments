@@ -3,7 +3,10 @@ use std::fmt;
 use serde::{de, ser};
 use thiserror::Error;
 
-use crate::de::position::{PosRange, Position};
+use crate::{
+    de::position::{PosRange, Position},
+    value::number::Number,
+};
 
 pub type Result<T> = std::result::Result<T, JsonWithCommentsError>;
 #[derive(Error, Debug)]
@@ -254,6 +257,20 @@ pub enum SemanticError {
 }
 impl From<SemanticError> for JsonWithCommentsError {
     fn from(err: SemanticError) -> Self {
+        JsonWithCommentsError::new(err)
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum ConvertError {
+    #[error("Cannot convert float to integer")]
+    CannotConvertFloatToInteger,
+
+    #[error("Cannot convert to u8")]
+    CannotConvertToU8,
+}
+impl From<ConvertError> for JsonWithCommentsError {
+    fn from(err: ConvertError) -> Self {
         JsonWithCommentsError::new(err)
     }
 }

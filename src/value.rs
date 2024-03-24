@@ -102,6 +102,10 @@ mod tests {
         let v = jsonc!(true);
         let t: bool = v.into_deserialize().unwrap();
         assert_eq!(t, true);
+
+        let one = jsonc!(1);
+        let t: u8 = one.into_deserialize().unwrap();
+        assert_eq!(t, 1u8);
     }
 
     #[test]
