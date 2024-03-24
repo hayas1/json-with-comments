@@ -20,7 +20,7 @@ where
     F: num::ToPrimitive,
 {
     type Err;
-    fn convert<N: FromNumber<I, F>>(n: Number<I, F>) -> Result<N, Self::Err>;
+    fn convert<N: Converted<I, F>>(n: Number<I, F>) -> Result<N, Self::Err>;
 }
 
 impl<I, F> Converter<I, F> for IntegerConverter
@@ -29,8 +29,25 @@ where
     F: num::ToPrimitive,
 {
     type Err = crate::Error;
-    fn convert<N: FromNumber<I, F>>(n: Number<I, F>) -> Result<N, Self::Err> {
-        todo!()
+    fn convert<N: Converted<I, F>>(n: Number<I, F>) -> Result<N, Self::Err> {
+        match n {
+            Number::Integer(i) => Ok(Converted::<I, F>::to_self(i).ok_or(ConvertError::InvalidIntegerConvert)?),
+            Number::Float(_) => Err(ConvertError::CannotConvertFloatToInteger)?,
+        }
+    }
+}
+
+impl<I, F> Converter<I, F> for FloatConverter
+where
+    I: num::ToPrimitive,
+    F: num::ToPrimitive,
+{
+    type Err = crate::Error;
+    fn convert<N: Converted<I, F>>(n: Number<I, F>) -> Result<N, Self::Err> {
+        match n {
+            Number::Integer(_) => Err(ConvertError::CannotConvertIntegerToFloat)?,
+            Number::Float(f) => Ok(Converted::<I, F>::to_self(f).ok_or(ConvertError::InvalidIntegerConvert)?),
+        }
     }
 }
 
@@ -39,11 +56,11 @@ where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
 {
-    type Converter;
-    type Err;
-    fn converted(n: Number<I, F>) -> Result<Self, Self::Err>;
-    // type Converter: Converter<I, F>;
-    // fn converted(n: Number<I, F>) -> Result<Self, <Self::Converter as Converter<I, F>>::Err>;
+    type Converter: Converter<I, F>;
+    fn to_self<P: num::ToPrimitive>(p: P) -> Option<Self>;
+    fn converted(n: Number<I, F>) -> Result<Self, <Self::Converter as Converter<I, F>>::Err> {
+        Self::Converter::convert(n)
+    }
 }
 
 impl<T, I, F> FromNumber<I, F> for T
@@ -52,7 +69,7 @@ where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
 {
-    type Err = <T as Converted<I, F>>::Err;
+    type Err = <<T as Converted<I, F>>::Converter as Converter<I, F>>::Err;
     fn from_number(number: Number<I, F>) -> Result<Self, Self::Err> {
         Self::converted(number)
     }
@@ -64,12 +81,8 @@ where
     F: num::ToPrimitive,
 {
     type Converter = IntegerConverter;
-    type Err = crate::Error;
-    fn converted(n: Number<I, F>) -> Result<Self, Self::Err> {
-        match n {
-            Number::Integer(i) => Ok(i.to_u8().ok_or(ConvertError::CannotConvertToU8)?),
-            Number::Float(_) => Err(ConvertError::CannotConvertFloatToInteger)?,
-        }
+    fn to_self<P: num::ToPrimitive>(p: P) -> Option<Self> {
+        p.to_u8()
     }
 }
 

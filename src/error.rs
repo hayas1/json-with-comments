@@ -266,8 +266,14 @@ pub enum ConvertError {
     #[error("Cannot convert float to integer")]
     CannotConvertFloatToInteger,
 
-    #[error("Cannot convert to u8")]
-    CannotConvertToU8,
+    #[error("Cannot convert integer to float")]
+    CannotConvertIntegerToFloat,
+
+    #[error("converted range must contain converting range")]
+    InvalidIntegerConvert,
+
+    #[error("converted range must contain converting range")]
+    InvalidFloatConvert,
 }
 impl From<ConvertError> for JsonWithCommentsError {
     fn from(err: ConvertError) -> Self {
