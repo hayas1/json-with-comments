@@ -1,5 +1,6 @@
 pub mod deserializer;
 pub mod number;
+pub mod seq;
 pub mod visitor;
 
 use serde::Deserialize;

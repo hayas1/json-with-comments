@@ -1,11 +1,11 @@
-use serde::de;
+use serde::de::{self};
 
 use crate::value::{number::Number, JsoncValue};
 
-use super::number::FromNumber;
+use super::{number::FromNumber, seq::SeqDeserializer};
 
 pub struct ValueDeserializer<I, F> {
-    value: JsoncValue<I, F>,
+    pub value: JsoncValue<I, F>,
 }
 
 impl<I, F> ValueDeserializer<I, F>
@@ -240,7 +240,10 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        match self.value.as_array() {
+            Some(v) => visitor.visit_seq(SeqDeserializer::new(v.into_iter())),
+            None => Err(self.invalid_type(&visitor)),
+        }
     }
 
     fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
