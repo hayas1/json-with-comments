@@ -98,7 +98,7 @@ mod tests {
     use crate::jsonc;
 
     #[test]
-    fn test_from_value() {
+    fn test_from_value_number() {
         let v = jsonc!(true);
         let t: bool = v.into_deserialize().unwrap();
         assert_eq!(t, true);
@@ -110,6 +110,17 @@ mod tests {
         let half = jsonc!(0.5);
         let t: f64 = half.into_deserialize().unwrap();
         assert_eq!(t, 0.5f64);
+    }
+
+    #[test]
+    fn test_from_value_string() {
+        let s = jsonc!("String");
+        let t: String = s.into_deserialize().unwrap();
+        assert_eq!(t, "String".to_string());
+
+        // let s = jsonc!("&str");
+        // let t: &str = s.into_deserialize().unwrap();
+        // assert_eq!(t, "&str");
     }
 
     #[test]
