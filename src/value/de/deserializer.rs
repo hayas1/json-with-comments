@@ -241,7 +241,7 @@ where
         V: de::Visitor<'de>,
     {
         match self.value.as_array() {
-            Some(v) => visitor.visit_seq(SeqDeserializer::new(v.iter())),
+            Some(v) => visitor.visit_seq(SeqDeserializer::new(v)),
             None => Err(self.invalid_type(&visitor)),
         }
     }

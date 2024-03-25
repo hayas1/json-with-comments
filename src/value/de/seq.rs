@@ -13,11 +13,8 @@ where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
 {
-    pub fn new<It>(iter: It) -> Self
-    where
-        It: Iterator<Item = &'de JsoncValue<I, F>> + 'de,
-    {
-        SeqDeserializer { iter: Box::new(iter) }
+    pub fn new(seq: &'de [JsoncValue<I, F>]) -> Self {
+        SeqDeserializer { iter: Box::new(seq.iter()) }
     }
 }
 
