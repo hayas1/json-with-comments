@@ -163,6 +163,7 @@ mod tests {
             name: &'a str,
             age: Option<u32>,
         }
+
         let target = jsonc!({"name": "John", "age": 30});
         let person: Person = target.into_deserialize().unwrap();
         assert_eq!(person, Person { name: "John", age: Some(30) });
@@ -170,6 +171,33 @@ mod tests {
         let target = jsonc!([{"name": "John", "age": 30},{"name": "Jin", "age": null}]);
         let person: Vec<Person> = target.into_deserialize().unwrap();
         assert_eq!(person, [Person { name: "John", age: Some(30) }, Person { name: "Jin", age: None }]);
+    }
+
+    #[test]
+    fn test_enum_from_value() {
+        #[derive(Deserialize, Debug, PartialEq)]
+        enum Animal<'a> {
+            Dog,
+            Cat(u8),
+            Fish(&'a str, u8),
+            Bird { name: &'a str },
+        }
+
+        let target = jsonc!("Dog");
+        let dog: Animal = target.into_deserialize().unwrap();
+        assert_eq!(dog, Animal::Dog);
+
+        let target = jsonc!({"Cat": 2});
+        let cat: Animal = target.into_deserialize().unwrap();
+        assert_eq!(cat, Animal::Cat(2));
+
+        let target = jsonc!({"Fish": ["Tuna", 3]});
+        let fish: Animal = target.into_deserialize().unwrap();
+        assert_eq!(fish, Animal::Fish("Tuna", 3));
+
+        let target = jsonc!({"Bird": {"name": "Pigeon"}});
+        let bird: Animal = target.into_deserialize().unwrap();
+        assert_eq!(bird, Animal::Bird { name: "Pigeon" });
     }
 
     #[test]

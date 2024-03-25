@@ -353,6 +353,9 @@ pub enum Ensure {
 
     #[error("same type conversion should be always possible")]
     CanConvertAlways,
+
+    #[error("unit variant has no value")]
+    UnitVariant,
 }
 impl From<Ensure> for JsonWithCommentsError {
     fn from(err: Ensure) -> Self {

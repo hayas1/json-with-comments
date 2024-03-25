@@ -2,7 +2,7 @@ use serde::de::{self, IgnoredAny};
 
 use crate::value::{number::Number, JsoncValue};
 
-use super::{map::MapDeserializer, number::FromNumber, seq::SeqDeserializer};
+use super::{map::MapDeserializer, number::FromNumber, r#enum::EnumDeserializer, seq::SeqDeserializer};
 
 pub struct ValueDeserializer<'de, I, F> {
     pub value: &'de JsoncValue<I, F>,
@@ -265,7 +265,7 @@ where
         V: de::Visitor<'de>,
     {
         match self.value.as_object() {
-            Some(v) => visitor.visit_map(MapDeserializer::new(v)),
+            Some(m) => visitor.visit_map(MapDeserializer::new(m)),
             None => Err(self.invalid_type(&visitor)),
         }
     }
@@ -288,14 +288,24 @@ where
 
     fn deserialize_enum<V>(
         self,
-        name: &'static str,
-        variants: &'static [&'static str],
+        _name: &'static str,
+        _variants: &'static [&'static str],
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        match self.value {
+            JsoncValue::Object(m) => {
+                let mut iter = m.iter();
+                match (iter.next(), iter.next()) {
+                    (Some((key, value)), None) => visitor.visit_enum(EnumDeserializer::new(key, Some(value))),
+                    _ => Err(self.invalid_type(&visitor)),
+                }
+            }
+            JsoncValue::String(s) => visitor.visit_enum(EnumDeserializer::<I, F>::new(s, None)),
+            _ => Err(self.invalid_type(&visitor)),
+        }
     }
 
     fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value, Self::Error>
