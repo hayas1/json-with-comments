@@ -94,6 +94,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
+    use serde::Deserialize;
+
     use super::*;
     use crate::jsonc;
 
@@ -143,6 +147,29 @@ mod tests {
         let target = jsonc!([0, true, "two"]);
         let tuple: (i8, bool, String) = target.into_deserialize().unwrap();
         assert_eq!(tuple, (0, true, "two".to_string()));
+    }
+
+    #[test]
+    fn test_from_value_map() {
+        let target = jsonc!({"key": "value"});
+        let map: HashMap<String, String> = target.into_deserialize().unwrap();
+        assert_eq!(map, HashMap::from([("key".to_string(), "value".to_string())]));
+    }
+
+    #[test]
+    fn test_struct_from_value() {
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct Person<'a> {
+            name: &'a str,
+            age: Option<u32>,
+        }
+        let target = jsonc!({"name": "John", "age": 30});
+        let person: Person = target.into_deserialize().unwrap();
+        assert_eq!(person, Person { name: "John", age: Some(30) });
+
+        let target = jsonc!([{"name": "John", "age": 30},{"name": "Jin", "age": null}]);
+        let person: Vec<Person> = target.into_deserialize().unwrap();
+        assert_eq!(person, [Person { name: "John", age: Some(30) }, Person { name: "Jin", age: None }]);
     }
 
     #[test]

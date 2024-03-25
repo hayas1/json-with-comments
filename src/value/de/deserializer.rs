@@ -1,8 +1,8 @@
-use serde::de::{self};
+use serde::de::{self, IgnoredAny};
 
 use crate::value::{number::Number, JsoncValue};
 
-use super::{number::FromNumber, seq::SeqDeserializer};
+use super::{map::MapDeserializer, number::FromNumber, seq::SeqDeserializer};
 
 pub struct ValueDeserializer<'de, I, F> {
     pub value: &'de JsoncValue<I, F>,
@@ -264,19 +264,26 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        match self.value.as_object() {
+            Some(v) => visitor.visit_map(MapDeserializer::new(v)),
+            None => Err(self.invalid_type(&visitor)),
+        }
     }
 
     fn deserialize_struct<V>(
         self,
-        name: &'static str,
-        fields: &'static [&'static str],
+        _name: &'static str,
+        _fields: &'static [&'static str],
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        match self.value {
+            JsoncValue::Array(_) => self.deserialize_seq(visitor),
+            JsoncValue::Object(_) => self.deserialize_map(visitor),
+            _ => Err(self.invalid_type(&visitor)),
+        }
     }
 
     fn deserialize_enum<V>(
@@ -295,13 +302,14 @@ where
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_str(visitor)
     }
 
     fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        todo!()
+        let _ = self.deserialize_any(IgnoredAny)?;
+        visitor.visit_unit()
     }
 }

@@ -1,4 +1,5 @@
 pub mod deserializer;
+pub mod map;
 pub mod number;
 pub mod seq;
 pub mod visitor;

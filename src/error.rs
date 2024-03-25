@@ -3,10 +3,7 @@ use std::fmt;
 use serde::{de, ser};
 use thiserror::Error;
 
-use crate::{
-    de::position::{PosRange, Position},
-    value::number::Number,
-};
+use crate::de::position::{PosRange, Position};
 
 pub type Result<T> = std::result::Result<T, JsonWithCommentsError>;
 #[derive(Error, Debug)]
@@ -67,6 +64,16 @@ impl From<std::num::ParseIntError> for JsonWithCommentsError {
 }
 impl From<std::num::ParseFloatError> for JsonWithCommentsError {
     fn from(value: std::num::ParseFloatError) -> Self {
+        JsonWithCommentsError::new(value)
+    }
+}
+impl From<std::str::ParseBoolError> for JsonWithCommentsError {
+    fn from(value: std::str::ParseBoolError) -> Self {
+        JsonWithCommentsError::new(value)
+    }
+}
+impl From<std::char::ParseCharError> for JsonWithCommentsError {
+    fn from(value: std::char::ParseCharError) -> Self {
         JsonWithCommentsError::new(value)
     }
 }
@@ -334,6 +341,9 @@ pub enum Ensure {
 
     #[error("previous peek ensure this eat does not return None")]
     EatAfterLook,
+
+    #[error("next value must exist")]
+    NextValue,
 
     #[error("returns Result for interface reasons, but does not actually fail")]
     EmptyError,
