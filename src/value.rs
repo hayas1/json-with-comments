@@ -124,6 +124,17 @@ mod tests {
     }
 
     #[test]
+    fn test_from_value_option() {
+        let fal = jsonc!(false);
+        let t: Option<bool> = fal.into_deserialize().unwrap();
+        assert_eq!(t, Some(false));
+
+        let null = jsonc!(null);
+        let t: Option<bool> = null.into_deserialize().unwrap();
+        assert_eq!(t, None);
+    }
+
+    #[test]
     fn test_to_value() {
         let t = JsoncValue::<i64, f64>::from_serialize(true).unwrap();
         assert_eq!(t, JsoncValue::Bool(true));
