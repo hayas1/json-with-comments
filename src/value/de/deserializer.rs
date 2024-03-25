@@ -4,20 +4,20 @@ use crate::value::{number::Number, JsoncValue};
 
 use super::{number::FromNumber, seq::SeqDeserializer};
 
-pub struct ValueDeserializer<I, F> {
-    pub value: JsoncValue<I, F>,
+pub struct ValueDeserializer<'de, I, F> {
+    pub value: &'de JsoncValue<I, F>,
 }
 
-impl<I, F> ValueDeserializer<I, F>
+impl<'de, I, F> ValueDeserializer<'de, I, F>
 where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
 {
-    pub fn new(value: JsoncValue<I, F>) -> Self {
+    pub fn new(value: &'de JsoncValue<I, F>) -> Self {
         Self { value }
     }
 
-    pub fn deserialize_number_value<'de, V, Fn, N>(self, visitor: V, f: Fn) -> crate::Result<V::Value>
+    pub fn deserialize_number_value<V, Fn, N>(self, visitor: V, f: Fn) -> crate::Result<V::Value>
     where
         V: de::Visitor<'de>,
         N: FromNumber<I, F>,
@@ -56,7 +56,7 @@ where
     }
 }
 
-impl<'de, I, F> de::Deserializer<'de> for ValueDeserializer<I, F>
+impl<'de, I, F> de::Deserializer<'de> for ValueDeserializer<'de, I, F>
 where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
@@ -70,12 +70,12 @@ where
         match self.value {
             // JsoncValue::Object(map) => visitor.visit_map(map),
             // JsoncValue::Array(vec) => visitor.visit_seq(vec),
-            JsoncValue::Bool(b) => visitor.visit_bool(b),
-            JsoncValue::Null => visitor.visit_none(),
-            JsoncValue::String(s) => visitor.visit_string(s),
+            JsoncValue::Bool(_) => self.deserialize_bool(visitor),
+            JsoncValue::Null => self.deserialize_unit(visitor),
+            JsoncValue::String(_) => self.deserialize_str(visitor),
             JsoncValue::Number(n) => match n {
-                Number::Integer(i) => visitor.visit_i64(i.to_i64().unwrap()), // TODO other number type
-                Number::Float(f) => visitor.visit_f64(f.to_f64().unwrap()),
+                Number::Integer(_) => self.deserialize_i64(visitor), // TODO other number type
+                Number::Float(_) => self.deserialize_f64(visitor),
             },
             _ => todo!(),
         }
@@ -173,7 +173,7 @@ where
         V: de::Visitor<'de>,
     {
         match self.value.as_str() {
-            Some(s) => visitor.visit_str(s),
+            Some(s) => visitor.visit_borrowed_str(s),
             None => Err(self.invalid_type::<crate::Error>(&visitor))?,
         }
     }
@@ -241,7 +241,7 @@ where
         V: de::Visitor<'de>,
     {
         match self.value.as_array() {
-            Some(v) => visitor.visit_seq(SeqDeserializer::new(v.into_iter())),
+            Some(v) => visitor.visit_seq(SeqDeserializer::new(v.iter())),
             None => Err(self.invalid_type(&visitor)),
         }
     }

@@ -70,7 +70,7 @@ where
     // F: serde::Deserialize<'de>,
 {
     /// TODO doc
-    pub fn into_deserialize<T>(self) -> crate::Result<T>
+    pub fn into_deserialize<T>(&'de self) -> crate::Result<T>
     where
         T: serde::Deserialize<'de>,
     {
@@ -118,9 +118,9 @@ mod tests {
         let t: String = s.into_deserialize().unwrap();
         assert_eq!(t, "String".to_string());
 
-        // let s = jsonc!("&str");
-        // let t: &str = s.into_deserialize().unwrap();
-        // assert_eq!(t, "&str");
+        let s = jsonc!("&str");
+        let t: &str = s.into_deserialize().unwrap();
+        assert_eq!(t, "&str");
     }
 
     #[test]
@@ -132,6 +132,13 @@ mod tests {
         let null = jsonc!(null);
         let t: Option<bool> = null.into_deserialize().unwrap();
         assert_eq!(t, None);
+    }
+
+    #[test]
+    fn test_from_value_seq() {
+        let v = jsonc!([1, 2, 3]);
+        let t: Vec<u8> = v.into_deserialize().unwrap();
+        assert_eq!(t, vec![1, 2, 3]);
     }
 
     #[test]
