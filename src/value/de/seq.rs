@@ -5,7 +5,7 @@ use crate::value::JsoncValue;
 use super::deserializer::ValueDeserializer;
 
 pub struct SeqDeserializer<'de, I, F> {
-    iter: std::slice::Iter<'de, JsoncValue<I, F>>,
+    iter: Box<dyn Iterator<Item = &'de JsoncValue<I, F>> + 'de>,
 }
 
 impl<'de, I, F> SeqDeserializer<'de, I, F>
@@ -13,8 +13,11 @@ where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
 {
-    pub fn new(iter: std::slice::Iter<'de, JsoncValue<I, F>>) -> Self {
-        SeqDeserializer { iter }
+    pub fn new<It>(iter: It) -> Self
+    where
+        It: Iterator<Item = &'de JsoncValue<I, F>> + 'de,
+    {
+        SeqDeserializer { iter: Box::new(iter) }
     }
 }
 

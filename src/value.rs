@@ -99,51 +99,55 @@ mod tests {
 
     #[test]
     fn test_from_value_number() {
-        let v = jsonc!(true);
-        let t: bool = v.into_deserialize().unwrap();
-        assert_eq!(t, true);
+        let target = jsonc!(true);
+        let tru: bool = target.into_deserialize().unwrap();
+        assert_eq!(tru, true);
 
-        let one = jsonc!(1);
-        let t: u8 = one.into_deserialize().unwrap();
-        assert_eq!(t, 1u8);
+        let target = jsonc!(1);
+        let one: u8 = target.into_deserialize().unwrap();
+        assert_eq!(one, 1u8);
 
-        let half = jsonc!(0.5);
-        let t: f64 = half.into_deserialize().unwrap();
-        assert_eq!(t, 0.5f64);
+        let target = jsonc!(0.5);
+        let half: f64 = target.into_deserialize().unwrap();
+        assert_eq!(half, 0.5f64);
     }
 
     #[test]
     fn test_from_value_string() {
-        let s = jsonc!("String");
-        let t: String = s.into_deserialize().unwrap();
-        assert_eq!(t, "String".to_string());
+        let target = jsonc!("String");
+        let string: String = target.into_deserialize().unwrap();
+        assert_eq!(string, "String".to_string());
 
-        let s = jsonc!("&str");
-        let t: &str = s.into_deserialize().unwrap();
-        assert_eq!(t, "&str");
+        let target = jsonc!("&str");
+        let str: &str = target.into_deserialize().unwrap();
+        assert_eq!(str, "&str");
     }
 
     #[test]
     fn test_from_value_option() {
-        let fal = jsonc!(false);
-        let t: Option<bool> = fal.into_deserialize().unwrap();
-        assert_eq!(t, Some(false));
+        let target = jsonc!(false);
+        let fal: Option<bool> = target.into_deserialize().unwrap();
+        assert_eq!(fal, Some(false));
 
-        let null = jsonc!(null);
-        let t: Option<bool> = null.into_deserialize().unwrap();
-        assert_eq!(t, None);
+        let target = jsonc!(null);
+        let null: Option<bool> = target.into_deserialize().unwrap();
+        assert_eq!(null, None);
     }
 
     #[test]
     fn test_from_value_seq() {
-        let v = jsonc!([1, 2, 3]);
-        let t: Vec<u8> = v.into_deserialize().unwrap();
-        assert_eq!(t, vec![1, 2, 3]);
+        let target = jsonc!([1, 2, 3]);
+        let natural: Vec<u8> = target.into_deserialize().unwrap();
+        assert_eq!(natural, vec![1, 2, 3]);
+
+        let target = jsonc!([0, true, "two"]);
+        let tuple: (i8, bool, String) = target.into_deserialize().unwrap();
+        assert_eq!(tuple, (0, true, "two".to_string()));
     }
 
     #[test]
     fn test_to_value() {
-        let t = JsoncValue::<i64, f64>::from_serialize(true).unwrap();
-        assert_eq!(t, JsoncValue::Bool(true));
+        let target = JsoncValue::<i64, f64>::from_serialize(true).unwrap();
+        assert_eq!(target, JsoncValue::Bool(true));
     }
 }
