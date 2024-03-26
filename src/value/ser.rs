@@ -26,8 +26,8 @@ impl<I: Serialize, F: Serialize> Serialize for JsoncValue<I, F> {
 
 impl<I, F> JsoncValue<I, F>
 where
-    I: serde::Serialize,
-    F: serde::Serialize,
+    I: num::FromPrimitive,
+    F: num::FromPrimitive,
 {
     /// TODO doc
     pub fn from_serialize<T>(value: T) -> crate::Result<Self>
@@ -70,5 +70,12 @@ mod tests {
         let target = "&str";
         let string = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
         assert_eq!(string, jsonc!("&str"));
+    }
+
+    #[test]
+    fn test_to_value_number() {
+        let target = 123u8;
+        let number = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(number, jsonc!(123));
     }
 }

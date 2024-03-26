@@ -2,22 +2,35 @@ use serde::ser::{self, Impossible};
 
 use crate::value::JsoncValue;
 
+use super::number::ToNumber;
+
 pub struct ValueSerializer<I, F> {
     phantom: std::marker::PhantomData<(I, F)>,
 }
 
-impl<I, F> ValueSerializer<I, F> {
+impl<I, F> ValueSerializer<I, F>
+where
+    I: num::FromPrimitive,
+    F: num::FromPrimitive,
+{
     pub fn new() -> Self {
         Self { phantom: std::marker::PhantomData }
     }
-}
-impl<I, F> Default for ValueSerializer<I, F> {
-    fn default() -> Self {
-        Self::new()
+
+    pub fn serialize_number_value<N>(self, number: N) -> crate::Result<<Self as ser::Serializer>::Ok>
+    where
+        N: ToNumber<I, F>,
+        crate::Error: From<N::Err>,
+    {
+        Ok(number.to_number().map(JsoncValue::Number)?)
     }
 }
 
-impl<I, F> ser::Serializer for ValueSerializer<I, F> {
+impl<I, F> ser::Serializer for ValueSerializer<I, F>
+where
+    I: num::FromPrimitive,
+    F: num::FromPrimitive,
+{
     type Ok = JsoncValue<I, F>;
     type Error = crate::Error;
     type SerializeSeq = Impossible<Self::Ok, Self::Error>; // TODO
@@ -49,7 +62,7 @@ impl<I, F> ser::Serializer for ValueSerializer<I, F> {
     }
 
     fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_number_value(v)
     }
 
     fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {

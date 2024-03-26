@@ -240,9 +240,9 @@ where
 /// TODO example
 pub fn to_value<T, I, F>(value: T) -> crate::Result<JsoncValue<I, F>>
 where
-    T: serde::Serialize,
-    I: serde::Serialize,
-    F: serde::Serialize,
+    T: ser::Serialize,
+    I: num::FromPrimitive,
+    F: num::FromPrimitive,
 {
     JsoncValue::<I, F>::from_serialize(value)
 }
