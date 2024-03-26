@@ -24,17 +24,39 @@ impl<I: Serialize, F: Serialize> Serialize for JsoncValue<I, F> {
     }
 }
 
+impl<I, F> JsoncValue<I, F>
+where
+    I: serde::Serialize,
+    F: serde::Serialize,
+{
+    /// TODO doc
+    pub fn from_serialize<T>(value: T) -> crate::Result<Self>
+    where
+        T: serde::Serialize,
+    {
+        value.serialize(serializer::ValueSerializer::new())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{jsonc, to_string};
 
+    use super::JsoncValue;
+
     #[test]
     fn test_serialize_value() {
-        let v = jsonc!({
+        let target = jsonc!({
             "obj": {
                 "arr": [false, true, 2, 3],
             },
         });
-        assert_eq!(to_string(v).unwrap(), r#"{"obj":{"arr":[false,true,2,3]}}"#);
+        assert_eq!(to_string(target).unwrap(), r#"{"obj":{"arr":[false,true,2,3]}}"#);
+    }
+
+    #[test]
+    fn test_to_value() {
+        let target = JsoncValue::<i64, f64>::from_serialize(true).unwrap();
+        assert_eq!(target, JsoncValue::Bool(true));
     }
 }
