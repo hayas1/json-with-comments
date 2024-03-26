@@ -55,8 +55,20 @@ mod tests {
     }
 
     #[test]
-    fn test_to_value() {
-        let target = JsoncValue::<i64, f64>::from_serialize(true).unwrap();
-        assert_eq!(target, JsoncValue::Bool(true));
+    fn test_to_value_bool() {
+        let target = true;
+        let tru = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(tru, jsonc!(true));
+    }
+
+    #[test]
+    fn test_to_value_string() {
+        let target = "String".to_string();
+        let string = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(string, jsonc!("String"));
+
+        let target = "&str";
+        let string = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(string, jsonc!("&str"));
     }
 }

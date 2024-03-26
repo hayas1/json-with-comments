@@ -73,15 +73,15 @@ impl<I, F> ser::Serializer for ValueSerializer<I, F> {
     }
 
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_str(&v.to_string())
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        Ok(JsoncValue::String(v.to_string()))
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_str(&String::from_utf8_lossy(v))
     }
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
