@@ -60,18 +60,14 @@ mod tests {
     }
 
     #[test]
-    fn test_from_value_number() {
+    fn test_from_value_bool() {
         let target = jsonc!(true);
         let tru: bool = target.into_deserialize().unwrap();
         assert_eq!(tru, true);
 
-        let target = jsonc!(1);
-        let one: u8 = target.into_deserialize().unwrap();
-        assert_eq!(one, 1u8);
-
-        let target = jsonc!(0.5);
-        let half: f64 = target.into_deserialize().unwrap();
-        assert_eq!(half, 0.5f64);
+        let target = jsonc!(false);
+        let fal: bool = target.into_deserialize().unwrap();
+        assert_eq!(fal, false);
     }
 
     #[test]
@@ -83,6 +79,17 @@ mod tests {
         let target = jsonc!("&str");
         let str: &str = target.into_deserialize().unwrap();
         assert_eq!(str, "&str");
+    }
+
+    #[test]
+    fn test_from_value_number() {
+        let target = jsonc!(1);
+        let one: u8 = target.into_deserialize().unwrap();
+        assert_eq!(one, 1u8);
+
+        let target = jsonc!(0.5);
+        let half: f64 = target.into_deserialize().unwrap();
+        assert_eq!(half, 0.5f64);
     }
 
     #[test]

@@ -275,7 +275,7 @@ where
 /// TODO example
 pub fn from_value<'de, T, I, F>(value: &'de JsoncValue<I, F>) -> crate::Result<T>
 where
-    T: serde::de::Deserialize<'de>,
+    T: de::Deserialize<'de>,
     I: num::ToPrimitive,
     F: num::ToPrimitive,
 {
