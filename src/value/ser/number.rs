@@ -20,10 +20,7 @@ where
 {
     type Err = crate::Error;
     fn convert<N: Converting<I, F>>(n: N) -> Result<Number<I, F>, Self::Err> {
-        match N::from_self(n) {
-            Some(i) => Ok(i),
-            None => Err(ConvertError::InvalidIntegerConvert)?,
-        }
+        Ok(N::from_self(n).ok_or(ConvertError::InvalidIntegerConvert)?)
     }
 }
 
@@ -35,13 +32,13 @@ pub trait Converting<I, F>: Sized {
     }
 }
 
-impl<T, I, F> ToNumber<I, F> for T
+impl<N, I, F> ToNumber<I, F> for N
 where
-    T: Converting<I, F>,
+    N: Converting<I, F>,
     I: num::FromPrimitive,
     F: num::FromPrimitive,
 {
-    type Err = <<T as Converting<I, F>>::Converter as Converter<I, F>>::Err;
+    type Err = <<N as Converting<I, F>>::Converter as Converter<I, F>>::Err;
     fn to_number(self) -> Result<Number<I, F>, Self::Err> {
         self.converting()
     }
@@ -50,6 +47,6 @@ where
 impl<I: num::FromPrimitive, F: num::FromPrimitive> Converting<I, F> for u8 {
     type Converter = IntegerConverter;
     fn from_self(p: u8) -> Option<Number<I, F>> {
-        Some(Number::Integer(I::from_u8(p).unwrap()))
+        I::from_u8(p).map(Number::Integer)
     }
 }

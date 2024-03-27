@@ -61,13 +61,13 @@ where
     }
 }
 
-impl<T, I, F> FromNumber<I, F> for T
+impl<N, I, F> FromNumber<I, F> for N
 where
-    T: Converted<I, F>,
+    N: Converted<I, F>,
     I: num::ToPrimitive,
     F: num::ToPrimitive,
 {
-    type Err = <<T as Converted<I, F>>::Converter as Converter<I, F>>::Err;
+    type Err = <<N as Converted<I, F>>::Converter as Converter<I, F>>::Err;
     fn from_number(number: &Number<I, F>) -> Result<Self, Self::Err> {
         Self::converted(number)
     }
