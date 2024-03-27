@@ -86,4 +86,15 @@ mod tests {
         let number = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
         assert_eq!(number, jsonc!(123.45));
     }
+
+    #[test]
+    fn test_to_value_option() {
+        let target = false;
+        let fal = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(fal, jsonc!(false));
+
+        let target: Option<bool> = None;
+        let null = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(null, jsonc!(null));
+    }
 }
