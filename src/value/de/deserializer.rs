@@ -68,8 +68,8 @@ where
         V: de::Visitor<'de>,
     {
         match self.value {
-            // JsoncValue::Object(map) => visitor.visit_map(map),
-            // JsoncValue::Array(vec) => visitor.visit_seq(vec),
+            JsoncValue::Object(_) => self.deserialize_map(visitor),
+            JsoncValue::Array(_) => self.deserialize_seq(visitor),
             JsoncValue::Bool(_) => self.deserialize_bool(visitor),
             JsoncValue::Null => self.deserialize_unit(visitor),
             JsoncValue::String(_) => self.deserialize_str(visitor),
@@ -77,7 +77,6 @@ where
                 Number::Integer(_) => self.deserialize_i64(visitor), // TODO other number type
                 Number::Float(_) => self.deserialize_f64(visitor),
             },
-            _ => todo!(),
         }
     }
 
