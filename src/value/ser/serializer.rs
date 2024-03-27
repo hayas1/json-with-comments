@@ -2,7 +2,7 @@ use serde::ser::{self, Impossible};
 
 use crate::value::JsoncValue;
 
-use super::number::ToNumber;
+use super::{number::ToNumber, seq::SeqSerialize};
 
 pub struct ValueSerializer<I, F> {
     phantom: std::marker::PhantomData<(I, F)>,
@@ -33,9 +33,9 @@ where
 {
     type Ok = JsoncValue<I, F>;
     type Error = crate::Error;
-    type SerializeSeq = Impossible<Self::Ok, Self::Error>; // TODO
-    type SerializeTuple = Impossible<Self::Ok, Self::Error>; // TODO
-    type SerializeTupleStruct = Impossible<Self::Ok, Self::Error>; // TODO
+    type SerializeSeq = SeqSerialize<I, F>;
+    type SerializeTuple = SeqSerialize<I, F>;
+    type SerializeTupleStruct = SeqSerialize<I, F>;
     type SerializeTupleVariant = Impossible<Self::Ok, Self::Error>; // TODO
     type SerializeMap = Impossible<Self::Ok, Self::Error>; // TODO
     type SerializeStruct = Impossible<Self::Ok, Self::Error>; // TODO
@@ -146,15 +146,19 @@ where
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        todo!()
+        Ok(Self::SerializeSeq::start(len))
     }
 
     fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        todo!()
+        Ok(Self::SerializeTuple::start(Some(len)))
     }
 
-    fn serialize_tuple_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        todo!()
+    fn serialize_tuple_struct(
+        self,
+        _name: &'static str,
+        len: usize,
+    ) -> Result<Self::SerializeTupleStruct, Self::Error> {
+        Ok(Self::SerializeTupleStruct::start(Some(len)))
     }
 
     fn serialize_tuple_variant(

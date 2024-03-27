@@ -1,4 +1,5 @@
 pub mod number;
+pub mod seq;
 pub mod serializer;
 
 use serde::Serialize;
@@ -40,6 +41,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use serde::Serialize;
+
     use crate::{jsonc, to_string};
 
     use super::JsoncValue;
@@ -96,5 +99,22 @@ mod tests {
         let target: Option<bool> = None;
         let null = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
         assert_eq!(null, jsonc!(null));
+    }
+
+    #[test]
+    fn test_to_value_array() {
+        let target = vec![1, 2, 3];
+        let array = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(array, jsonc!([1, 2, 3]));
+
+        let target = (false, 1, "two");
+        let array = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(array, jsonc!([false, 1, "two"]));
+
+        #[derive(Serialize)]
+        struct Coordinate(u32, u32);
+        let target = vec![Coordinate(1, 2), Coordinate(3, 4)];
+        let array = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(array, jsonc!([[1, 2], [3, 4]]));
     }
 }
