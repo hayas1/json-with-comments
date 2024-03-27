@@ -77,5 +77,13 @@ mod tests {
         let target = 123u8;
         let number = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
         assert_eq!(number, jsonc!(123));
+
+        let target = -123;
+        let number = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(number, jsonc!(-123));
+
+        let target = 123.45f64;
+        let number = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(number, jsonc!(123.45));
     }
 }
