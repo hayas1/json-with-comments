@@ -4,21 +4,21 @@ use crate::value::JsoncValue;
 
 use super::deserializer::ValueDeserializer;
 
-pub struct SeqDeserializer<'de, I, F> {
+pub struct ValueSeqDeserializer<'de, I, F> {
     iter: Box<dyn Iterator<Item = &'de JsoncValue<I, F>> + 'de>,
 }
 
-impl<'de, I, F> SeqDeserializer<'de, I, F>
+impl<'de, I, F> ValueSeqDeserializer<'de, I, F>
 where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
 {
     pub fn new(seq: &'de [JsoncValue<I, F>]) -> Self {
-        SeqDeserializer { iter: Box::new(seq.iter()) }
+        ValueSeqDeserializer { iter: Box::new(seq.iter()) }
     }
 }
 
-impl<'de, I, F> de::SeqAccess<'de> for SeqDeserializer<'de, I, F>
+impl<'de, I, F> de::SeqAccess<'de> for ValueSeqDeserializer<'de, I, F>
 where
     I: num::ToPrimitive,
     F: num::ToPrimitive,

@@ -4,22 +4,22 @@ use crate::{error::Ensure, value::JsoncValue};
 
 use super::deserializer::ValueDeserializer;
 
-pub struct EnumDeserializer<'de, I, F> {
+pub struct ValueEnumDeserializer<'de, I, F> {
     variant: &'de str,
     value: Option<&'de JsoncValue<I, F>>,
 }
 
-impl<'de, I, F> EnumDeserializer<'de, I, F>
+impl<'de, I, F> ValueEnumDeserializer<'de, I, F>
 where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
 {
     pub fn new(variant: &'de str, value: Option<&'de JsoncValue<I, F>>) -> Self {
-        EnumDeserializer { variant, value }
+        ValueEnumDeserializer { variant, value }
     }
 }
 
-impl<'de, I, F> de::EnumAccess<'de> for EnumDeserializer<'de, I, F>
+impl<'de, I, F> de::EnumAccess<'de> for ValueEnumDeserializer<'de, I, F>
 where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
@@ -36,7 +36,7 @@ where
     }
 }
 
-impl<'de, I, F> de::VariantAccess<'de> for EnumDeserializer<'de, I, F>
+impl<'de, I, F> de::VariantAccess<'de> for ValueEnumDeserializer<'de, I, F>
 where
     I: num::ToPrimitive,
     F: num::ToPrimitive,

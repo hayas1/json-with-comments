@@ -7,22 +7,22 @@ use crate::{
 
 use super::deserializer::ValueDeserializer;
 
-pub struct MapDeserializer<'de, I, F> {
+pub struct ValueMapDeserializer<'de, I, F> {
     iter: Box<dyn Iterator<Item = (&'de String, &'de JsoncValue<I, F>)> + 'de>,
     next: Option<&'de JsoncValue<I, F>>,
 }
 
-impl<'de, I, F> MapDeserializer<'de, I, F>
+impl<'de, I, F> ValueMapDeserializer<'de, I, F>
 where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
 {
     pub fn new(map: &'de MapImpl<String, JsoncValue<I, F>>) -> Self {
-        MapDeserializer { iter: Box::new(map.iter()), next: None }
+        ValueMapDeserializer { iter: Box::new(map.iter()), next: None }
     }
 }
 
-impl<'de, I, F> de::MapAccess<'de> for MapDeserializer<'de, I, F>
+impl<'de, I, F> de::MapAccess<'de> for ValueMapDeserializer<'de, I, F>
 where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
@@ -35,7 +35,7 @@ where
     {
         self.iter.next().map_or(Ok(None), |(k, v)| {
             self.next = Some(v);
-            seed.deserialize(MapKeyDeserializer::new(k)).map(Some)
+            seed.deserialize(ValueMapKeyDeserializer::new(k)).map(Some)
         })
     }
 
@@ -51,17 +51,17 @@ where
     }
 }
 
-pub struct MapKeyDeserializer<'de> {
+pub struct ValueMapKeyDeserializer<'de> {
     key: &'de str,
 }
 
-impl<'de> MapKeyDeserializer<'de> {
+impl<'de> ValueMapKeyDeserializer<'de> {
     pub fn new(key: &'de str) -> Self {
-        MapKeyDeserializer { key }
+        ValueMapKeyDeserializer { key }
     }
 }
 
-impl<'de> de::Deserializer<'de> for MapKeyDeserializer<'de> {
+impl<'de> de::Deserializer<'de> for ValueMapKeyDeserializer<'de> {
     type Error = crate::Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>

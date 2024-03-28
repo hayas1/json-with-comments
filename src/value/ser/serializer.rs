@@ -2,7 +2,7 @@ use serde::ser::{self, Impossible};
 
 use crate::value::JsoncValue;
 
-use super::{number::ToNumber, seq::SeqSerialize};
+use super::{number::ToNumber, seq::ValueSeqSerialize};
 
 pub struct ValueSerializer<I, F> {
     phantom: std::marker::PhantomData<(I, F)>,
@@ -33,9 +33,9 @@ where
 {
     type Ok = JsoncValue<I, F>;
     type Error = crate::Error;
-    type SerializeSeq = SeqSerialize<I, F>;
-    type SerializeTuple = SeqSerialize<I, F>;
-    type SerializeTupleStruct = SeqSerialize<I, F>;
+    type SerializeSeq = ValueSeqSerialize<I, F>;
+    type SerializeTuple = ValueSeqSerialize<I, F>;
+    type SerializeTupleStruct = ValueSeqSerialize<I, F>;
     type SerializeTupleVariant = Impossible<Self::Ok, Self::Error>; // TODO
     type SerializeMap = Impossible<Self::Ok, Self::Error>; // TODO
     type SerializeStruct = Impossible<Self::Ok, Self::Error>; // TODO

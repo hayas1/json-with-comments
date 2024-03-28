@@ -4,17 +4,17 @@ use crate::value::JsoncValue;
 
 use super::serializer::ValueSerializer;
 
-pub struct SeqSerialize<I, F> {
+pub struct ValueSeqSerialize<I, F> {
     array: Vec<JsoncValue<I, F>>,
 }
 
-impl<I, F> SeqSerialize<I, F> {
+impl<I, F> ValueSeqSerialize<I, F> {
     pub fn start(len: Option<usize>) -> Self {
         Self { array: len.map(Vec::with_capacity).unwrap_or_default() }
     }
 }
 
-impl<I, F> ser::SerializeSeq for SeqSerialize<I, F>
+impl<I, F> ser::SerializeSeq for ValueSeqSerialize<I, F>
 where
     I: num::FromPrimitive,
     F: num::FromPrimitive,
@@ -34,7 +34,7 @@ where
     }
 }
 
-impl<I, F> ser::SerializeTuple for SeqSerialize<I, F>
+impl<I, F> ser::SerializeTuple for ValueSeqSerialize<I, F>
 where
     I: num::FromPrimitive,
     F: num::FromPrimitive,
@@ -54,7 +54,7 @@ where
     }
 }
 
-impl<I, F> ser::SerializeTupleStruct for SeqSerialize<I, F>
+impl<I, F> ser::SerializeTupleStruct for ValueSeqSerialize<I, F>
 where
     I: num::FromPrimitive,
     F: num::FromPrimitive,
