@@ -22,6 +22,7 @@ serde = { version = "1.0.196", features = ["derive"] }
 [lints.clippy]
 unit_arg = "allow"
 manual_is_ascii_check = "allow"
+new_without_default = "allow"
 
 # tests
 unit_cmp = "allow"
