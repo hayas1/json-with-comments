@@ -32,10 +32,23 @@ where
     I: num::FromPrimitive,
     F: num::FromPrimitive,
 {
-    /// TODO doc
-    pub fn from_serialize<T>(value: T) -> crate::Result<Self>
+    /// Serialize a [`JsoncValue`] as type `S`.
+    ///
+    /// # Examples
+    /// ```
+    /// use serde::Serialize;
+    /// #[derive(Serialize)]
+    /// struct Person<'a> {
+    ///     name: &'a str,
+    ///     age: Option<u32>,
+    /// }
+    /// let target = Person { name: "John", age: Some(30) };
+    /// let person = json_with_comments::Value::from_serialize(target).unwrap();
+    /// assert_eq!(person, json_with_comments::jsonc!({"name": "John", "age": 30}));
+    /// ```
+    pub fn from_serialize<S>(value: S) -> crate::Result<Self>
     where
-        T: serde::Serialize,
+        S: serde::Serialize,
     {
         value.serialize(serializer::ValueSerializer::new())
     }

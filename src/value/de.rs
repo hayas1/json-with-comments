@@ -25,12 +25,26 @@ where
     I: num::ToPrimitive,
     F: num::ToPrimitive,
 {
-    /// TODO doc
-    pub fn into_deserialize<T>(&'de self) -> crate::Result<T>
+    /// Deserialize a [`JsoncValue`] as type `D`.
+    ///
+    /// # Examples
+    /// ```
+    /// use serde::Deserialize;
+    /// #[derive(Deserialize)]
+    /// struct Person<'a> {
+    ///     name: &'a str,
+    ///     age: Option<u32>,
+    /// }
+    ///
+    /// let target = json_with_comments::jsonc!({"name": "John", "age": 30});
+    /// let person: Person = target.into_deserialize().unwrap();
+    /// assert!(matches!(person, Person { name: "John", age: Some(30) }));
+    /// ```
+    pub fn into_deserialize<D>(&'de self) -> crate::Result<D>
     where
-        T: serde::Deserialize<'de>,
+        D: serde::Deserialize<'de>,
     {
-        T::deserialize(deserializer::ValueDeserializer::new(self))
+        D::deserialize(deserializer::ValueDeserializer::new(self))
     }
 }
 

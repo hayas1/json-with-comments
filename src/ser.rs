@@ -9,7 +9,7 @@ use crate::value::JsoncValue;
 use self::access::jsonc::JsoncSerializer;
 
 /// Serialize struct `S` as minified JSON with comments text.
-/// If you want to serialize as pretty formatted JSONC text, use [`to_str_pretty`] instead.
+/// If you want to serialize as pretty formatted JSONC text, use [`to_string_pretty`] instead.
 ///
 /// # Examples
 /// ```
