@@ -75,14 +75,14 @@ mod tests {
     }
 
     #[test]
-    fn test_to_value_bool() {
+    fn test_bool_serialize_as_value() {
         let target = true;
         let tru = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
         assert_eq!(tru, jsonc!(true));
     }
 
     #[test]
-    fn test_to_value_string() {
+    fn test_string_serialize_as_value() {
         let target = "String".to_string();
         let string = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
         assert_eq!(string, jsonc!("String"));
@@ -93,7 +93,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_value_number() {
+    fn test_number_serialize_as_value() {
         let target = 123u8;
         let number = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
         assert_eq!(number, jsonc!(123));
@@ -108,7 +108,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_value_option() {
+    fn test_option_serialize_as_value() {
         let target = false;
         let fal = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
         assert_eq!(fal, jsonc!(false));
@@ -119,7 +119,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_value_array() {
+    fn test_seq_serialize_as_value() {
         let target = vec![1, 2, 3];
         let array = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
         assert_eq!(array, jsonc!([1, 2, 3]));
@@ -136,7 +136,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_value_map() {
+    fn test_map_serialize_as_value() {
         let target = BTreeMap::from([("a", 1), ("b", 2), ("c", 3)]);
         let map = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
         assert_eq!(map, jsonc!({"a": 1, "b": 2, "c": 3}));
@@ -152,7 +152,7 @@ mod tests {
     }
 
     #[test]
-    fn test_enum_from_value() {
+    fn test_enum_serialize_as_value() {
         #[derive(Serialize)]
         enum Animal<'a> {
             Dog,

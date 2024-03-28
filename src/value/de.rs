@@ -74,7 +74,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_value_bool() {
+    fn test_bool_deserialize_as_value() {
         let target = jsonc!(true);
         let tru: bool = target.into_deserialize().unwrap();
         assert_eq!(tru, true);
@@ -85,7 +85,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_value_string() {
+    fn test_string_deserialize_as_value() {
         let target = jsonc!("String");
         let string: String = target.into_deserialize().unwrap();
         assert_eq!(string, "String".to_string());
@@ -96,7 +96,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_value_number() {
+    fn test_number_deserialize_as_value() {
         let target = jsonc!(1);
         let one: u8 = target.into_deserialize().unwrap();
         assert_eq!(one, 1u8);
@@ -107,7 +107,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_value_option() {
+    fn test_option_deserialize_as_value() {
         let target = jsonc!(false);
         let fal: Option<bool> = target.into_deserialize().unwrap();
         assert_eq!(fal, Some(false));
@@ -118,7 +118,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_value_seq() {
+    fn test_seq_deserialize_as_value() {
         let target = jsonc!([1, 2, 3]);
         let natural: Vec<u8> = target.into_deserialize().unwrap();
         assert_eq!(natural, vec![1, 2, 3]);
@@ -129,14 +129,14 @@ mod tests {
     }
 
     #[test]
-    fn test_from_value_map() {
+    fn test_map_deserialize_as_value() {
         let target = jsonc!({"key": "value"});
         let map: HashMap<String, String> = target.into_deserialize().unwrap();
         assert_eq!(map, HashMap::from([("key".to_string(), "value".to_string())]));
     }
 
     #[test]
-    fn test_struct_from_value() {
+    fn test_struct_deserialize_as_value() {
         #[derive(Deserialize, Debug, PartialEq)]
         struct Person<'a> {
             name: &'a str,
@@ -153,7 +153,7 @@ mod tests {
     }
 
     #[test]
-    fn test_enum_from_value() {
+    fn test_enum_deserialize_as_value() {
         #[derive(Deserialize)]
         enum Animal<'a> {
             Dog,
