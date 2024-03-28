@@ -2,7 +2,7 @@ use serde::ser::{self, Impossible};
 
 use crate::value::JsoncValue;
 
-use super::{number::ToNumber, seq::ValueSeqSerialize};
+use super::{map::ValueMapSerializer, number::ToNumber, seq::ValueSeqSerialize};
 
 pub struct ValueSerializer<I, F> {
     phantom: std::marker::PhantomData<(I, F)>,
@@ -37,8 +37,8 @@ where
     type SerializeTuple = ValueSeqSerialize<I, F>;
     type SerializeTupleStruct = ValueSeqSerialize<I, F>;
     type SerializeTupleVariant = Impossible<Self::Ok, Self::Error>; // TODO
-    type SerializeMap = Impossible<Self::Ok, Self::Error>; // TODO
-    type SerializeStruct = Impossible<Self::Ok, Self::Error>; // TODO
+    type SerializeMap = ValueMapSerializer<I, F>;
+    type SerializeStruct = ValueMapSerializer<I, F>;
     type SerializeStructVariant = Impossible<Self::Ok, Self::Error>; // TODO
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
@@ -172,11 +172,11 @@ where
     }
 
     fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        todo!()
+        Self::SerializeMap::start(len)
     }
 
-    fn serialize_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
-        todo!()
+    fn serialize_struct(self, _name: &'static str, len: usize) -> Result<Self::SerializeStruct, Self::Error> {
+        self.serialize_map(Some(len))
     }
 
     fn serialize_struct_variant(

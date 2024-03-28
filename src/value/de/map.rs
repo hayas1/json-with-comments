@@ -2,6 +2,7 @@ use serde::de::{self, IgnoredAny};
 
 use crate::{
     error::{Ensure, SemanticError},
+    from_str,
     value::{JsoncValue, MapImpl},
 };
 
@@ -75,84 +76,84 @@ impl<'de> de::Deserializer<'de> for ValueMapKeyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_bool(self.key.parse()?)
+        visitor.visit_bool(from_str(self.key)?)
     }
 
     fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_i8(self.key.parse()?)
+        visitor.visit_i8(from_str(self.key)?)
     }
 
     fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_i16(self.key.parse()?)
+        visitor.visit_i16(from_str(self.key)?)
     }
 
     fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_i32(self.key.parse()?)
+        visitor.visit_i32(from_str(self.key)?)
     }
 
     fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_i64(self.key.parse()?)
+        visitor.visit_i64(from_str(self.key)?)
     }
 
     fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_u8(self.key.parse()?)
+        visitor.visit_u8(from_str(self.key)?)
     }
 
     fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_u16(self.key.parse()?)
+        visitor.visit_u16(from_str(self.key)?)
     }
 
     fn deserialize_u32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_u32(self.key.parse()?)
+        visitor.visit_u32(from_str(self.key)?)
     }
 
     fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_u64(self.key.parse()?)
+        visitor.visit_u64(from_str(self.key)?)
     }
 
     fn deserialize_f32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_f32(self.key.parse()?)
+        visitor.visit_f32(from_str(self.key)?)
     }
 
     fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_f64(self.key.parse()?)
+        visitor.visit_f64(from_str(self.key)?)
     }
 
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_char(self.key.parse()?)
+        visitor.visit_char(from_str(self.key)?)
     }
 
     fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
