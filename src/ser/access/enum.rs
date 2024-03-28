@@ -7,7 +7,7 @@ use crate::ser::formatter::JsoncFormatter;
 
 use super::{jsonc::JsoncSerializer, map::MapSerialize, seq::SeqSerialize};
 
-enum Delegate<S, M> {
+pub(crate) enum Delegate<S, M> {
     Seq(S),
     Map(M),
 }

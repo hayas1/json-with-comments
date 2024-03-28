@@ -1,3 +1,4 @@
+pub mod r#enum;
 pub mod map;
 pub mod number;
 pub mod seq;
@@ -135,5 +136,32 @@ mod tests {
         let target = Street { name: "Main", number: 1 };
         let street = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
         assert_eq!(street, jsonc!({"name": "Main", "number": 1}));
+    }
+
+    #[test]
+    fn test_enum_from_value() {
+        #[derive(Serialize)]
+        enum Animal<'a> {
+            Dog,
+            Cat(u8),
+            Fish(&'a str, u8),
+            Bird { name: &'a str },
+        }
+
+        let target = Animal::Dog;
+        let dog = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(dog, jsonc!("Dog"));
+
+        let target = Animal::Cat(2);
+        let cat = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(cat, jsonc!({"Cat": 2}));
+
+        let target = Animal::Fish("Tuna", 3);
+        let fish = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(fish, jsonc!({"Fish": ["Tuna", 3]}));
+
+        let target = Animal::Bird { name: "Pigeon" };
+        let bird = JsoncValue::<i64, f64>::from_serialize(target).unwrap();
+        assert_eq!(bird, jsonc!({"Bird": {"name": "Pigeon"}}));
     }
 }

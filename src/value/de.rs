@@ -140,7 +140,7 @@ mod tests {
 
     #[test]
     fn test_enum_from_value() {
-        #[derive(Deserialize, Debug, PartialEq)]
+        #[derive(Deserialize)]
         enum Animal<'a> {
             Dog,
             Cat(u8),
@@ -150,18 +150,18 @@ mod tests {
 
         let target = jsonc!("Dog");
         let dog: Animal = target.into_deserialize().unwrap();
-        assert_eq!(dog, Animal::Dog);
+        assert!(matches!(dog, Animal::Dog));
 
         let target = jsonc!({"Cat": 2});
         let cat: Animal = target.into_deserialize().unwrap();
-        assert_eq!(cat, Animal::Cat(2));
+        assert!(matches!(cat, Animal::Cat(2)));
 
         let target = jsonc!({"Fish": ["Tuna", 3]});
         let fish: Animal = target.into_deserialize().unwrap();
-        assert_eq!(fish, Animal::Fish("Tuna", 3));
+        assert!(matches!(fish, Animal::Fish("Tuna", 3)));
 
         let target = jsonc!({"Bird": {"name": "Pigeon"}});
         let bird: Animal = target.into_deserialize().unwrap();
-        assert_eq!(bird, Animal::Bird { name: "Pigeon" });
+        assert!(matches!(bird, Animal::Bird { name: "Pigeon" }));
     }
 }

@@ -1,8 +1,13 @@
-use serde::ser::{self, Impossible};
+use serde::{ser, Serialize};
 
-use crate::value::JsoncValue;
+use crate::value::{JsoncValue, MapImpl};
 
-use super::{map::ValueMapSerializer, number::ToNumber, seq::ValueSeqSerialize};
+use super::{
+    map::{ValueMapKeySerializer, ValueMapSerializer},
+    number::ToNumber,
+    r#enum::ValueEnumSerialize,
+    seq::ValueSeqSerializer,
+};
 
 pub struct ValueSerializer<I, F> {
     phantom: std::marker::PhantomData<(I, F)>,
@@ -33,13 +38,13 @@ where
 {
     type Ok = JsoncValue<I, F>;
     type Error = crate::Error;
-    type SerializeSeq = ValueSeqSerialize<I, F>;
-    type SerializeTuple = ValueSeqSerialize<I, F>;
-    type SerializeTupleStruct = ValueSeqSerialize<I, F>;
-    type SerializeTupleVariant = Impossible<Self::Ok, Self::Error>; // TODO
+    type SerializeSeq = ValueSeqSerializer<I, F>;
+    type SerializeTuple = ValueSeqSerializer<I, F>;
+    type SerializeTupleStruct = ValueSeqSerializer<I, F>;
+    type SerializeTupleVariant = ValueEnumSerialize<I, F>;
     type SerializeMap = ValueMapSerializer<I, F>;
     type SerializeStruct = ValueMapSerializer<I, F>;
-    type SerializeStructVariant = Impossible<Self::Ok, Self::Error>; // TODO
+    type SerializeStructVariant = ValueEnumSerialize<I, F>;
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
         Ok(JsoncValue::Bool(v))
@@ -136,21 +141,22 @@ where
         self,
         _name: &'static str,
         _variant_index: u32,
-        _variant: &'static str,
+        variant: &'static str,
         value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
         T: ser::Serialize,
     {
-        value.serialize(self)
+        let key = variant.serialize(ValueMapKeySerializer)?;
+        Ok(JsoncValue::Object(MapImpl::from([(key, value.serialize(self)?)])))
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        Ok(Self::SerializeSeq::start(len))
+        Self::SerializeSeq::start(len)
     }
 
     fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        Ok(Self::SerializeTuple::start(Some(len)))
+        Self::SerializeTuple::start(Some(len))
     }
 
     fn serialize_tuple_struct(
@@ -158,17 +164,17 @@ where
         _name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        Ok(Self::SerializeTupleStruct::start(Some(len)))
+        Self::SerializeTupleStruct::start(Some(len))
     }
 
     fn serialize_tuple_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
+        _name: &'static str,
+        _variant_index: u32,
         variant: &'static str,
         len: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        todo!()
+        Self::SerializeTupleVariant::start_tuple_variant(variant, len)
     }
 
     fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
@@ -181,11 +187,11 @@ where
 
     fn serialize_struct_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
+        _name: &'static str,
+        _variant_index: u32,
         variant: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
-        todo!()
+        Self::SerializeStructVariant::start_struct_variant(variant, len)
     }
 }
