@@ -272,7 +272,17 @@ where
 /// Deserialize [`JsoncValue`] to `T`
 ///
 /// # Example
-/// TODO example
+/// ```
+/// use serde::Deserialize;
+/// #[derive(Deserialize)]
+/// struct Person<'a> {
+///     name: &'a str,
+///     age: Option<u32>,
+/// }
+/// let target = json_with_comments::jsonc!({"name": "John", "age": 30});
+/// let person: Person = target.into_deserialize().unwrap();
+/// assert!(matches!(person, Person { name: "John", age: Some(30) }));
+/// ````
 pub fn from_value<'de, T, I, F>(value: &'de JsoncValue<I, F>) -> crate::Result<T>
 where
     T: de::Deserialize<'de>,

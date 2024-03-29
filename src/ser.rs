@@ -237,7 +237,17 @@ where
 /// Serialize `T` to [`JsoncValue`]
 ///
 /// # Example
-/// TODO example
+/// ```
+/// use serde::Serialize;
+/// #[derive(Serialize)]
+/// struct Product {
+///     name: String,
+///     price: u32,
+/// }
+/// let target = Product { name: "candy".to_string(), price: 100 };
+/// let product = json_with_comments::to_value(target).unwrap();
+/// assert_eq!(product, json_with_comments::jsonc!({ "name": "candy", "price": 100 }));
+/// ```
 pub fn to_value<T, I, F>(value: T) -> crate::Result<JsoncValue<I, F>>
 where
     T: ser::Serialize,
