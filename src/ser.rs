@@ -254,6 +254,7 @@ where
 {
     Value::from_serialize(value)
 }
+
 #[cfg(test)]
 mod tests {
     use std::collections::{BTreeMap, HashMap};
