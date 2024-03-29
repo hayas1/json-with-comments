@@ -4,10 +4,12 @@ pub mod formatter;
 use serde::ser;
 use std::{fs::File, io, path::Path};
 
+use crate::Value;
+
 use self::access::jsonc::JsoncSerializer;
 
 /// Serialize struct `S` as minified JSON with comments text.
-/// If you want to serialize as pretty formatted JSONC text, use [`to_str_pretty`] instead.
+/// If you want to serialize as pretty formatted JSONC text, use [`to_string_pretty`] instead.
 ///
 /// # Examples
 /// ```
@@ -230,6 +232,27 @@ where
 {
     let mut ser = JsoncSerializer::new(write, formatter);
     value.serialize(&mut ser)
+}
+
+/// Serialize `T` to [`JsoncValue`]
+///
+/// # Example
+/// ```
+/// use serde::Serialize;
+/// #[derive(Serialize)]
+/// struct Product {
+///     name: String,
+///     price: u32,
+/// }
+/// let target = Product { name: "candy".to_string(), price: 100 };
+/// let product = json_with_comments::to_value(target).unwrap();
+/// assert_eq!(product, json_with_comments::jsonc!({ "name": "candy", "price": 100 }));
+/// ```
+pub fn to_value<T>(value: T) -> crate::Result<Value>
+where
+    T: ser::Serialize,
+{
+    Value::from_serialize(value)
 }
 
 #[cfg(test)]

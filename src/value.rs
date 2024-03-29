@@ -61,14 +61,3 @@ impl<I, F> JsoncValue<I, F> {
         .to_string()
     }
 }
-
-// TODO implement Deserializer for JsoncValue
-// TODO doc
-// pub fn from_value<T, I, F>(value: JsoncValue<I, F>) -> crate::Result<T>
-// where
-//     T: serde::de::DeserializeOwned,
-//     I: num::FromPrimitive,
-//     F: num::FromPrimitive,
-// {
-//     T::deserialize(value)
-// }

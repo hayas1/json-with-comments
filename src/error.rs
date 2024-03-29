@@ -67,6 +67,16 @@ impl From<std::num::ParseFloatError> for JsonWithCommentsError {
         JsonWithCommentsError::new(value)
     }
 }
+impl From<std::str::ParseBoolError> for JsonWithCommentsError {
+    fn from(value: std::str::ParseBoolError) -> Self {
+        JsonWithCommentsError::new(value)
+    }
+}
+impl From<std::char::ParseCharError> for JsonWithCommentsError {
+    fn from(value: std::char::ParseCharError) -> Self {
+        JsonWithCommentsError::new(value)
+    }
+}
 
 #[derive(Error, Debug)]
 pub enum SyntaxError {
@@ -259,6 +269,26 @@ impl From<SemanticError> for JsonWithCommentsError {
 }
 
 #[derive(Error, Debug)]
+pub enum ConvertError {
+    #[error("Cannot convert float to integer")]
+    CannotConvertFloatToInteger,
+
+    #[error("Cannot convert integer to float")]
+    CannotConvertIntegerToFloat,
+
+    #[error("converted range must contain converting range")]
+    InvalidIntegerConvert,
+
+    #[error("converted range must contain converting range")]
+    InvalidFloatConvert,
+}
+impl From<ConvertError> for JsonWithCommentsError {
+    fn from(err: ConvertError) -> Self {
+        JsonWithCommentsError::new(err)
+    }
+}
+
+#[derive(Error, Debug)]
 pub enum InvalidRepresentsValue {
     #[error("Only objects can be converted into map")]
     ShouldObject,
@@ -312,6 +342,9 @@ pub enum Ensure {
     #[error("previous peek ensure this eat does not return None")]
     EatAfterLook,
 
+    #[error("next value must exist")]
+    NextValue,
+
     #[error("returns Result for interface reasons, but does not actually fail")]
     EmptyError,
 
@@ -320,6 +353,9 @@ pub enum Ensure {
 
     #[error("same type conversion should be always possible")]
     CanConvertAlways,
+
+    #[error("unit variant has no value")]
+    UnitVariant,
 }
 impl From<Ensure> for JsonWithCommentsError {
     fn from(err: Ensure) -> Self {

@@ -1,216 +1,181 @@
-use serde::{
-    de::{Error as _, Visitor},
-    Deserialize,
-};
+pub mod deserializer;
+pub mod r#enum;
+pub mod map;
+pub mod number;
+pub mod seq;
+pub mod visitor;
 
-use crate::{
-    error::{Ensure, SemanticError},
-    value::{number::Number, JsoncValue},
-};
+use serde::de;
+
+use crate::value::JsoncValue;
 
 use super::MapImpl;
 
-impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Deserialize<'de> for JsoncValue<I, F> {
+impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> de::Deserialize<'de> for JsoncValue<I, F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_any(JsoncValueVisitor::new())
+        deserializer.deserialize_any(visitor::JsoncValueVisitor::new())
     }
 }
 
-pub struct JsoncValueVisitor<I, F> {
-    phantom: std::marker::PhantomData<(I, F)>,
+impl<'de, I, F> JsoncValue<I, F>
+where
+    I: num::ToPrimitive,
+    F: num::ToPrimitive,
+{
+    /// Deserialize a [`JsoncValue`] as type `D`.
+    ///
+    /// # Examples
+    /// ```
+    /// use serde::Deserialize;
+    /// #[derive(Deserialize)]
+    /// struct Person<'a> {
+    ///     name: &'a str,
+    ///     age: Option<u32>,
+    /// }
+    ///
+    /// let target = json_with_comments::jsonc!({"name": "John", "age": 30});
+    /// let person: Person = target.into_deserialize().unwrap();
+    /// assert!(matches!(person, Person { name: "John", age: Some(30) }));
+    /// ```
+    pub fn into_deserialize<D>(&'de self) -> crate::Result<D>
+    where
+        D: serde::Deserialize<'de>,
+    {
+        D::deserialize(deserializer::ValueDeserializer::new(self))
+    }
 }
-impl<I, F> JsoncValueVisitor<I, F> {
-    pub fn new() -> Self {
-        Self { phantom: std::marker::PhantomData }
-    }
-}
-impl<I, F> Default for JsoncValueVisitor<I, F> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-impl<'de, I: num::FromPrimitive, F: num::FromPrimitive> Visitor<'de> for JsoncValueVisitor<I, F> {
-    type Value = JsoncValue<I, F>;
 
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        formatter.write_str("any valid JSONC value")
-    }
+#[cfg(test)]
+mod tests {
 
-    fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Bool(v))
-    }
+    use std::collections::HashMap;
 
-    fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Integer(I::from_i8(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
+    use serde::Deserialize;
+
+    use crate::{from_str, jsonc};
+
+    use super::JsoncValue;
+
+    #[test]
+    fn test_deserialize_value() {
+        let target = r#"{"obj":{"arr":[false,true,2,3]}}"#;
+        let v: JsoncValue<i64, f64> = from_str(target).unwrap();
+        assert_eq!(
+            v,
+            jsonc!({
+                "obj": {
+                    "arr": [false, true, 2, 3],
+                },
+            })
+        );
     }
 
-    fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Integer(I::from_i16(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
+    #[test]
+    fn test_bool_deserialize_as_value() {
+        let target = jsonc!(true);
+        let tru: bool = target.into_deserialize().unwrap();
+        assert_eq!(tru, true);
+
+        let target = jsonc!(false);
+        let fal: bool = target.into_deserialize().unwrap();
+        assert_eq!(fal, false);
     }
 
-    fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Integer(I::from_i32(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
+    #[test]
+    fn test_string_deserialize_as_value() {
+        let target = jsonc!("String");
+        let string: String = target.into_deserialize().unwrap();
+        assert_eq!(string, "String".to_string());
+
+        let target = jsonc!("&str");
+        let str: &str = target.into_deserialize().unwrap();
+        assert_eq!(str, "&str");
     }
 
-    fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Integer(I::from_i64(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
+    #[test]
+    fn test_number_deserialize_as_value() {
+        let target = jsonc!(1);
+        let one: u8 = target.into_deserialize().unwrap();
+        assert_eq!(one, 1u8);
+
+        let target = jsonc!(0.5);
+        let half: f64 = target.into_deserialize().unwrap();
+        assert_eq!(half, 0.5f64);
     }
 
-    fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Integer(I::from_i128(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
+    #[test]
+    fn test_option_deserialize_as_value() {
+        let target = jsonc!(false);
+        let fal: Option<bool> = target.into_deserialize().unwrap();
+        assert_eq!(fal, Some(false));
+
+        let target = jsonc!(null);
+        let null: Option<bool> = target.into_deserialize().unwrap();
+        assert_eq!(null, None);
     }
 
-    fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Integer(I::from_u8(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
+    #[test]
+    fn test_seq_deserialize_as_value() {
+        let target = jsonc!([1, 2, 3]);
+        let natural: Vec<u8> = target.into_deserialize().unwrap();
+        assert_eq!(natural, vec![1, 2, 3]);
+
+        let target = jsonc!([0, true, "two"]);
+        let tuple: (i8, bool, String) = target.into_deserialize().unwrap();
+        assert_eq!(tuple, (0, true, "two".to_string()));
     }
 
-    fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Integer(I::from_u16(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
+    #[test]
+    fn test_map_deserialize_as_value() {
+        let target = jsonc!({"key": "value"});
+        let map: HashMap<String, String> = target.into_deserialize().unwrap();
+        assert_eq!(map, HashMap::from([("key".to_string(), "value".to_string())]));
     }
 
-    fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Integer(I::from_u32(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
-    }
-
-    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Integer(I::from_u64(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
-    }
-
-    fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Integer(I::from_u128(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
-    }
-
-    fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Float(F::from_f32(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
-    }
-
-    fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Number(Number::Float(F::from_f64(v).ok_or(E::custom(Ensure::CanConvertAlways))?)))
-    }
-
-    fn visit_char<E>(self, v: char) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        self.visit_str(v.encode_utf8(&mut [0u8; 4]))
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::String(v.to_string()))
-    }
-
-    fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::String(v.to_string()))
-    }
-
-    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::String(v))
-    }
-
-    // fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
-    // fn visit_borrowed_bytes<E>(self, v: &'de [u8]) -> Result<Self::Value, E>
-    // fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Self::Value, E>
-
-    fn visit_none<E>(self) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Null)
-    }
-
-    fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        Deserialize::deserialize(deserializer)
-    }
-
-    fn visit_unit<E>(self) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsoncValue::Null)
-    }
-
-    // fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
-
-    fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-    where
-        A: serde::de::SeqAccess<'de>,
-    {
-        let mut v = Vec::new();
-
-        while let Some(elem) = seq.next_element()? {
-            v.push(elem);
+    #[test]
+    fn test_struct_deserialize_as_value() {
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct Person<'a> {
+            name: &'a str,
+            age: Option<u32>,
         }
 
-        Ok(JsoncValue::Array(v))
+        let target = jsonc!({"name": "John", "age": 30});
+        let person: Person = target.into_deserialize().unwrap();
+        assert_eq!(person, Person { name: "John", age: Some(30) });
+
+        let target = jsonc!([{"name": "John", "age": 30},{"name": "Jin", "age": null}]);
+        let person: Vec<Person> = target.into_deserialize().unwrap();
+        assert_eq!(person, [Person { name: "John", age: Some(30) }, Person { name: "Jin", age: None }]);
     }
 
-    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-    where
-        A: serde::de::MapAccess<'de>,
-    {
-        let mut v = MapImpl::new();
-        while let Some((key, value)) = map.next_entry::<JsoncValue<I, F>, JsoncValue<I, F>>()? {
-            match key {
-                JsoncValue::String(s) => v.insert(s, value),
-                _ => Err(A::Error::custom(SemanticError::AnyMapKey))?,
-            };
+    #[test]
+    fn test_enum_deserialize_as_value() {
+        #[derive(Deserialize)]
+        enum Animal<'a> {
+            Dog,
+            Cat(u8),
+            Fish(&'a str, u8),
+            Bird { name: &'a str },
         }
-        Ok(JsoncValue::Object(v))
-    }
 
-    // fn visit_enum<A>(self, data: A) -> Result<Self::Value, A::Error>
+        let target = jsonc!("Dog");
+        let dog: Animal = target.into_deserialize().unwrap();
+        assert!(matches!(dog, Animal::Dog));
+
+        let target = jsonc!({"Cat": 2});
+        let cat: Animal = target.into_deserialize().unwrap();
+        assert!(matches!(cat, Animal::Cat(2)));
+
+        let target = jsonc!({"Fish": ["Tuna", 3]});
+        let fish: Animal = target.into_deserialize().unwrap();
+        assert!(matches!(fish, Animal::Fish("Tuna", 3)));
+
+        let target = jsonc!({"Bird": {"name": "Pigeon"}});
+        let bird: Animal = target.into_deserialize().unwrap();
+        assert!(matches!(bird, Animal::Bird { name: "Pigeon" }));
+    }
 }
