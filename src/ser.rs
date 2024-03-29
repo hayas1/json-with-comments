@@ -4,7 +4,7 @@ pub mod formatter;
 use serde::ser;
 use std::{fs::File, io, path::Path};
 
-use crate::value::JsoncValue;
+use crate::Value;
 
 use self::access::jsonc::JsoncSerializer;
 
@@ -248,13 +248,11 @@ where
 /// let product = json_with_comments::to_value(target).unwrap();
 /// assert_eq!(product, json_with_comments::jsonc!({ "name": "candy", "price": 100 }));
 /// ```
-pub fn to_value<T, I, F>(value: T) -> crate::Result<JsoncValue<I, F>>
+pub fn to_value<T>(value: T) -> crate::Result<Value>
 where
     T: ser::Serialize,
-    I: num::FromPrimitive,
-    F: num::FromPrimitive,
 {
-    JsoncValue::<I, F>::from_serialize(value)
+    Value::from_serialize(value)
 }
 #[cfg(test)]
 mod tests {

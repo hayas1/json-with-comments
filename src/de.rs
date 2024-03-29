@@ -8,7 +8,7 @@ use serde::de;
 
 use crate::{
     de::token::{raw::RawTokenizer, read::ReadTokenizer, Tokenizer},
-    value::JsoncValue,
+    Value,
 };
 
 use self::{access::jsonc::JsoncDeserializer, token::str::StrTokenizer};
@@ -283,11 +283,9 @@ where
 /// let person: Person = target.into_deserialize().unwrap();
 /// assert!(matches!(person, Person { name: "John", age: Some(30) }));
 /// ````
-pub fn from_value<'de, T, I, F>(value: &'de JsoncValue<I, F>) -> crate::Result<T>
+pub fn from_value<'de, T>(value: &'de Value) -> crate::Result<T>
 where
     T: de::Deserialize<'de>,
-    I: num::ToPrimitive,
-    F: num::ToPrimitive,
 {
     value.into_deserialize()
 }

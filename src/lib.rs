@@ -115,8 +115,8 @@
 //! assert_eq!(serde_json::from_value::<json_with_comments::Value>(json.clone()).unwrap(), jsonc);
 //!
 //! // json_with_comments::Value -> serde_json::Value
-//! assert_eq!(json_with_comments::from_value::<serde_json::Value, _, _>(&jsonc).unwrap(), json);
-//! assert_eq!(serde_json::to_value(jsonc).unwrap(), json);
+//! assert_eq!(json_with_comments::from_value::<serde_json::Value>(&jsonc).unwrap(), json);
+//! assert_eq!(serde_json::to_value(jsonc.clone()).unwrap(), json);
 //! ```
 //!
 //! # Testing
