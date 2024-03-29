@@ -282,7 +282,7 @@ where
 /// let target = json_with_comments::jsonc!({"name": "John", "age": 30});
 /// let person: Person = target.into_deserialize().unwrap();
 /// assert!(matches!(person, Person { name: "John", age: Some(30) }));
-/// ````
+/// ```
 pub fn from_value<'de, T>(value: &'de Value) -> crate::Result<T>
 where
     T: de::Deserialize<'de>,
