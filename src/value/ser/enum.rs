@@ -13,12 +13,28 @@ use super::{
     seq::ValueSeqSerializer,
 };
 
-pub struct ValueEnumSerialize<I, F> {
+pub struct ValueEnumSerializer<I, F> {
     key: String,
     delegate: Delegate<ValueSeqSerializer<I, F>, ValueMapSerializer<I, F>>,
 }
 
-impl<I, F> ValueEnumSerialize<I, F> {
+impl<I, F> ValueEnumSerializer<I, F> {
+    pub fn start_newtype_variant<S: ser::Serializer, T: ?Sized>(
+        serializer: S,
+        _name: &'static str,
+        _variant_index: u32,
+        variant: &'static str,
+        value: &T,
+    ) -> crate::Result<JsoncValue<I, F>>
+    where
+        JsoncValue<I, F>: From<S::Ok>,
+        crate::Error: From<S::Error>,
+        T: ser::Serialize,
+    {
+        let key = variant.serialize(ValueMapKeySerializer)?;
+        Ok(JsoncValue::Object(MapImpl::from([(key, value.serialize(serializer)?.into())])))
+    }
+
     pub fn start_tuple_variant(variant: &str, len: usize) -> crate::Result<Self> {
         Self::start(variant, len, Delegate::<_, ()>::Seq(()))
     }
@@ -37,7 +53,7 @@ impl<I, F> ValueEnumSerialize<I, F> {
     }
 }
 
-impl<I, F> ser::SerializeTupleVariant for ValueEnumSerialize<I, F>
+impl<I, F> ser::SerializeTupleVariant for ValueEnumSerializer<I, F>
 where
     I: num::FromPrimitive,
     F: num::FromPrimitive,
@@ -64,7 +80,7 @@ where
     }
 }
 
-impl<I, F> ser::SerializeStructVariant for ValueEnumSerialize<I, F>
+impl<I, F> ser::SerializeStructVariant for ValueEnumSerializer<I, F>
 where
     I: num::FromPrimitive,
     F: num::FromPrimitive,

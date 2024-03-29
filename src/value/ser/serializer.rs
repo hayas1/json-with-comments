@@ -1,13 +1,8 @@
-use serde::{ser, Serialize};
+use serde::ser;
 
-use crate::value::{JsoncValue, MapImpl};
+use crate::value::JsoncValue;
 
-use super::{
-    map::{ValueMapKeySerializer, ValueMapSerializer},
-    number::ToNumber,
-    r#enum::ValueEnumSerialize,
-    seq::ValueSeqSerializer,
-};
+use super::{map::ValueMapSerializer, number::ToNumber, r#enum::ValueEnumSerializer, seq::ValueSeqSerializer};
 
 pub struct ValueSerializer<I, F> {
     phantom: std::marker::PhantomData<(I, F)>,
@@ -41,10 +36,10 @@ where
     type SerializeSeq = ValueSeqSerializer<I, F>;
     type SerializeTuple = ValueSeqSerializer<I, F>;
     type SerializeTupleStruct = ValueSeqSerializer<I, F>;
-    type SerializeTupleVariant = ValueEnumSerialize<I, F>;
+    type SerializeTupleVariant = ValueEnumSerializer<I, F>;
     type SerializeMap = ValueMapSerializer<I, F>;
     type SerializeStruct = ValueMapSerializer<I, F>;
-    type SerializeStructVariant = ValueEnumSerialize<I, F>;
+    type SerializeStructVariant = ValueEnumSerializer<I, F>;
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
         Ok(JsoncValue::Bool(v))
@@ -139,16 +134,15 @@ where
 
     fn serialize_newtype_variant<T: ?Sized>(
         self,
-        _name: &'static str,
-        _variant_index: u32,
+        name: &'static str,
+        variant_index: u32,
         variant: &'static str,
         value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
         T: ser::Serialize,
     {
-        let key = variant.serialize(ValueMapKeySerializer)?;
-        Ok(JsoncValue::Object(MapImpl::from([(key, value.serialize(self)?)])))
+        ValueEnumSerializer::start_newtype_variant(self, name, variant_index, variant, value)
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
