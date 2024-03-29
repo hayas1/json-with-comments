@@ -99,6 +99,25 @@
 //! assert_eq!(json_with_comments::to_string_pretty(&person, Default::default()).unwrap(), pretty);
 //! ```
 //!
+//! # Interconversion of `serde_json::Value` and `json_with_comments::Value`
+//! Any type of `T` implements [`serde::Serialize`] and [`serde::Deserialize`] can be
+//! serialized to and deserialized from `serde_json::Value`, and [`crate::Value`] also.
+//!
+//! ```
+//! use serde::{Deserialize, Serialize};
+//! use serde_json::json;
+//! use json_with_comments::jsonc;
+//!
+//! let (json, jsonc) = (json!({"name": "John Doe","age": 30}), jsonc!({ "name": "John Doe", "age": 30 }));
+//!
+//! // serde_json::Value -> json_with_comments::Value
+//! assert_eq!(json_with_comments::to_value(&json).unwrap(), jsonc);
+//! assert_eq!(serde_json::from_value::<json_with_comments::Value>(json.clone()).unwrap(), jsonc);
+//!
+//! // json_with_comments::Value -> serde_json::Value
+//! assert_eq!(json_with_comments::from_value::<serde_json::Value, _, _>(&jsonc).unwrap(), json);
+//! assert_eq!(serde_json::to_value(jsonc).unwrap(), json);
+//! ````
 //!
 //! # Testing
 //! Coverage can be checked [https://hayas1.github.io/json-with-comments/tarpaulin-report](https://hayas1.github.io/json-with-comments/tarpaulin-report)
