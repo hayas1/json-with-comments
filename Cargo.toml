@@ -33,6 +33,7 @@ excessive_precision = "allow"
 redundant_pattern_matching = "allow"
 let_unit_value = "allow"
 enum_variant_names = "allow"
+disallowed_names = "allow"
 
 [badges]
 github = { repository = "hayas1/json-with-comments", workflow = "Master" }
