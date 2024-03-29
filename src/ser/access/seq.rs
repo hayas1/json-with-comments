@@ -30,7 +30,6 @@ where
     F: JsoncFormatter,
 {
     type Ok = ();
-
     type Error = crate::Error;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
@@ -53,8 +52,8 @@ where
     W: std::io::Write,
     F: JsoncFormatter,
 {
-    type Ok = ();
-    type Error = crate::Error;
+    type Ok = <Self as ser::SerializeSeq>::Ok;
+    type Error = <Self as ser::SerializeSeq>::Error;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -72,8 +71,8 @@ where
     W: std::io::Write,
     F: JsoncFormatter,
 {
-    type Ok = ();
-    type Error = crate::Error;
+    type Ok = <Self as ser::SerializeSeq>::Ok;
+    type Error = <Self as ser::SerializeSeq>::Error;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where

@@ -62,9 +62,8 @@ where
     W: std::io::Write,
     F: JsoncFormatter,
 {
-    type Ok = ();
-
-    type Error = crate::Error;
+    type Ok = <Self as ser::SerializeMap>::Ok;
+    type Error = <Self as ser::SerializeMap>::Error;
 
     fn serialize_field<T: ?Sized>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
     where
