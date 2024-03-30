@@ -255,25 +255,25 @@ mod tests {
     #[test]
     fn test_jsonc_macro_object() {
         assert_eq!(jsonc_generics!({}), Value::Object(MapImpl::new()));
-        assert_eq!(jsonc_generics!({"key": "val"}), Value::Object(MapImpl::from([("key".into(), "val".into())])));
-        assert_eq!(jsonc_generics!({"key": "val",}), Value::Object(MapImpl::from([("key".into(), "val".into())])));
+        assert_eq!(jsonc_generics!({"key": "val"}), Value::Object(MapImpl::from_iter([("key".into(), "val".into())])));
+        assert_eq!(jsonc_generics!({"key": "val",}), Value::Object(MapImpl::from_iter([("key".into(), "val".into())])));
         assert_eq!(
             jsonc_generics!({"one": 1, "two": 2}),
-            Value::Object(MapImpl::from([("one".into(), 1.into()), ("two".into(), 2.into())]))
+            Value::Object(MapImpl::from_iter([("one".into(), 1.into()), ("two".into(), 2.into())]))
         );
         assert_eq!(
             jsonc_generics!({"one": 1, "two": 2,}),
-            Value::Object(MapImpl::from([("one".into(), 1.into()), ("two".into(), 2.into())]))
+            Value::Object(MapImpl::from_iter([("one".into(), 1.into()), ("two".into(), 2.into())]))
         );
         assert_eq!(
             jsonc_generics!({("null".to_string()): null,}),
-            Value::Object(MapImpl::from([("null".into(), ().into())]))
+            Value::Object(MapImpl::from_iter([("null".into(), ().into())]))
         );
         assert_eq!(
             jsonc_generics!({"dict": {"key": "val"}}),
-            Value::Object(MapImpl::from([(
+            Value::Object(MapImpl::from_iter([(
                 "dict".into(),
-                Value::Object(MapImpl::from([("key".into(), "val".into())]))
+                Value::Object(MapImpl::from_iter([("key".into(), "val".into())]))
             )]))
         );
     }
@@ -291,23 +291,23 @@ mod tests {
                     Value::Array(vec![Value::Array(vec![])]),
                     Value::Array(vec![Value::Array(vec![]), Value::Array(vec![Value::Array(vec![])])]),
                 ]),
-                Value::Object(MapImpl::from([("four".into(), 5.0.into())])),
+                Value::Object(MapImpl::from_iter([("four".into(), 5.0.into())])),
             ])
         );
         assert_eq!(jsonc!(null), crate::Value::Null);
         assert_eq!(jsonc!(()), crate::Value::Null);
         assert_eq!(
             jsonc!({"a": {"b": {"c": {"d": { "e": {}}}}}, "abc": "def"}),
-            crate::Value::Object(MapImpl::from([
+            crate::Value::Object(MapImpl::from_iter([
                 (
                     "a".into(),
-                    Value::Object(MapImpl::from([(
+                    Value::Object(MapImpl::from_iter([(
                         "b".into(),
-                        Value::Object(MapImpl::from([(
+                        Value::Object(MapImpl::from_iter([(
                             "c".into(),
-                            Value::Object(MapImpl::from([(
+                            Value::Object(MapImpl::from_iter([(
                                 "d".into(),
-                                Value::Object(MapImpl::from([("e".into(), Value::Object(MapImpl::new()))])),
+                                Value::Object(MapImpl::from_iter([("e".into(), Value::Object(MapImpl::new()))])),
                             )]))
                         )]))
                     )]))
@@ -331,10 +331,10 @@ mod tests {
                 "string": "SSSSSSSSSSSSSSSS".to_string(),
                 "number": 1111111111111111,
             }),
-            crate::Value::Object(MapImpl::from([
+            crate::Value::Object(MapImpl::from_iter([
                 (
                     "object".into(),
-                    Value::Object(MapImpl::from([
+                    Value::Object(MapImpl::from_iter([
                         ("object".into(), Value::Object(MapImpl::new())),
                         ("array".into(), Value::Array(Vec::new())),
                         ("bool".into(), true.into()),
@@ -368,8 +368,8 @@ mod tests {
         assert_eq!(jsonc!([1]), Value::Array(vec![1.into()]));
         assert_eq!(jsonc!([1,]), Value::Array(vec![1.into()]));
         assert_eq!(jsonc!({}), Value::Object(MapImpl::new()));
-        assert_eq!(jsonc!({"key": "val"}), Value::Object(MapImpl::from([("key".into(), "val".into())])),);
-        assert_eq!(jsonc!({"key": "val",}), Value::Object(MapImpl::from([("key".into(), "val".into())])),);
+        assert_eq!(jsonc!({"key": "val"}), Value::Object(MapImpl::from_iter([("key".into(), "val".into())])),);
+        assert_eq!(jsonc!({"key": "val",}), Value::Object(MapImpl::from_iter([("key".into(), "val".into())])),);
     }
 
     #[test]
@@ -377,10 +377,10 @@ mod tests {
         assert_eq!(jsonc!(1 + 1), 2.into());
         assert_eq!(jsonc!([1, 1 + 1]), crate::Value::Array(vec![1.into(), 2.into()]));
         assert_eq!(jsonc!([null, 1, 1 + 1]), crate::Value::Array(vec![().into(), 1.into(), 2.into()]));
-        assert_eq!(jsonc!({ "add": 1 + 1 }), crate::Value::Object(MapImpl::from([("add".into(), 2.into())])),);
+        assert_eq!(jsonc!({ "add": 1 + 1 }), crate::Value::Object(MapImpl::from_iter([("add".into(), 2.into())])),);
         assert_eq!(
             jsonc!({"string".to_string(): 1, "str": 2}),
-            crate::Value::Object(MapImpl::from([("string".into(), 1.into()), ("str".into(), 2.into())]))
+            crate::Value::Object(MapImpl::from_iter([("string".into(), 1.into()), ("str".into(), 2.into())]))
         );
     }
 }
