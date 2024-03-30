@@ -13,6 +13,7 @@ serde = "1.0.196"
 num = "0.4.0"
 itoa = "1.0.10"
 ryu = "1.0.17"
+linked-hash-map = { version = "0.5.6", optional = true }
 
 thiserror = "1.0.57"
 
@@ -37,3 +38,6 @@ disallowed_names = "allow"
 
 [badges]
 github = { repository = "hayas1/json-with-comments", workflow = "Master" }
+
+[features]
+preserve_order = ["linked-hash-map"]
