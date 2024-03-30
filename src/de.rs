@@ -269,7 +269,7 @@ where
     Ok(value)
 }
 
-/// Deserialize [`JsoncValue`] to `T`
+/// Deserialize [`crate::value::JsoncValue`] to `T`
 ///
 /// # Example
 /// ```

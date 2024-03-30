@@ -1,3 +1,4 @@
+#![deny(rustdoc::broken_intra_doc_links)]
 //! JSON with comments parser for Rust.
 //! See [documents](https://hayas1.github.io/json-with-comments/json_with_comments/) also.
 //!
@@ -101,7 +102,7 @@
 //!
 //! # Interconversion of `serde_json::Value` and `json_with_comments::Value`
 //! Any type of `T` implements [`serde::Serialize`] and [`serde::Deserialize`] can be
-//! serialized to and deserialized from `serde_json::Value`, and [`json_with_comments::Value`] also.
+//! serialized to and deserialized from `serde_json::Value`, and `json_with_comments::Value` also.
 //!
 //! ```
 //! use serde::{Deserialize, Serialize};

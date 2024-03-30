@@ -234,7 +234,7 @@ where
     value.serialize(&mut ser)
 }
 
-/// Serialize `T` to [`JsoncValue`]
+/// Serialize `T` to [`crate::value::JsoncValue`]
 ///
 /// # Example
 /// ```
