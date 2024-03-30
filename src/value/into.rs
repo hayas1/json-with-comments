@@ -362,7 +362,7 @@ mod tests {
                 && v.as_integer().is_none()
                 && v.as_float().is_none()
         );
-        assert_eq!(v.as_object().unwrap(), &MapImpl::from([("null".to_string(), Value::Null)]));
+        assert_eq!(v.as_object().unwrap(), &MapImpl::from_iter([("null".to_string(), Value::Null)]));
 
         let muted = {
             let mv = v.as_object_mut().unwrap();
@@ -370,7 +370,7 @@ mod tests {
             mv.insert("key".to_string(), "value".into());
             assert_eq!(
                 mv,
-                &mut MapImpl::from([
+                &mut MapImpl::from_iter([
                     ("null".to_string(), Value::String("null".to_string())),
                     ("key".to_string(), Value::String("value".to_string()))
                 ])

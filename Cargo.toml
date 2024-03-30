@@ -13,10 +13,9 @@ serde = "1.0.196"
 num = "0.4.0"
 itoa = "1.0.10"
 ryu = "1.0.17"
-# linked-hash-map = { version = "0.5.6", features = [
-#     "serde_impl",
-# ], optional = true }
-indexmap = { version = "2.2.6", features = ["serde"], optional = true }
+linked-hash-map = { version = "0.5.6", features = [
+    "serde_impl",
+], optional = true }
 
 thiserror = "1.0.57"
 
@@ -43,5 +42,4 @@ disallowed_names = "allow"
 github = { repository = "hayas1/json-with-comments", workflow = "Master" }
 
 [features]
-# preserve_order = ["linked-hash-map"]
-preserve_order = ["indexmap"]
+preserve_order = ["linked-hash-map"]
