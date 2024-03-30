@@ -4,7 +4,7 @@ use crate::ser::formatter::JsoncFormatter;
 
 use super::jsonc::JsoncSerializer;
 
-pub struct SeqSerialize<'a, W, F>
+pub struct SeqSerializer<'a, W, F>
 where
     F: JsoncFormatter,
 {
@@ -13,7 +13,7 @@ where
     len: Option<usize>,
 }
 
-impl<'a, W, F> SeqSerialize<'a, W, F>
+impl<'a, W, F> SeqSerializer<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
@@ -24,13 +24,12 @@ where
     }
 }
 
-impl<'a, W, F> ser::SerializeSeq for SeqSerialize<'a, W, F>
+impl<'a, W, F> ser::SerializeSeq for SeqSerializer<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
 {
     type Ok = ();
-
     type Error = crate::Error;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
@@ -48,13 +47,13 @@ where
     }
 }
 
-impl<'a, W, F> ser::SerializeTuple for SeqSerialize<'a, W, F>
+impl<'a, W, F> ser::SerializeTuple for SeqSerializer<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
 {
-    type Ok = ();
-    type Error = crate::Error;
+    type Ok = <Self as ser::SerializeSeq>::Ok;
+    type Error = <Self as ser::SerializeSeq>::Error;
 
     fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -67,13 +66,13 @@ where
         <Self as ser::SerializeSeq>::end(self)
     }
 }
-impl<'a, W, F> ser::SerializeTupleStruct for SeqSerialize<'a, W, F>
+impl<'a, W, F> ser::SerializeTupleStruct for SeqSerializer<'a, W, F>
 where
     W: std::io::Write,
     F: JsoncFormatter,
 {
-    type Ok = ();
-    type Error = crate::Error;
+    type Ok = <Self as ser::SerializeSeq>::Ok;
+    type Error = <Self as ser::SerializeSeq>::Error;
 
     fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
     where

@@ -4,6 +4,7 @@ use serde::{
 };
 
 use crate::{
+    error::Ensure,
     ser::access::r#enum::Delegate,
     value::{JsoncValue, MapImpl},
 };
@@ -13,12 +14,26 @@ use super::{
     seq::ValueSeqSerializer,
 };
 
-pub struct ValueEnumSerialize<I, F> {
+pub struct ValueEnumSerializer<I, F> {
     key: String,
     delegate: Delegate<ValueSeqSerializer<I, F>, ValueMapSerializer<I, F>>,
 }
 
-impl<I, F> ValueEnumSerialize<I, F> {
+impl<I, F> ValueEnumSerializer<I, F> {
+    pub fn start_newtype_variant<S: ser::Serializer, T: ?Sized>(
+        serializer: S,
+        variant: &'static str,
+        value: &T,
+    ) -> crate::Result<JsoncValue<I, F>>
+    where
+        JsoncValue<I, F>: From<S::Ok>,
+        crate::Error: From<S::Error>,
+        T: ser::Serialize,
+    {
+        let key = variant.serialize(ValueMapKeySerializer)?;
+        Ok(JsoncValue::Object(MapImpl::from([(key, value.serialize(serializer)?.into())])))
+    }
+
     pub fn start_tuple_variant(variant: &str, len: usize) -> crate::Result<Self> {
         Self::start(variant, len, Delegate::<_, ()>::Seq(()))
     }
@@ -37,7 +52,7 @@ impl<I, F> ValueEnumSerialize<I, F> {
     }
 }
 
-impl<I, F> ser::SerializeTupleVariant for ValueEnumSerialize<I, F>
+impl<I, F> ser::SerializeTupleVariant for ValueEnumSerializer<I, F>
 where
     I: num::FromPrimitive,
     F: num::FromPrimitive,
@@ -51,20 +66,20 @@ where
     {
         match &mut self.delegate {
             Delegate::Seq(seq) => seq.serialize_element(value),
-            Delegate::Map(_) => unreachable!(),
+            Delegate::Map(_) => Err(Ensure::SeqLikeVariant)?,
         }
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
         let value = match self.delegate {
             Delegate::Seq(seq) => seq.end()?,
-            Delegate::Map(_) => unreachable!(),
+            Delegate::Map(_) => Err(Ensure::SeqLikeVariant)?,
         };
         Ok(JsoncValue::Object(MapImpl::from([(self.key, value)])))
     }
 }
 
-impl<I, F> ser::SerializeStructVariant for ValueEnumSerialize<I, F>
+impl<I, F> ser::SerializeStructVariant for ValueEnumSerializer<I, F>
 where
     I: num::FromPrimitive,
     F: num::FromPrimitive,
@@ -77,14 +92,14 @@ where
         T: ser::Serialize,
     {
         match &mut self.delegate {
-            Delegate::Seq(_) => unreachable!(),
+            Delegate::Seq(_) => Err(Ensure::MapLikeVariant)?,
             Delegate::Map(map) => map.serialize_field(key, value),
         }
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
         let value = match self.delegate {
-            Delegate::Seq(_) => unreachable!(),
+            Delegate::Seq(_) => Err(Ensure::MapLikeVariant)?,
             Delegate::Map(map) => map.end()?,
         };
         Ok(JsoncValue::Object(MapImpl::from([(self.key, value)])))

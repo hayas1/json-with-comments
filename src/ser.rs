@@ -366,9 +366,11 @@ mod tests {
     fn test_serialize_enum() {
         #[derive(Serialize)]
         enum Lattice {
+            D1(usize),
             D2(usize, usize),
             D3(usize, usize, usize),
         }
+        assert_eq!(to_string(Lattice::D1(3)).unwrap(), r#"{"D1":3}"#);
         assert_eq!(to_string(Lattice::D2(3, 5)).unwrap(), r#"{"D2":[3,5]}"#);
         assert_eq!(to_string(Lattice::D3(3, 5, 7)).unwrap(), r#"{"D3":[3,5,7]}"#);
 

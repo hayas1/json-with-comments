@@ -105,7 +105,7 @@ assert_eq!(json_with_comments::to_string_pretty(&person, Default::default()).unw
 
 ## Interconversion of `serde_json::Value` and `json_with_comments::Value`
 Any type of `T` implements [`serde::Serialize`] and [`serde::Deserialize`] can be
-serialized to and deserialized from `serde_json::Value`, and [`crate::Value`] also.
+serialized to and deserialized from `serde_json::Value`, and [`json_with_comments::Value`] also.
 
 ```rust
 use serde::{Deserialize, Serialize};
