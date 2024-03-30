@@ -22,8 +22,6 @@ pub struct ValueEnumSerializer<I, F> {
 impl<I, F> ValueEnumSerializer<I, F> {
     pub fn start_newtype_variant<S: ser::Serializer, T: ?Sized>(
         serializer: S,
-        _name: &'static str,
-        _variant_index: u32,
         variant: &'static str,
         value: &T,
     ) -> crate::Result<JsoncValue<I, F>>

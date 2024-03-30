@@ -26,8 +26,6 @@ where
 {
     pub fn start_newtype_variant<T: ?Sized>(
         serializer: &mut JsoncSerializer<W, F>,
-        _name: &'static str,
-        _variant_index: u32,
         variant: &'static str,
         value: &T,
     ) -> crate::Result<()>
