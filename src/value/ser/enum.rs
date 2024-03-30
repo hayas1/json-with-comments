@@ -4,6 +4,7 @@ use serde::{
 };
 
 use crate::{
+    error::Ensure,
     ser::access::r#enum::Delegate,
     value::{JsoncValue, MapImpl},
 };
@@ -67,14 +68,14 @@ where
     {
         match &mut self.delegate {
             Delegate::Seq(seq) => seq.serialize_element(value),
-            Delegate::Map(_) => unreachable!(),
+            Delegate::Map(_) => Err(Ensure::SeqLikeVariant)?,
         }
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
         let value = match self.delegate {
             Delegate::Seq(seq) => seq.end()?,
-            Delegate::Map(_) => unreachable!(),
+            Delegate::Map(_) => Err(Ensure::SeqLikeVariant)?,
         };
         Ok(JsoncValue::Object(MapImpl::from([(self.key, value)])))
     }
@@ -93,14 +94,14 @@ where
         T: ser::Serialize,
     {
         match &mut self.delegate {
-            Delegate::Seq(_) => unreachable!(),
+            Delegate::Seq(_) => Err(Ensure::MapLikeVariant)?,
             Delegate::Map(map) => map.serialize_field(key, value),
         }
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
         let value = match self.delegate {
-            Delegate::Seq(_) => unreachable!(),
+            Delegate::Seq(_) => Err(Ensure::MapLikeVariant)?,
             Delegate::Map(map) => map.end()?,
         };
         Ok(JsoncValue::Object(MapImpl::from([(self.key, value)])))

@@ -3,7 +3,7 @@ use serde::{
     Serializer,
 };
 
-use crate::ser::formatter::JsoncFormatter;
+use crate::{error::Ensure, ser::formatter::JsoncFormatter};
 
 use super::{jsonc::JsoncSerializer, map::MapSerializer, seq::SeqSerializer};
 
@@ -92,7 +92,7 @@ where
     {
         match &mut self.delegate {
             Delegate::Seq(seq) => seq.serialize_element(value),
-            Delegate::Map(_) => unreachable!(),
+            Delegate::Map(_) => Err(Ensure::SeqLikeVariant)?,
         }
     }
 
@@ -103,7 +103,7 @@ where
                 seq.serializer.formatter.write_array_end(&mut seq.serializer.write)?;
                 seq.serializer.formatter.write_object_end(&mut seq.serializer.write)
             }
-            Delegate::Map(_) => unreachable!(),
+            Delegate::Map(_) => Err(Ensure::SeqLikeVariant)?,
         }
     }
 }
@@ -121,14 +121,14 @@ where
         T: ser::Serialize,
     {
         match &mut self.delegate {
-            Delegate::Seq(_) => unreachable!(),
+            Delegate::Seq(_) => Err(Ensure::MapLikeVariant)?,
             Delegate::Map(map) => map.serialize_entry(key, value),
         }
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
         match self.delegate {
-            Delegate::Seq(_) => unreachable!(),
+            Delegate::Seq(_) => Err(Ensure::MapLikeVariant)?,
             Delegate::Map(map) => {
                 // map.end()?; // end() cause move
                 map.serializer.formatter.write_object_end(&mut map.serializer.write)?;

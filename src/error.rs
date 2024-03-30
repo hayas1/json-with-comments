@@ -356,6 +356,12 @@ pub enum Ensure {
 
     #[error("unit variant has no value")]
     UnitVariant,
+
+    #[error("ensure seq like variant")]
+    SeqLikeVariant,
+
+    #[error("ensure map like variant")]
+    MapLikeVariant,
 }
 impl From<Ensure> for JsonWithCommentsError {
     fn from(err: Ensure) -> Self {
