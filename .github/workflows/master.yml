@@ -20,7 +20,8 @@ jobs:
 
     - name: Release test
       run: cargo test --release
-
+    - name: Release test for preserve_order
+      run: cargo test --release --features preserve_order --features serde_json/preserve_order
     - name: Run doc
       run: cargo doc --no-deps
     - name: Coverage

@@ -6,7 +6,10 @@ pub mod macros;
 pub mod number;
 pub mod ser;
 
+#[cfg(not(feature = "preserve_order"))]
 pub type MapImpl<K, V> = std::collections::HashMap<K, V>;
+#[cfg(feature = "preserve_order")]
+pub type MapImpl<K, V> = indexmap::IndexMap<K, V>;
 
 /// TODO doc
 #[derive(Debug, Clone, PartialEq)]

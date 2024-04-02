@@ -31,7 +31,7 @@ impl<I, F> ValueEnumSerializer<I, F> {
         T: ser::Serialize,
     {
         let key = variant.serialize(ValueMapKeySerializer)?;
-        Ok(JsoncValue::Object(MapImpl::from([(key, value.serialize(serializer)?.into())])))
+        Ok(JsoncValue::Object(MapImpl::from_iter([(key, value.serialize(serializer)?.into())])))
     }
 
     pub fn start_tuple_variant(variant: &str, len: usize) -> crate::Result<Self> {
@@ -75,7 +75,7 @@ where
             Delegate::Seq(seq) => seq.end()?,
             Delegate::Map(_) => Err(Ensure::SeqLikeVariant)?,
         };
-        Ok(JsoncValue::Object(MapImpl::from([(self.key, value)])))
+        Ok(JsoncValue::Object(MapImpl::from_iter([(self.key, value)])))
     }
 }
 
@@ -102,6 +102,6 @@ where
             Delegate::Seq(_) => Err(Ensure::MapLikeVariant)?,
             Delegate::Map(map) => map.end()?,
         };
-        Ok(JsoncValue::Object(MapImpl::from([(self.key, value)])))
+        Ok(JsoncValue::Object(MapImpl::from_iter([(self.key, value)])))
     }
 }
