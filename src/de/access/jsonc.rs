@@ -12,7 +12,7 @@ pub struct JsoncDeserializer<'de, T>
 where
     T: Tokenizer<'de>,
 {
-    pub tokenizer: T,
+    pub(crate) tokenizer: T,
     phantom: std::marker::PhantomData<&'de ()>,
 }
 
