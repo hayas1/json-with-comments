@@ -103,6 +103,7 @@ macro_rules! jsonc_generics {
 ///     JsoncValue::<u32, f32>::Array(vec![1.into(), 2.into(), 3.into()])
 /// );
 /// ```
+#[doc(hidden)]
 #[macro_export(local_inner_macros)]
 macro_rules! array {
     // Done building the array
@@ -171,6 +172,7 @@ macro_rules! array {
 ///     JsoncValue::<u32, f32>::Object(vec![("a".into(), 1.into()), ("b".into(), 2.into())].into_iter().collect())
 /// );
 /// ```
+#[doc(hidden)]
 #[macro_export(local_inner_macros)]
 macro_rules! object {
     // Done building the object
