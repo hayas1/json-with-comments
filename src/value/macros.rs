@@ -81,6 +81,7 @@ macro_rules! jsonc_generics {
 }
 
 /// This is inner macro to construct a [`crate::value::JsoncValue::Array`] from rust value.
+/// To construct [`crate::value::JsoncValue`], see [`jsonc!`] and [`jsonc_generics!`].
 ///
 /// # How it works
 /// [`array!`]: crate::array!
@@ -147,6 +148,7 @@ macro_rules! array {
 }
 
 /// This is inner macro to construct a [`crate::value::JsoncValue::Object`] from rust value.
+/// To construct [`crate::value::JsoncValue`], see [`jsonc!`] and [`jsonc_generics!`].
 ///
 /// # How it works
 /// [`object!`]: crate::object!
