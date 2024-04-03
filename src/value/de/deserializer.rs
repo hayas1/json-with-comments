@@ -5,7 +5,7 @@ use crate::value::{number::Number, JsoncValue};
 use super::{map::ValueMapDeserializer, number::FromNumber, r#enum::ValueEnumDeserializer, seq::ValueSeqDeserializer};
 
 pub struct ValueDeserializer<'de, I, F> {
-    pub value: &'de JsoncValue<I, F>,
+    pub(crate) value: &'de JsoncValue<I, F>,
 }
 
 impl<'de, I, F> ValueDeserializer<'de, I, F>

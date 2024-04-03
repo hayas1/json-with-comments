@@ -8,8 +8,8 @@ pub struct JsoncSerializer<W, F>
 where
     F: JsoncFormatter,
 {
-    pub write: W,
-    pub formatter: F,
+    pub(crate) write: W,
+    pub(crate) formatter: F,
 }
 
 impl<W, F> JsoncSerializer<W, F>
