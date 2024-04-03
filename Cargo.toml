@@ -9,16 +9,16 @@ homepage = "https://hayas1.github.io/json-with-comments/json_with_comments/"
 readme = "README.md"
 
 [dependencies]
-serde = "1.0.196"
-num = "0.4.0"
-itoa = "1.0.10"
+serde = "1.0.197"
+num = "0.4.1"
+itoa = "1.0.11"
 ryu = "1.0.17"
 indexmap = { version = "2.2.6", features = ["serde"], optional = true }
 
-thiserror = "1.0.57"
+thiserror = "1.0.58"
 
 [dev-dependencies]
-serde = { version = "1.0.196", features = ["derive"] }
+serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.115"
 
 [lints.clippy]
