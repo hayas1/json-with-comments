@@ -87,11 +87,11 @@ macro_rules! jsonc_generics {
 /// [`array!`] macro has two array arguments.
 /// First is built array, and second is rest of the array.
 /// For example, parse array `[1, 2, 3]` with [`jsonc_generics!`].
-/// - [`jsonc_generics!`] call [`array!`] with `array!([] [1, 2, 3])`.
-/// - [`array!`] call [`array!`] with `array!([1,] [2, 3])`.
-/// - [`array!`] call [`array!`] with `array!([1, 2,] [3])`.
-/// - [`array!`] call [`array!`] with `array!([1, 2, 3,] [])`.
-/// - then, rest array is empty, so [`array!`] return array `[1, 2, 3]`
+/// 1. [`jsonc_generics!`] call [`array!`] with `array!([] [1, 2, 3])`.
+/// 1. [`array!`] call [`array!`] with `array!([1,] [2, 3])`.
+/// 1. [`array!`] call [`array!`] with `array!([1, 2,] [3])`.
+/// 1. [`array!`] call [`array!`] with `array!([1, 2, 3,] [])`.
+/// 1. then, rest array is empty, so [`array!`] return array `[1, 2, 3]`
 ///
 /// # Examples
 /// ```
@@ -153,12 +153,12 @@ macro_rules! array {
 /// [`object!`] macro has three arguments.
 /// First is built (key, value) pair array, and second is building key, and rest of the object.
 /// For example, parse object `{"a": 1, "b": 2}` with [`jsonc_generics!`].
-/// - [`jsonc_generics!`] call [`object!`] with `object!([] () {"a": 1, "b": 2})`.
-/// - [`object!`] munch token tree and call [`object!`] with `object!([] ("a") {: 1, "b": 2})`.
-/// - [`object!`] consume built key and call [`object!`] with `object!([("a", 1),] () {"b": 2})`.
-/// - [`object!`] munch token tree and call [`object!`] with `object!([("a", 1),] ("b") {: 2})`.
-/// - [`object!`] consume built key and call [`object!`] with `object!([("a", 1), ("b", 2),] () {})`.
-/// - then, rest object is empty, so [`object!`] return object `{"a": 1, "b": 2}`
+/// 1. [`jsonc_generics!`] call [`object!`] with `object!([] () {"a": 1, "b": 2})`.
+/// 1. [`object!`] munch token tree and call [`object!`] with `object!([] ("a") {: 1, "b": 2})`.
+/// 1. [`object!`] consume built key and call [`object!`] with `object!([("a", 1),] () {"b": 2})`.
+/// 1. [`object!`] munch token tree and call [`object!`] with `object!([("a", 1),] ("b") {: 2})`.
+/// 1. [`object!`] consume built key and call [`object!`] with `object!([("a", 1), ("b", 2),] () {})`.
+/// 1. then, rest object is empty, so [`object!`] return object `{"a": 1, "b": 2}`
 ///
 /// # Examples
 /// ```
