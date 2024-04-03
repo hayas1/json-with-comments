@@ -23,11 +23,11 @@
 /// );
 ///
 /// ```
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! jsonc {
     ($($json:tt)*) => {
         {
-            let value: $crate::Value = jsonc_generics!($($json)*);
+            let value: $crate::Value = $crate::jsonc_generics!($($json)*);
             value
         }
     };
@@ -59,16 +59,16 @@ macro_rules! jsonc {
 /// );
 ///
 /// ```
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! jsonc_generics {
     // TODO comments
 
     ([$($array:tt)*]) => {
-        array!([] [$($array)*])
+        $crate::array!([] [$($array)*])
     };
 
     ({$($object:tt)*}) => {
-        object!([] () {$($object)*})
+        $crate::object!([] () {$($object)*})
     };
 
     (null) => {
