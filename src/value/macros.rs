@@ -23,11 +23,11 @@
 /// );
 ///
 /// ```
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! jsonc {
     ($($json:tt)*) => {
         {
-            let value: $crate::Value = jsonc_generics!($($json)*);
+            let value: $crate::Value = $crate::jsonc_generics!($($json)*);
             value
         }
     };
@@ -59,16 +59,16 @@ macro_rules! jsonc {
 /// );
 ///
 /// ```
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! jsonc_generics {
     // TODO comments
 
     ([$($array:tt)*]) => {
-        array!([] [$($array)*])
+        $crate::array!([] [$($array)*])
     };
 
     ({$($object:tt)*}) => {
-        object!([] () {$($object)*})
+        $crate::object!([] () {$($object)*})
     };
 
     (null) => {
@@ -81,17 +81,18 @@ macro_rules! jsonc_generics {
 }
 
 /// This is inner macro to construct a [`crate::value::JsoncValue::Array`] from rust value.
+/// To construct [`crate::value::JsoncValue`], see [`jsonc!`] and [`jsonc_generics!`].
 ///
 /// # How it works
 /// [`array!`]: crate::array!
 /// [`array!`] macro has two array arguments.
 /// First is built array, and second is rest of the array.
 /// For example, parse array `[1, 2, 3]` with [`jsonc_generics!`].
-/// - [`jsonc_generics!`] call [`array!`] with `array!([] [1, 2, 3])`.
-/// - [`array!`] call [`array!`] with `array!([1,] [2, 3])`.
-/// - [`array!`] call [`array!`] with `array!([1, 2,] [3])`.
-/// - [`array!`] call [`array!`] with `array!([1, 2, 3,] [])`.
-/// - then, rest array is empty, so [`array!`] return array `[1, 2, 3]`
+/// 1. [`jsonc_generics!`] call [`array!`] with `array!([] [1, 2, 3])`.
+/// 1. [`array!`] call [`array!`] with `array!([1,] [2, 3])`.
+/// 1. [`array!`] call [`array!`] with `array!([1, 2,] [3])`.
+/// 1. [`array!`] call [`array!`] with `array!([1, 2, 3,] [])`.
+/// 1. then, rest array is empty, so [`array!`] return array `[1, 2, 3]`
 ///
 /// # Examples
 /// ```
@@ -102,6 +103,7 @@ macro_rules! jsonc_generics {
 ///     JsoncValue::<u32, f32>::Array(vec![1.into(), 2.into(), 3.into()])
 /// );
 /// ```
+#[doc(hidden)]
 #[macro_export(local_inner_macros)]
 macro_rules! array {
     // Done building the array
@@ -147,18 +149,19 @@ macro_rules! array {
 }
 
 /// This is inner macro to construct a [`crate::value::JsoncValue::Object`] from rust value.
+/// To construct [`crate::value::JsoncValue`], see [`jsonc!`] and [`jsonc_generics!`].
 ///
 /// # How it works
 /// [`object!`]: crate::object!
 /// [`object!`] macro has three arguments.
 /// First is built (key, value) pair array, and second is building key, and rest of the object.
 /// For example, parse object `{"a": 1, "b": 2}` with [`jsonc_generics!`].
-/// - [`jsonc_generics!`] call [`object!`] with `object!([] () {"a": 1, "b": 2})`.
-/// - [`object!`] munch token tree and call [`object!`] with `object!([] ("a") {: 1, "b": 2})`.
-/// - [`object!`] consume built key and call [`object!`] with `object!([("a", 1),] () {"b": 2})`.
-/// - [`object!`] munch token tree and call [`object!`] with `object!([("a", 1),] ("b") {: 2})`.
-/// - [`object!`] consume built key and call [`object!`] with `object!([("a", 1), ("b", 2),] () {})`.
-/// - then, rest object is empty, so [`object!`] return object `{"a": 1, "b": 2}`
+/// 1. [`jsonc_generics!`] call [`object!`] with `object!([] () {"a": 1, "b": 2})`.
+/// 1. [`object!`] munch token tree and call [`object!`] with `object!([] ("a") {: 1, "b": 2})`.
+/// 1. [`object!`] consume built key and call [`object!`] with `object!([("a", 1),] () {"b": 2})`.
+/// 1. [`object!`] munch token tree and call [`object!`] with `object!([("a", 1),] ("b") {: 2})`.
+/// 1. [`object!`] consume built key and call [`object!`] with `object!([("a", 1), ("b", 2),] () {})`.
+/// 1. then, rest object is empty, so [`object!`] return object `{"a": 1, "b": 2}`
 ///
 /// # Examples
 /// ```
@@ -169,6 +172,7 @@ macro_rules! array {
 ///     JsoncValue::<u32, f32>::Object(vec![("a".into(), 1.into()), ("b".into(), 2.into())].into_iter().collect())
 /// );
 /// ```
+#[doc(hidden)]
 #[macro_export(local_inner_macros)]
 macro_rules! object {
     // Done building the object
