@@ -108,7 +108,7 @@ impl<I, F, R: std::slice::SliceIndex<[JsoncValue<I, F>]>> JsoncIndex<JsoncValue<
 
 #[cfg(test)]
 mod tests {
-    use crate::{from_str, jsonc};
+    use crate::{jsonc, jsonc_generics};
 
     use super::*;
 
@@ -182,14 +182,14 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_index_unmatched_type() {
-        let value: JsoncValue<u64, f64> = from_str(r#"{"version": 1}"#).unwrap();
+        let value: JsoncValue<u64, f64> = jsonc_generics!({"version": 1});
         _ = value[1];
     }
 
     #[test]
     #[should_panic]
     fn test_index_number_by_number() {
-        let value: JsoncValue<u64, f64> = from_str(r#"{"version": 1}"#).unwrap();
+        let value: JsoncValue<u64, f64> = jsonc_generics!({"version": 1});
         _ = value["version"][3];
     }
 }
