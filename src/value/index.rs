@@ -82,11 +82,6 @@ impl<I, F> JsoncIndex<JsoncValue<I, F>> for usize {
 
 /// TODO doc
 pub struct Range<R>(R);
-impl<R> From<R> for Range<R> {
-    fn from(range: R) -> Self {
-        Self(range)
-    }
-}
 // conflicting implementations of trait `value::index::JsoncIndex<value::JsoncValue<_, _>>` for type `&str`
 // upstream crates may add a new impl of trait `std::slice::SliceIndex<[value::JsoncValue<_, _>]>` for type `&str` in future versions
 impl<I, F, R: std::slice::SliceIndex<[JsoncValue<I, F>]>> JsoncIndex<JsoncValue<I, F>> for Range<R> {
@@ -113,11 +108,6 @@ impl<I, F, R: std::slice::SliceIndex<[JsoncValue<I, F>]>> JsoncIndex<JsoncValue<
 
 /// TODO doc
 pub struct Nest<It>(It);
-impl<It> From<It> for Nest<It> {
-    fn from(iter: It) -> Self {
-        Self(iter)
-    }
-}
 impl<It, I, F> JsoncIndex<JsoncValue<I, F>> for Nest<It>
 where
     It: IntoIterator,
