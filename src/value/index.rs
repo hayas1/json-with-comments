@@ -144,23 +144,20 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::from_str;
+    use crate::{from_str, jsonc};
 
     use super::*;
 
     #[test]
     fn test_index_and_get() {
-        let value: JsoncValue<u64, f64> = from_str(
-            r#"{
-                "name": "json-with-comments",
-                "keywords": [
-                    "JSON with comments",
-                    "parser",
-                    "serde",
-                ]
-            }"#,
-        )
-        .unwrap();
+        let value = jsonc!({
+            "name": "json-with-comments",
+            "keywords": [
+                "JSON with comments",
+                "parser",
+                "serde",
+            ]
+        });
         assert_eq!(value["name"], JsoncValue::String("json-with-comments".to_string()));
         assert_eq!(value["keywords"][0], JsoncValue::String("JSON with comments".to_string()));
         assert_eq!(
@@ -181,46 +178,40 @@ mod tests {
 
     #[test]
     fn test_index_mut_and_get_mut() {
-        let mut value: JsoncValue<u64, f64> = r#"{
-                "name": "json-with-comments",
-                "keywords": [
-                    "JSON with comments",
-                    "parser",
-                    "serde",
-                ]
-            }"#
-        .parse()
-        .unwrap();
+        let mut value = jsonc!({
+            "name": "json-with-comments",
+            "keywords": [
+                "JSON with comments",
+                "parser",
+                "serde",
+            ]
+        });
 
         value["name"] = JsoncValue::String("JSON with comments".to_string());
         value["keywords"][0] = JsoncValue::Array(vec!["JSON".into(), "with".into(), "comments".into()]);
         assert_eq!(
             value,
-            r#"{
+            jsonc!({
                 "name": "JSON with comments",
                 "keywords": [
                     ["JSON", "with", "comments"],
                     "parser",
                     "serde",
                 ]
-            }"#
-            .parse()
-            .unwrap()
+            })
         );
 
         value.get_mut("keywords").unwrap().get_mut(0).unwrap().as_array_mut().unwrap().push("!".into());
         assert_eq!(
             value,
-            r#"{
+            jsonc!({
                 "name": "JSON with comments",
                 "keywords": [
                     ["JSON", "with", "comments", "!"],
                     "parser",
                     "serde",
                 ]
-            }"#
-            .parse()
-            .unwrap()
+            })
         );
     }
 
