@@ -106,32 +106,6 @@ impl<I, F, R: std::slice::SliceIndex<[JsoncValue<I, F>]>> JsoncIndex<JsoncValue<
     }
 }
 
-/// TODO doc
-pub struct Nest<It>(It);
-impl<It, I, F> JsoncIndex<JsoncValue<I, F>> for Nest<It>
-where
-    It: IntoIterator,
-    It::Item: JsoncIndex<JsoncValue<I, F>, Output = JsoncValue<I, F>>,
-{
-    type Output = <<It as IntoIterator>::Item as JsoncIndex<JsoncValue<I, F>>>::Output;
-
-    fn get(self, value: &JsoncValue<I, F>) -> Option<&Self::Output> {
-        self.0.into_iter().try_fold(value, |val, index| val.get(index))
-    }
-
-    fn get_mut(self, value: &mut JsoncValue<I, F>) -> Option<&mut Self::Output> {
-        self.0.into_iter().try_fold(value, |val, index| val.get_mut(index))
-    }
-
-    fn index(self, value: &JsoncValue<I, F>) -> &Self::Output {
-        self.0.into_iter().fold(value, |val, index| &val[index])
-    }
-
-    fn index_mut(self, value: &mut JsoncValue<I, F>) -> &mut Self::Output {
-        self.0.into_iter().fold(value, |val, index| &mut val[index])
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::{from_str, jsonc};
