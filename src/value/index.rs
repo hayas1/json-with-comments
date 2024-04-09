@@ -180,6 +180,27 @@ mod tests {
     }
 
     #[test]
+    fn test_nested_index_and_nested_get() {
+        let value = jsonc!({
+            "object1": {
+                "object2": {
+                    "array": [false, true],
+                }
+            }
+        });
+        assert_eq!(value["object1"]["object2"]["array"][1], JsoncValue::Bool(true));
+        assert_eq!(
+            ["object1", "object2", "array"].iter().fold(&value, |val, &key| &val[key]),
+            &JsoncValue::Array(vec![JsoncValue::Bool(false), JsoncValue::Bool(true)])
+        );
+
+        assert_eq!(
+            ["object1", "object2", "array"].iter().try_fold(&value, |val, &key| val.get(key)),
+            Some(&JsoncValue::Array(vec![JsoncValue::Bool(false), JsoncValue::Bool(true)]))
+        );
+    }
+
+    #[test]
     #[should_panic]
     fn test_index_unmatched_type() {
         let value: JsoncValue<u64, f64> = jsonc_generics!({"version": 1});
