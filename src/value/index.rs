@@ -18,7 +18,31 @@ impl<I, F, In: JsoncIndex<JsoncValue<I, F>>> std::ops::IndexMut<In> for JsoncVal
     }
 }
 impl<I, F> JsoncValue<I, F> {
-    /// TODO doc
+    /// Returns a reference to the value at the given index.
+    /// - if the value is an array, returns the element at the given index, or `None` if the index is out of bounds.
+    /// - if the value is an object, returns the value associated with the given key, or `None` if the key is not found.
+    /// - if the value is neither an array nor an object, returns `None`.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// let value = jsonc!({
+    ///     "array": [1, 2, 3],
+    ///     "object": {
+    ///         "key": "value",
+    ///     },
+    /// });
+    ///
+    /// assert_eq!(value["array"].get(0), Some(&1.into()));
+    /// assert_eq!(value["array"].get(1..), Some(&[2.into(), 3.into()][..]));
+    /// assert_eq!(value["array"].get(1000), None);
+    ///
+    /// assert_eq!(value["object"].get("key"), Some(&"value".into()));
+    /// assert_eq!(value["object"].get("nonexistent"), None);
+    ///
+    /// assert_eq!(value["array"][1].get(0), None);
+    /// assert_eq!(value["object"]["key"].get(""), None);
+    /// ```
     pub fn get<In: JsoncIndex<Self>>(
         &self,
         index: In,
@@ -26,7 +50,34 @@ impl<I, F> JsoncValue<I, F> {
         In::Indexer::get(self, index)
     }
 
-    /// TODO doc
+    /// Returns a mutable reference to the value at the given index (see [`Self::get`]).
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::{jsonc, Value, value::number::Number};
+    /// let mut value = jsonc!({
+    ///     "array": [1, 2, 3],
+    ///     "object": {
+    ///         "key": "value",
+    ///     },
+    /// });
+    /// if let Some(Value::Number(Number::Integer(i))) = value["array"].get_mut(2) {
+    ///     assert_eq!(i, &3);
+    ///     *i = *i * *i;
+    ///     assert_eq!(i, &9);
+    /// }
+    /// if let Some(v) = value["object"].get_mut("key") {
+    ///     assert_eq!(v, &Value::String("value".to_string()));
+    ///     *v = ().into();
+    ///     assert_eq!(v, &Value::Null);
+    /// }
+    /// assert_eq!(value, jsonc!({
+    ///     "array": [1, 2, 9],
+    ///     "object": {
+    ///         "key": null,
+    ///     },
+    /// }));
+    /// ```
     pub fn get_mut<In: JsoncIndex<Self>>(
         &mut self,
         index: In,
