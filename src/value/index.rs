@@ -59,19 +59,22 @@ impl<'a, I, F> JsoncIndexer<&'a str, JsoncValue<I, F>> for StringIndexer {
     }
 
     fn index<'b>(value: &'b JsoncValue<I, F>, index: &'a str) -> &'b Self::Output {
-        match value {
-            JsoncValue::Object(map) => &map[index],
-            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
-        }
+        &value.as_object().unwrap_or_else(|| panic!("{}", IndexError::StringIndex { value: value.value_type() }))[index]
     }
 
     fn index_mut<'b>(value: &'b mut JsoncValue<I, F>, index: &'a str) -> &'b mut Self::Output {
         //  `IndexMut` is not implemented for `std::collections::HashMap`
+
+        // cannot borrow `*value` as immutable because it is also borrowed as mutable
+        // value
+        //     .as_object_mut()
+        //     .unwrap_or_else(|| panic!("{}", IndexError::StringIndex { value: value.value_type() }))
+        //     .get_mut(index)
+        //     .unwrap_or_else(|| panic!("{}", IndexError::NotExistKey { key: index.to_string() }))
         match value {
-            JsoncValue::Object(map) => match map.get_mut(index) {
-                Some(v) => v,
-                None => panic!("{}", IndexError::NotExistKey { key: index.to_string() }),
-            },
+            JsoncValue::Object(map) => {
+                map.get_mut(index).unwrap_or_else(|| panic!("{}", IndexError::NotExistKey { key: index.to_string() }))
+            }
             _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
         }
     }
@@ -92,13 +95,12 @@ impl<I, F, S: std::slice::SliceIndex<[JsoncValue<I, F>]> + JsoncIndex<JsoncValue
     }
 
     fn index(value: &JsoncValue<I, F>, index: S) -> &Self::Output {
-        match value {
-            JsoncValue::Array(v) => &v[index],
-            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
-        }
+        &value.as_array().unwrap_or_else(|| panic!("{}", IndexError::StringIndex { value: value.value_type() }))[index]
     }
 
     fn index_mut(value: &mut JsoncValue<I, F>, index: S) -> &mut Self::Output {
+        // cannot borrow `*value` as immutable because it is also borrowed as mutable
+        // &mut value.as_array_mut().unwrap_or_else(|| panic!("{}", IndexError::StringIndex { value: value.value_type() }))[index]
         match value {
             JsoncValue::Array(v) => &mut v[index],
             _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
