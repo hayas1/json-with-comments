@@ -3,16 +3,11 @@ use crate::error::IndexError;
 use super::JsoncValue;
 
 pub trait JsoncIndex<T>: Sized {
-    type Output: ?Sized;
     type Indexer: JsoncIndexer<Self, T>;
-    fn get(self, value: &T) -> Option<&Self::Output>;
-    fn get_mut(self, value: &mut T) -> Option<&mut Self::Output>;
-    fn index(self, value: &T) -> &Self::Output;
-    fn index_mut(self, value: &mut T) -> &mut Self::Output;
 }
 
 impl<I, F, In: JsoncIndex<JsoncValue<I, F>>> std::ops::Index<In> for JsoncValue<I, F> {
-    type Output = In::Output;
+    type Output = <In::Indexer as JsoncIndexer<In, JsoncValue<I, F>>>::Output;
     fn index(&self, index: In) -> &Self::Output {
         In::Indexer::index(self, index)
     }
@@ -24,13 +19,19 @@ impl<I, F, In: JsoncIndex<JsoncValue<I, F>>> std::ops::IndexMut<In> for JsoncVal
 }
 impl<I, F> JsoncValue<I, F> {
     /// TODO doc
-    pub fn get<In: JsoncIndex<Self>>(&self, index: In) -> Option<&In::Output> {
-        index.get(self)
+    pub fn get<In: JsoncIndex<Self>>(
+        &self,
+        index: In,
+    ) -> Option<&<In::Indexer as JsoncIndexer<In, JsoncValue<I, F>>>::Output> {
+        In::Indexer::get(self, index)
     }
 
     /// TODO doc
-    pub fn get_mut<In: JsoncIndex<Self>>(&mut self, index: In) -> Option<&mut In::Output> {
-        index.get_mut(self)
+    pub fn get_mut<In: JsoncIndex<Self>>(
+        &mut self,
+        index: In,
+    ) -> Option<&mut <In::Indexer as JsoncIndexer<In, JsoncValue<I, F>>>::Output> {
+        In::Indexer::get_mut(self, index)
     }
 }
 
@@ -38,110 +39,78 @@ pub trait JsoncIndexer<T, V>
 where
     T: JsoncIndex<V>,
 {
-    fn get(value: &V, index: T) -> Option<&T::Output>;
-    fn get_mut(value: &mut V, index: T) -> Option<&mut T::Output>;
-    fn index(value: &V, index: T) -> &T::Output;
-    fn index_mut(value: &mut V, index: T) -> &mut T::Output;
+    type Output: ?Sized;
+    fn get(value: &V, index: T) -> Option<&Self::Output>;
+    fn get_mut(value: &mut V, index: T) -> Option<&mut Self::Output>;
+    fn index(value: &V, index: T) -> &Self::Output;
+    fn index_mut(value: &mut V, index: T) -> &mut Self::Output;
 }
 
 pub enum StringIndexer {}
 impl<'a, I, F> JsoncIndexer<&'a str, JsoncValue<I, F>> for StringIndexer {
-    fn get<'b>(
-        value: &'b JsoncValue<I, F>,
-        index: &'a str,
-    ) -> Option<&'b <&'a str as JsoncIndex<JsoncValue<I, F>>>::Output> {
+    type Output = JsoncValue<I, F>;
+
+    fn get<'b>(value: &'b JsoncValue<I, F>, index: &'a str) -> Option<&'b Self::Output> {
         value.as_object().and_then(|map| map.get(index))
     }
 
-    fn get_mut<'b>(
-        value: &'b mut JsoncValue<I, F>,
-        index: &'a str,
-    ) -> Option<&'b mut <&'a str as JsoncIndex<JsoncValue<I, F>>>::Output> {
-        todo!()
+    fn get_mut<'b>(value: &'b mut JsoncValue<I, F>, index: &'a str) -> Option<&'b mut Self::Output> {
+        value.as_object_mut().and_then(|map| map.get_mut(index))
     }
 
-    fn index<'b>(value: &'b JsoncValue<I, F>, index: &'a str) -> &'b <&'a str as JsoncIndex<JsoncValue<I, F>>>::Output {
-        todo!()
+    fn index<'b>(value: &'b JsoncValue<I, F>, index: &'a str) -> &'b Self::Output {
+        match value {
+            JsoncValue::Object(map) => &map[index],
+            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
+        }
     }
 
-    fn index_mut<'b>(
-        value: &'b mut JsoncValue<I, F>,
-        index: &'a str,
-    ) -> &'b mut <&'a str as JsoncIndex<JsoncValue<I, F>>>::Output {
-        todo!()
+    fn index_mut<'b>(value: &'b mut JsoncValue<I, F>, index: &'a str) -> &'b mut Self::Output {
+        //  `IndexMut` is not implemented for `std::collections::HashMap`
+        match value {
+            JsoncValue::Object(map) => match map.get_mut(index) {
+                Some(v) => v,
+                None => panic!("{}", IndexError::NotExistKey { key: index.to_string() }),
+            },
+            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
+        }
     }
 }
 
 pub enum SliceIndexer {}
 impl<I, F, S: std::slice::SliceIndex<[JsoncValue<I, F>]> + JsoncIndex<JsoncValue<I, F>>>
     JsoncIndexer<S, JsoncValue<I, F>> for SliceIndexer
-// where
-//     <S as JsoncIndex<JsoncValue<I, F>>>::Output: <S as std::slice::SliceIndex<[JsoncValue<I, F>]>>::Output,
 {
-    fn get(value: &JsoncValue<I, F>, index: S) -> Option<&<S as JsoncIndex<JsoncValue<I, F>>>::Output> {
+    type Output = <S as std::slice::SliceIndex<[JsoncValue<I, F>]>>::Output;
+
+    fn get(value: &JsoncValue<I, F>, index: S) -> Option<&Self::Output> {
         value.as_array().and_then(|v| v.get(index))
     }
 
-    fn get_mut(value: &mut JsoncValue<I, F>, index: S) -> Option<&mut <S as JsoncIndex<JsoncValue<I, F>>>::Output> {
-        todo!()
+    fn get_mut(value: &mut JsoncValue<I, F>, index: S) -> Option<&mut Self::Output> {
+        value.as_array_mut().and_then(|v| v.get_mut(index))
     }
 
-    fn index(value: &JsoncValue<I, F>, index: S) -> &<S as JsoncIndex<JsoncValue<I, F>>>::Output {
-        todo!()
+    fn index(value: &JsoncValue<I, F>, index: S) -> &Self::Output {
+        match value {
+            JsoncValue::Array(v) => &v[index],
+            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
+        }
     }
 
-    fn index_mut(value: &mut JsoncValue<I, F>, index: S) -> &mut <S as JsoncIndex<JsoncValue<I, F>>>::Output {
-        todo!()
+    fn index_mut(value: &mut JsoncValue<I, F>, index: S) -> &mut Self::Output {
+        match value {
+            JsoncValue::Array(v) => &mut v[index],
+            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
+        }
     }
 }
 
 impl<I, F> JsoncIndex<JsoncValue<I, F>> for &str {
-    type Output = JsoncValue<I, F>;
     type Indexer = StringIndexer;
-    fn get(self, value: &JsoncValue<I, F>) -> Option<&Self::Output> {
-        value.as_object().and_then(|map| map.get(self))
-    }
-    fn get_mut(self, value: &mut JsoncValue<I, F>) -> Option<&mut Self::Output> {
-        value.as_object_mut().and_then(|map| map.get_mut(self))
-    }
-    fn index(self, value: &JsoncValue<I, F>) -> &Self::Output {
-        match value {
-            JsoncValue::Object(map) => &map[self],
-            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
-        }
-    }
-    fn index_mut(self, value: &mut JsoncValue<I, F>) -> &mut Self::Output {
-        //  `IndexMut` is not implemented for `std::collections::HashMap`
-        match value {
-            JsoncValue::Object(map) => match map.get_mut(self) {
-                Some(v) => v,
-                None => panic!("{}", IndexError::NotExistKey { key: self.to_string() }),
-            },
-            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
-        }
-    }
 }
 impl<I, F> JsoncIndex<JsoncValue<I, F>> for usize {
-    type Output = <Self as std::slice::SliceIndex<[JsoncValue<I, F>]>>::Output;
     type Indexer = SliceIndexer;
-    fn get(self, value: &JsoncValue<I, F>) -> Option<&Self::Output> {
-        value.as_array().and_then(|v| v.get(self))
-    }
-    fn get_mut(self, value: &mut JsoncValue<I, F>) -> Option<&mut Self::Output> {
-        value.as_array_mut().and_then(|v| v.get_mut(self))
-    }
-    fn index(self, value: &JsoncValue<I, F>) -> &Self::Output {
-        match value {
-            JsoncValue::Array(v) => &v[self],
-            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
-        }
-    }
-    fn index_mut(self, value: &mut JsoncValue<I, F>) -> &mut Self::Output {
-        match value {
-            JsoncValue::Array(v) => &mut v[self],
-            _ => panic!("{}", IndexError::StringIndex { value: value.value_type() }),
-        }
-    }
 }
 
 // /// TODO doc
