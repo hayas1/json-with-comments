@@ -112,33 +112,24 @@ impl<I, F> JsoncIndex<JsoncValue<I, F>> for &str {
 impl<I, F> JsoncIndex<JsoncValue<I, F>> for usize {
     type Indexer = SliceIndexer;
 }
-
-// /// TODO doc
-// pub struct Range<R>(R);
-// // conflicting implementations of trait `value::index::JsoncIndex<value::JsoncValue<_, _>>` for type `&str`
-// // upstream crates may add a new impl of trait `std::slice::SliceIndex<[value::JsoncValue<_, _>]>` for type `&str` in future versions
-// impl<I, F, R: std::slice::SliceIndex<[JsoncValue<I, F>]>> JsoncIndex<JsoncValue<I, F>> for Range<R> {
-//     type Output = R::Output;
-//     type Indexer = SliceIndexer;
-//     fn get(self, value: &JsoncValue<I, F>) -> Option<&Self::Output> {
-//         value.as_array().and_then(|v| v.get(self.0))
-//     }
-//     fn get_mut(self, value: &mut JsoncValue<I, F>) -> Option<&mut Self::Output> {
-//         value.as_array_mut().and_then(|v| v.get_mut(self.0))
-//     }
-//     fn index(self, value: &JsoncValue<I, F>) -> &Self::Output {
-//         match value {
-//             JsoncValue::Array(v) => &v[self.0],
-//             _ => panic!("{}", IndexError::SliceIndex { value: value.value_type() }),
-//         }
-//     }
-//     fn index_mut(self, value: &mut JsoncValue<I, F>) -> &mut Self::Output {
-//         match value {
-//             JsoncValue::Array(v) => &mut v[self.0],
-//             _ => panic!("{}", IndexError::SliceIndex { value: value.value_type() }),
-//         }
-//     }
-// }
+impl<I, F> JsoncIndex<JsoncValue<I, F>> for std::ops::Range<usize> {
+    type Indexer = SliceIndexer;
+}
+impl<I, F> JsoncIndex<JsoncValue<I, F>> for std::ops::RangeFrom<usize> {
+    type Indexer = SliceIndexer;
+}
+impl<I, F> JsoncIndex<JsoncValue<I, F>> for std::ops::RangeFull {
+    type Indexer = SliceIndexer;
+}
+impl<I, F> JsoncIndex<JsoncValue<I, F>> for std::ops::RangeInclusive<usize> {
+    type Indexer = SliceIndexer;
+}
+impl<I, F> JsoncIndex<JsoncValue<I, F>> for std::ops::RangeTo<usize> {
+    type Indexer = SliceIndexer;
+}
+impl<I, F> JsoncIndex<JsoncValue<I, F>> for std::ops::RangeToInclusive<usize> {
+    type Indexer = SliceIndexer;
+}
 
 #[cfg(test)]
 mod tests {
@@ -158,18 +149,18 @@ mod tests {
         });
         assert_eq!(value["name"], JsoncValue::String("json-with-comments".to_string()));
         assert_eq!(value["keywords"][0], JsoncValue::String("JSON with comments".to_string()));
-        // assert_eq!(
-        //     value["keywords"][Range(1..)],
-        //     [JsoncValue::String("parser".to_string()), JsoncValue::String("serde".to_string())]
-        // );
+        assert_eq!(
+            value["keywords"][1..],
+            [JsoncValue::String("parser".to_string()), JsoncValue::String("serde".to_string())]
+        );
 
         assert_eq!(value.get("name"), Some(&JsoncValue::String("json-with-comments".to_string())));
         assert_eq!(value.get("version"), None);
         assert_eq!(value.get("keywords").and_then(|k| k.get(1)), Some(&JsoncValue::String("parser".to_string())));
-        // assert_eq!(
-        //     value.get("keywords").and_then(|k| k.get(Range(1..)).map(|v| v.to_vec())),
-        //     Some([JsoncValue::String("parser".to_string()), JsoncValue::String("serde".to_string())].to_vec())
-        // );
+        assert_eq!(
+            value.get("keywords").and_then(|k| k.get(1..).map(|v| v.to_vec())),
+            Some([JsoncValue::String("parser".to_string()), JsoncValue::String("serde".to_string())].to_vec())
+        );
         assert_eq!(value.get("keywords").and_then(|k| k.get(100)), None);
         assert_eq!(value.get("keywords").and_then(|k| k.get("one")), None);
     }
