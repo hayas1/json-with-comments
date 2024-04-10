@@ -149,18 +149,10 @@ mod tests {
         });
         assert_eq!(value["name"], JsoncValue::String("json-with-comments".to_string()));
         assert_eq!(value["keywords"][0], JsoncValue::String("JSON with comments".to_string()));
-        assert_eq!(
-            value["keywords"][1..],
-            [JsoncValue::String("parser".to_string()), JsoncValue::String("serde".to_string())]
-        );
 
         assert_eq!(value.get("name"), Some(&JsoncValue::String("json-with-comments".to_string())));
         assert_eq!(value.get("version"), None);
         assert_eq!(value.get("keywords").and_then(|k| k.get(1)), Some(&JsoncValue::String("parser".to_string())));
-        assert_eq!(
-            value.get("keywords").and_then(|k| k.get(1..).map(|v| v.to_vec())),
-            Some([JsoncValue::String("parser".to_string()), JsoncValue::String("serde".to_string())].to_vec())
-        );
         assert_eq!(value.get("keywords").and_then(|k| k.get(100)), None);
         assert_eq!(value.get("keywords").and_then(|k| k.get("one")), None);
     }
@@ -202,6 +194,72 @@ mod tests {
                 ]
             })
         );
+    }
+
+    #[test]
+    fn test_range_index_and_range_get() {
+        let value = jsonc!({
+            "number": ["one", "two", "three", "four", "five"],
+        });
+
+        assert_eq!(
+            value["number"][1..3],
+            [JsoncValue::String("two".to_string()), JsoncValue::String("three".to_string())]
+        );
+        assert_eq!(
+            value["number"][3..],
+            [JsoncValue::String("four".to_string()), JsoncValue::String("five".to_string())]
+        );
+        assert_eq!(
+            value["number"][..],
+            [
+                JsoncValue::String("one".to_string()),
+                JsoncValue::String("two".to_string()),
+                JsoncValue::String("three".to_string()),
+                JsoncValue::String("four".to_string()),
+                JsoncValue::String("five".to_string()),
+            ]
+        );
+        assert_eq!(
+            value["number"][1..=2],
+            [JsoncValue::String("two".to_string()), JsoncValue::String("three".to_string()),]
+        );
+        assert_eq!(value["number"][..1], [JsoncValue::String("one".to_string())]);
+        assert_eq!(
+            value["number"][..=1],
+            [JsoncValue::String("one".to_string()), JsoncValue::String("two".to_string()),]
+        );
+
+        assert_eq!(
+            value["number"].get(1..3).unwrap(),
+            [JsoncValue::String("two".to_string()), JsoncValue::String("three".to_string())]
+        );
+        assert_eq!(
+            value["number"].get(3..).unwrap(),
+            [JsoncValue::String("four".to_string()), JsoncValue::String("five".to_string())]
+        );
+        assert_eq!(
+            value["number"].get(..).unwrap(),
+            [
+                JsoncValue::String("one".to_string()),
+                JsoncValue::String("two".to_string()),
+                JsoncValue::String("three".to_string()),
+                JsoncValue::String("four".to_string()),
+                JsoncValue::String("five".to_string()),
+            ]
+        );
+        assert_eq!(
+            value["number"].get(1..=2).unwrap(),
+            [JsoncValue::String("two".to_string()), JsoncValue::String("three".to_string()),]
+        );
+        assert_eq!(value["number"].get(..1).unwrap(), [JsoncValue::String("one".to_string())]);
+        assert_eq!(
+            value["number"].get(..=1).unwrap(),
+            [JsoncValue::String("one".to_string()), JsoncValue::String("two".to_string())]
+        );
+
+        assert_eq!(value["number"].get(2..2).unwrap(), []);
+        assert_eq!(value["number"].get(10000..), None);
     }
 
     #[test]
