@@ -14,7 +14,42 @@ pub type MapImpl<K, V> = indexmap::IndexMap<K, V>;
 /// Represents any valid JSON with comments value.
 ///
 /// # Examples
-/// see [crate] document also.
+/// see [`crate`] document also.
+/// ```
+/// use json_with_comments::{jsonc_generics, value::JsoncValue};
+///
+/// let mut value: JsoncValue<u32, f32> = jsonc_generics!({
+///     "name": "json-with-comments",
+///     "keywords": [
+///         "JSON with comments",
+///         "JSONC",
+///         "trailing comma",
+///     ],
+/// });
+///
+/// // index access
+/// assert_eq!(value["name"], JsoncValue::String("json-with-comments".to_string()));
+/// assert_eq!(
+///     value["keywords"].get(..=1),
+///     Some(
+///         &[JsoncValue::String("JSON with comments".to_string()), JsoncValue::String("JSONC".to_string())][..]
+///     )
+/// );
+///
+/// // mutable access
+/// value["name"] = "json_with_comments".into();
+/// if let Some(JsoncValue::String(jsonc)) = value["keywords"].get_mut(1) {
+///     *jsonc = jsonc.to_lowercase();
+/// }
+/// assert_eq!(value, jsonc_generics!({
+///     "name": "json_with_comments",
+///     "keywords": [
+///         "JSON with comments",
+///         "jsonc",
+///         "trailing comma",
+///     ],
+/// }));
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 // if JsoncValue<'a, I, F>, cannot implement FromStr
 pub enum JsoncValue<I, F> {
