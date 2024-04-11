@@ -96,6 +96,8 @@ impl<I, F> JsoncValue<I, F> {
     }
 
     /// Replaces value with the default value `Null`, returning the previous value.
+    /// - If you want to replace the values of two variables, see [`Self::swap`].
+    /// - If you want to replace with a passed value instead of the default value, see [`Self::replace`].
     ///
     /// # Examples
     /// ```
@@ -122,6 +124,70 @@ impl<I, F> JsoncValue<I, F> {
     /// ```
     pub fn take(&mut self) -> Self {
         std::mem::take(self)
+    }
+
+    /// Swaps `self` value and `other` value.
+    /// - If you want to swap with a default or dummy value, see [`Self::take`].
+    /// - If you want to replace with a passed value instead of the default value, see [`Self::replace`].
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// let mut value = jsonc!({
+    ///     "name": "json-with-comments",
+    ///     "keywords": [
+    ///         "JSON with comments",
+    ///         "JSONC",
+    ///         "trailing comma",
+    ///     ],
+    /// });
+    ///
+    /// let mut lower = "jsonc".into();
+    /// let name = value["keywords"][1].swap(&mut lower);
+    /// assert_eq!(lower, "JSONC".into());
+    /// assert_eq!(value, jsonc!({
+    ///     "name": "json-with-comments",
+    ///     "keywords": [
+    ///         "JSON with comments",
+    ///         "jsonc",
+    ///         "trailing comma"
+    ///     ]
+    /// }));
+    /// ```
+    pub fn swap(&mut self, other: &mut Self) {
+        std::mem::swap(self, other)
+    }
+
+    /// Moves `other` value into `self` value, returning the previous `self` value.
+    /// - If you want to swap with a default or dummy value, see [`Self::take`].
+    /// - If you want to replace the values of two variables, see [`Self::swap`].
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// let mut value = jsonc!({
+    ///     "name": "json-with-comments",
+    ///     "keywords": [
+    ///         "JSON with comments",
+    ///         "JSONC",
+    ///         "trailing comma",
+    ///     ],
+    /// });
+    ///
+    /// let upper = "JSON WITH COMMENTS".into();
+    /// let original = value["keywords"][0].replace(upper);
+    /// assert_eq!(original, "JSON with comments".into());
+    /// assert_eq!(value, jsonc!({
+    ///     "name": "json-with-comments",
+    ///     "keywords": [
+    ///         "JSON WITH COMMENTS",
+    ///         "JSONC",
+    ///         "trailing comma"
+    ///     ]
+    /// }));
+    /// ```
+    pub fn replace(&mut self, other: Self) -> Self {
+        std::mem::replace(self, other)
     }
 
     /// TODO doc
