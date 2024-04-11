@@ -11,7 +11,10 @@ pub type MapImpl<K, V> = std::collections::HashMap<K, V>;
 #[cfg(feature = "preserve_order")]
 pub type MapImpl<K, V> = indexmap::IndexMap<K, V>;
 
-/// TODO doc
+/// Represents any valid JSON with comments value.
+///
+/// # Examples
+/// see [crate] document also.
 #[derive(Debug, Clone, PartialEq)]
 // if JsoncValue<'a, I, F>, cannot implement FromStr
 pub enum JsoncValue<I, F> {
