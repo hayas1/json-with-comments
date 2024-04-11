@@ -49,6 +49,14 @@ pub type MapImpl<K, V> = indexmap::IndexMap<K, V>;
 ///         "trailing comma",
 ///     ],
 /// }));
+///
+/// // as rust value
+/// let v = value["keywords"].as_array().unwrap();
+/// let mut iter = v.iter();
+/// assert_eq!(iter.next().unwrap().as_str().unwrap(), "JSON with comments");
+/// assert_eq!(iter.next().unwrap().as_str().unwrap(), "jsonc");
+/// assert_eq!(iter.next().unwrap().as_str().unwrap(), "trailing comma");
+/// assert_eq!(iter.next(), None);
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 // if JsoncValue<'a, I, F>, cannot implement FromStr
