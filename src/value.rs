@@ -190,8 +190,19 @@ impl<I, F> JsoncValue<I, F> {
         std::mem::replace(self, other)
     }
 
-    /// TODO doc
-    /// get the value type representation of [`JsoncValue`]
+    /// Get the value type representation of [`JsoncValue`].
+    /// Main use case is for error reporting.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert_eq!(jsonc!({"key": "value"}).value_type(), "Object");
+    /// assert_eq!(jsonc!([1, 2, 3]).value_type(), "Array");
+    /// assert_eq!(jsonc!(true).value_type(), "Boolean");
+    /// assert_eq!(jsonc!(null).value_type(), "Null");
+    /// assert_eq!(jsonc!("value").value_type(), "String");
+    /// assert_eq!(jsonc!(123).value_type(), "Number");
+    /// ```
     pub fn value_type(&self) -> String {
         match self {
             JsoncValue::Object(_) => "Object",
