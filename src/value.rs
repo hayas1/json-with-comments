@@ -19,7 +19,7 @@ pub type MapImpl<K, V> = indexmap::IndexMap<K, V>;
 // if JsoncValue<'a, I, F>, cannot implement FromStr
 pub enum JsoncValue<I, F> {
     /// Represents any valid JSON with comments object.
-    /// Default implementation is [`std::collections::HashMap`]. If `preserve_order` feature is enabled, that will be `indexmap::IndexMap`.
+    /// Default implementation is `HashMap`. If `preserve_order` feature is enabled, that will be `IndexMap`.
     Object(MapImpl<String, JsoncValue<I, F>>),
 
     /// Represents any valid JSON with comments array.
