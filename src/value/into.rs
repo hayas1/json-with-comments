@@ -8,14 +8,14 @@ impl<I, F> JsoncValue<I, F> {
         matches!(self, JsoncValue::Object(_))
     }
     /// TODO doc
-    pub fn as_object(&self) -> Option<&MapImpl<String, Self>> {
+    pub fn as_map(&self) -> Option<&MapImpl<String, Self>> {
         match self {
             JsoncValue::Object(m) => Some(m),
             _ => None,
         }
     }
     /// TODO doc
-    pub fn as_object_mut(&mut self) -> Option<&mut MapImpl<String, Self>> {
+    pub fn as_map_mut(&mut self) -> Option<&mut MapImpl<String, Self>> {
         match self {
             JsoncValue::Object(m) => Some(m),
             _ => None,
@@ -27,14 +27,14 @@ impl<I, F> JsoncValue<I, F> {
         matches!(self, JsoncValue::Array(_))
     }
     /// TODO doc
-    pub fn as_array(&self) -> Option<&Vec<Self>> {
+    pub fn as_vec(&self) -> Option<&Vec<Self>> {
         match self {
             JsoncValue::Array(v) => Some(v),
             _ => None,
         }
     }
     /// TODO doc
-    pub fn as_array_mut(&mut self) -> Option<&mut Vec<Self>> {
+    pub fn as_vec_mut(&mut self) -> Option<&mut Vec<Self>> {
         match self {
             JsoncValue::Array(v) => Some(v),
             _ => None,
@@ -65,7 +65,7 @@ impl<I, F> JsoncValue<I, F> {
         matches!(self, JsoncValue::Null)
     }
     /// TODO doc
-    pub fn as_null(&self) -> Option<()> {
+    pub fn as_unit(&self) -> Option<()> {
         match self {
             JsoncValue::Null => Some(()),
             _ => None,
@@ -353,19 +353,19 @@ mod tests {
                 && !v.is_float()
         );
         assert!(
-            v.as_object().is_some()
-                && v.as_array().is_none()
+            v.as_map().is_some()
+                && v.as_vec().is_none()
                 && v.as_bool().is_none()
-                && v.as_null().is_none()
+                && v.as_unit().is_none()
                 && v.as_str().is_none()
                 && v.as_number().is_none()
                 && v.as_integer().is_none()
                 && v.as_float().is_none()
         );
-        assert_eq!(v.as_object().unwrap(), &MapImpl::from_iter([("null".to_string(), Value::Null)]));
+        assert_eq!(v.as_map().unwrap(), &MapImpl::from_iter([("null".to_string(), Value::Null)]));
 
         let muted = {
-            let mv = v.as_object_mut().unwrap();
+            let mv = v.as_map_mut().unwrap();
             *mv.get_mut(&"null".to_string()).unwrap() = "null".into();
             mv.insert("key".to_string(), "value".into());
             assert_eq!(
@@ -396,17 +396,17 @@ mod tests {
                 && !v.is_float()
         );
         assert!(
-            v.as_object().is_none()
-                && v.as_array().is_some()
+            v.as_map().is_none()
+                && v.as_vec().is_some()
                 && v.as_bool().is_none()
-                && v.as_null().is_none()
+                && v.as_unit().is_none()
                 && v.as_str().is_none()
                 && v.as_number().is_none()
                 && v.as_integer().is_none()
                 && v.as_float().is_none()
         );
         assert_eq!(
-            v.as_array().unwrap(),
+            v.as_vec().unwrap(),
             &[
                 Value::Null,
                 Value::String("null".to_string()),
@@ -417,7 +417,7 @@ mod tests {
         );
 
         let muted = {
-            let mv = v.as_array_mut().unwrap();
+            let mv = v.as_vec_mut().unwrap();
             *mv.get_mut(0).unwrap() = "null".into();
             mv.remove(1);
             assert_eq!(
@@ -450,10 +450,10 @@ mod tests {
                 && !v.is_float()
         );
         assert!(
-            v.as_object().is_none()
-                && v.as_array().is_none()
+            v.as_map().is_none()
+                && v.as_vec().is_none()
                 && v.as_bool().is_some()
-                && v.as_null().is_none()
+                && v.as_unit().is_none()
                 && v.as_str().is_none()
                 && v.as_number().is_none()
                 && v.as_integer().is_none()
@@ -486,16 +486,16 @@ mod tests {
                 && !v.is_float()
         );
         assert!(
-            v.as_object().is_none()
-                && v.as_array().is_none()
+            v.as_map().is_none()
+                && v.as_vec().is_none()
                 && v.as_bool().is_none()
-                && v.as_null().is_some()
+                && v.as_unit().is_some()
                 && v.as_str().is_none()
                 && v.as_number().is_none()
                 && v.as_integer().is_none()
                 && v.as_float().is_none()
         );
-        assert_eq!(v.as_null().unwrap(), ());
+        assert_eq!(v.as_unit().unwrap(), ());
 
         let owned_null: () = v.try_into().unwrap();
         assert_eq!(owned_null, ());
@@ -515,10 +515,10 @@ mod tests {
                 && !v.is_float()
         );
         assert!(
-            v.as_object().is_none()
-                && v.as_array().is_none()
+            v.as_map().is_none()
+                && v.as_vec().is_none()
                 && v.as_bool().is_none()
-                && v.as_null().is_none()
+                && v.as_unit().is_none()
                 && v.as_str().is_some()
                 && v.as_number().is_none()
                 && v.as_integer().is_none()
@@ -555,10 +555,10 @@ mod tests {
                 && !v.is_float()
         );
         assert!(
-            v.as_object().is_none()
-                && v.as_array().is_none()
+            v.as_map().is_none()
+                && v.as_vec().is_none()
                 && v.as_bool().is_none()
-                && v.as_null().is_none()
+                && v.as_unit().is_none()
                 && v.as_str().is_none()
                 && v.as_number().is_some()
                 && v.as_integer().is_some() // number && integer
@@ -587,10 +587,10 @@ mod tests {
                 && v.is_float() // number && float
         );
         assert!(
-            v.as_object().is_none()
-                && v.as_array().is_none()
+            v.as_map().is_none()
+                && v.as_vec().is_none()
                 && v.as_bool().is_none()
-                && v.as_null().is_none()
+                && v.as_unit().is_none()
                 && v.as_str().is_none()
                 && v.as_number().is_some()
                 && v.as_integer().is_none()

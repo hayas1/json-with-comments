@@ -102,15 +102,15 @@ impl<'a, I, F> JsoncIndexer<&'a str, JsoncValue<I, F>> for StringIndexer {
     type Output = JsoncValue<I, F>;
 
     fn get<'b>(value: &'b JsoncValue<I, F>, index: &'a str) -> Option<&'b Self::Output> {
-        value.as_object().and_then(|map| map.get(index))
+        value.as_map().and_then(|map| map.get(index))
     }
 
     fn get_mut<'b>(value: &'b mut JsoncValue<I, F>, index: &'a str) -> Option<&'b mut Self::Output> {
-        value.as_object_mut().and_then(|map| map.get_mut(index))
+        value.as_map_mut().and_then(|map| map.get_mut(index))
     }
 
     fn index<'b>(value: &'b JsoncValue<I, F>, index: &'a str) -> &'b Self::Output {
-        &value.as_object().unwrap_or_else(|| panic!("{}", IndexError::StringIndex { value: value.value_type() }))[index]
+        &value.as_map().unwrap_or_else(|| panic!("{}", IndexError::StringIndex { value: value.value_type() }))[index]
     }
 
     fn index_mut<'b>(value: &'b mut JsoncValue<I, F>, index: &'a str) -> &'b mut Self::Output {
@@ -138,15 +138,15 @@ impl<I, F, S: std::slice::SliceIndex<[JsoncValue<I, F>]> + JsoncIndex<JsoncValue
     type Output = <S as std::slice::SliceIndex<[JsoncValue<I, F>]>>::Output;
 
     fn get(value: &JsoncValue<I, F>, index: S) -> Option<&Self::Output> {
-        value.as_array().and_then(|v| v.get(index))
+        value.as_vec().and_then(|v| v.get(index))
     }
 
     fn get_mut(value: &mut JsoncValue<I, F>, index: S) -> Option<&mut Self::Output> {
-        value.as_array_mut().and_then(|v| v.get_mut(index))
+        value.as_vec_mut().and_then(|v| v.get_mut(index))
     }
 
     fn index(value: &JsoncValue<I, F>, index: S) -> &Self::Output {
-        &value.as_array().unwrap_or_else(|| panic!("{}", IndexError::StringIndex { value: value.value_type() }))[index]
+        &value.as_vec().unwrap_or_else(|| panic!("{}", IndexError::StringIndex { value: value.value_type() }))[index]
     }
 
     fn index_mut(value: &mut JsoncValue<I, F>, index: S) -> &mut Self::Output {
@@ -235,7 +235,7 @@ mod tests {
             })
         );
 
-        value.get_mut("keywords").unwrap().get_mut(0).unwrap().as_array_mut().unwrap().push("!".into());
+        value.get_mut("keywords").unwrap().get_mut(0).unwrap().as_vec_mut().unwrap().push("!".into());
         assert_eq!(
             value,
             jsonc!({

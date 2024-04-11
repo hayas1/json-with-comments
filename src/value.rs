@@ -51,7 +51,7 @@ pub type MapImpl<K, V> = indexmap::IndexMap<K, V>;
 /// }));
 ///
 /// // as rust value
-/// let v = value["keywords"].as_array().unwrap();
+/// let v = value["keywords"].as_vec().unwrap();
 /// let mut iter = v.iter();
 /// assert_eq!(iter.next().unwrap().as_str().unwrap(), "JSON with comments");
 /// assert_eq!(iter.next().unwrap().as_str().unwrap(), "jsonc");
