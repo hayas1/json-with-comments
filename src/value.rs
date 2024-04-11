@@ -95,7 +95,31 @@ impl<I, F> JsoncValue<I, F> {
         })
     }
 
-    /// TODO doc
+    /// Replaces value with the default value `Null`, returning the previous value.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// let mut value = jsonc!({
+    ///     "name": "json-with-comments",
+    ///     "keywords": [
+    ///         "JSON with comments",
+    ///         "JSONC",
+    ///         "trailing comma",
+    ///     ],
+    /// });
+    ///
+    /// let name = value["name"].take();
+    /// assert_eq!(name, "json-with-comments".into());
+    /// assert_eq!(value, jsonc!({
+    ///     "name": null,
+    ///     "keywords": [
+    ///         "JSON with comments",
+    ///         "JSONC",
+    ///         "trailing comma"
+    ///     ]
+    /// }));
+    /// ```
     pub fn take(&mut self) -> Self {
         std::mem::take(self)
     }
