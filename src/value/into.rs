@@ -19,14 +19,35 @@ impl<I, F> JsoncValue<I, F> {
     pub fn is_object(&self) -> bool {
         matches!(self, JsoncValue::Object(_))
     }
-    /// TODO doc
+    /// If the `Value` is an `Object`, returns the associated `Map`. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert_eq!(jsonc!({"key": "value"}).as_map(), Some(&json_with_comments::value::MapImpl::from([("key".to_string(), "value".into())])));
+    /// assert_eq!(jsonc!([1, 2, 3]).as_map(), None);
+    /// assert_eq!(jsonc!(true).as_map(), None);
+    /// assert_eq!(jsonc!(null).as_map(), None);
+    /// assert_eq!(jsonc!("value").as_map(), None);
+    /// assert_eq!(jsonc!(123).as_map(), None);
+    /// assert_eq!(jsonc!(123.45).as_map(), None);
+    /// ```
     pub fn as_map(&self) -> Option<&MapImpl<String, Self>> {
         match self {
             JsoncValue::Object(m) => Some(m),
             _ => None,
         }
     }
-    /// TODO doc
+    /// If the `Value` is an `Object`, returns the associated mutable `Map` reference. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// let mut object = jsonc!({"key": "value"});
+    /// let mut map = object.as_map_mut().unwrap();
+    /// map.insert("new_key".to_string(), "new_value".into());
+    /// assert_eq!(object, jsonc!({"key": "value", "new_key": "new_value"}));
+    /// ```
     pub fn as_map_mut(&mut self) -> Option<&mut MapImpl<String, Self>> {
         match self {
             JsoncValue::Object(m) => Some(m),
@@ -50,14 +71,35 @@ impl<I, F> JsoncValue<I, F> {
     pub fn is_array(&self) -> bool {
         matches!(self, JsoncValue::Array(_))
     }
-    /// TODO doc
+    /// If the `Value` is an `Array`, returns the associated `Vec`. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert_eq!(jsonc!({"key": "value"}).as_vec(), None);
+    /// assert_eq!(jsonc!([1, 2, 3]).as_vec(), Some(&vec![1.into(), 2.into(), 3.into()]));
+    /// assert_eq!(jsonc!(true).as_vec(), None);
+    /// assert_eq!(jsonc!(null).as_vec(), None);
+    /// assert_eq!(jsonc!("value").as_vec(), None);
+    /// assert_eq!(jsonc!(123).as_vec(), None);
+    /// assert_eq!(jsonc!(123.45).as_vec(), None);
+    /// ```
     pub fn as_vec(&self) -> Option<&Vec<Self>> {
         match self {
             JsoncValue::Array(v) => Some(v),
             _ => None,
         }
     }
-    /// TODO doc
+    /// If the `Value` is an `Array`, returns the associated mutable `Vec` reference. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::{jsonc, to_string};
+    /// let mut array = jsonc!([1, 2, 3]);
+    /// let mut vec = array.as_vec_mut().unwrap();
+    /// vec.iter_mut().for_each(|v| *v = to_string(&v).unwrap().into());
+    /// assert_eq!(array, jsonc!(["1", "2", "3"]));
+    /// ```
     pub fn as_vec_mut(&mut self) -> Option<&mut Vec<Self>> {
         match self {
             JsoncValue::Array(v) => Some(v),
@@ -81,14 +123,35 @@ impl<I, F> JsoncValue<I, F> {
     pub fn is_boolean(&self) -> bool {
         matches!(self, JsoncValue::Bool(_))
     }
-    /// TODO doc
+    /// If the `Value` is an `Boolean`, returns the associated `bool`. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert_eq!(jsonc!({"key": "value"}).as_bool(), None);
+    /// assert_eq!(jsonc!([1, 2, 3]).as_bool(), None);
+    /// assert_eq!(jsonc!(true).as_bool(), Some(&true));
+    /// assert_eq!(jsonc!(null).as_bool(), None);
+    /// assert_eq!(jsonc!("value").as_bool(), None);
+    /// assert_eq!(jsonc!(123).as_bool(), None);
+    /// assert_eq!(jsonc!(123.45).as_bool(), None);
+    /// ```
     pub fn as_bool(&self) -> Option<&bool> {
         match self {
             JsoncValue::Bool(v) => Some(v),
             _ => None,
         }
     }
-    /// TODO doc
+    /// If the `Value` is an `Boolean`, returns the associated mutable `bool` reference. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// let mut boolean = jsonc!(true);
+    /// let mut bool = boolean.as_bool_mut().unwrap();
+    /// *bool = false;
+    /// assert_eq!(boolean, jsonc!(false));
+    /// ```
     pub fn as_bool_mut(&mut self) -> Option<&mut bool> {
         match self {
             JsoncValue::Bool(v) => Some(v),
@@ -112,7 +175,19 @@ impl<I, F> JsoncValue<I, F> {
     pub fn is_null(&self) -> bool {
         matches!(self, JsoncValue::Null)
     }
-    /// TODO doc
+    /// If the `Value` is an `Null`, returns the associated `()`. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert_eq!(jsonc!({"key": "value"}).as_unit(), None);
+    /// assert_eq!(jsonc!([1, 2, 3]).as_unit(), None);
+    /// assert_eq!(jsonc!(true).as_unit(), None);
+    /// assert_eq!(jsonc!(null).as_unit(), Some(()));
+    /// assert_eq!(jsonc!("value").as_unit(), None);
+    /// assert_eq!(jsonc!(123).as_unit(), None);
+    /// assert_eq!(jsonc!(123.45).as_unit(), None);
+    /// ```
     pub fn as_unit(&self) -> Option<()> {
         match self {
             JsoncValue::Null => Some(()),
@@ -136,14 +211,35 @@ impl<I, F> JsoncValue<I, F> {
     pub fn is_string(&self) -> bool {
         matches!(self, JsoncValue::String(_))
     }
-    /// TODO doc
+    /// If the `Value` is an `String`, returns the associated `str`. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert_eq!(jsonc!({"key": "value"}).as_str(), None);
+    /// assert_eq!(jsonc!([1, 2, 3]).as_str(), None);
+    /// assert_eq!(jsonc!(true).as_str(), None);
+    /// assert_eq!(jsonc!(null).as_str(), None);
+    /// assert_eq!(jsonc!("value").as_str(), Some("value"));
+    /// assert_eq!(jsonc!(123).as_str(), None);
+    /// assert_eq!(jsonc!(123.45).as_str(), None);
+    /// ```
     pub fn as_str(&self) -> Option<&str> {
         match self {
             JsoncValue::String(v) => Some(v),
             _ => None,
         }
     }
-    /// TODO doc
+    /// If the `Value` is an `String`, returns the associated mutable `str` reference. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// let mut boolean = jsonc!(true);
+    /// let mut bool = boolean.as_bool_mut().unwrap();
+    /// *bool = false;
+    /// assert_eq!(boolean, jsonc!(false));
+    /// ```
     pub fn as_str_mut(&mut self) -> Option<&mut str> {
         match self {
             JsoncValue::String(v) => Some(v),
@@ -167,14 +263,35 @@ impl<I, F> JsoncValue<I, F> {
     pub fn is_number(&self) -> bool {
         matches!(self, JsoncValue::Number(_))
     }
-    /// TODO doc
+    /// If the `Value` is an `Number`, returns the associated `Number`. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert_eq!(jsonc!({"key": "value"}).as_number(), None);
+    /// assert_eq!(jsonc!([1, 2, 3]).as_number(), None);
+    /// assert_eq!(jsonc!(true).as_number(), None);
+    /// assert_eq!(jsonc!(null).as_number(), None);
+    /// assert_eq!(jsonc!("value").as_number(), None);
+    /// assert_eq!(jsonc!(123).as_number(), Some(&json_with_comments::value::number::Number::Integer(123)));
+    /// assert_eq!(jsonc!(123.45).as_number(), Some(&json_with_comments::value::number::Number::Float(123.45)));
+    /// ```
     pub fn as_number(&self) -> Option<&Number<I, F>> {
         match self {
             JsoncValue::Number(v) => Some(v),
             _ => None,
         }
     }
-    /// TODO doc
+    /// If the `Value` is an `Number`, returns the associated mutable `Number` reference. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// let mut num = jsonc!(123);
+    /// let mut number = num.as_number_mut().unwrap();
+    /// *number = json_with_comments::value::number::Number::Float(123.45);
+    /// assert_eq!(num, jsonc!(123.45));
+    /// ```
     pub fn as_number_mut(&mut self) -> Option<&mut Number<I, F>> {
         match self {
             JsoncValue::Number(v) => Some(v),
@@ -198,14 +315,35 @@ impl<I, F> JsoncValue<I, F> {
     pub fn is_integer(&self) -> bool {
         matches!(self, JsoncValue::Number(Number::Integer(_)))
     }
-    /// TODO doc
+    /// If the `Value` is an `Integer`, returns the associated `I`. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert_eq!(jsonc!({"key": "value"}).as_integer(), None);
+    /// assert_eq!(jsonc!([1, 2, 3]).as_integer(), None);
+    /// assert_eq!(jsonc!(true).as_integer(), None);
+    /// assert_eq!(jsonc!(null).as_integer(), None);
+    /// assert_eq!(jsonc!("value").as_integer(), None);
+    /// assert_eq!(jsonc!(123).as_integer(), Some(&123i64));
+    /// assert_eq!(jsonc!(123.45).as_integer(), None);
+    /// ```
     pub fn as_integer(&self) -> Option<&I> {
         match self {
             JsoncValue::Number(Number::Integer(i)) => Some(i),
             _ => None,
         }
     }
-    /// TODO doc
+    /// If the `Value` is an `Integer`, returns the associated mutable `I` reference. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// let mut integer = jsonc!(123);
+    /// let mut i = integer.as_integer_mut().unwrap();
+    /// *i = *i * *i;
+    /// assert_eq!(integer, jsonc!(15129));
+    /// ```
     pub fn as_integer_mut(&mut self) -> Option<&mut I> {
         match self {
             JsoncValue::Number(Number::Integer(i)) => Some(i),
@@ -229,14 +367,35 @@ impl<I, F> JsoncValue<I, F> {
     pub fn is_float(&self) -> bool {
         matches!(self, JsoncValue::Number(Number::Float(_)))
     }
-    /// TODO doc
+    /// If the `Value` is an `Float`, returns the associated `F`. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert_eq!(jsonc!({"key": "value"}).as_float(), None);
+    /// assert_eq!(jsonc!([1, 2, 3]).as_float(), None);
+    /// assert_eq!(jsonc!(true).as_float(), None);
+    /// assert_eq!(jsonc!(null).as_float(), None);
+    /// assert_eq!(jsonc!("value").as_float(), None);
+    /// assert_eq!(jsonc!(123).as_float(), None);
+    /// assert_eq!(jsonc!(123.45).as_float(), Some(&123.45f64));
+    /// ```
     pub fn as_float(&self) -> Option<&F> {
         match self {
             JsoncValue::Number(Number::Float(f)) => Some(f),
             _ => None,
         }
     }
-    /// TODO doc
+    /// If the `Value` is an `Float`, returns the associated mutable `F` reference. Returns None otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// let mut float = jsonc!(123.45);
+    /// let mut f = float.as_float_mut().unwrap();
+    /// *f = *f + *f;
+    /// assert_eq!(float, jsonc!(246.9));
+    /// ```
     pub fn as_float_mut(&mut self) -> Option<&mut F> {
         match self {
             JsoncValue::Number(Number::Float(f)) => Some(f),
