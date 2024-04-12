@@ -63,21 +63,39 @@ pub type MapImpl<K, V> = indexmap::IndexMap<K, V>;
 pub enum JsoncValue<I, F> {
     /// Represents any valid JSON with comments object.
     /// Default implementation is `HashMap`. If `preserve_order` feature is enabled, that will be `IndexMap`.
+    /// ```
+    /// let v = json_with_comments::jsonc!({"key": "value"});
+    /// ```
     Object(MapImpl<String, JsoncValue<I, F>>),
 
     /// Represents any valid JSON with comments array.
+    /// ```
+    /// let v = json_with_comments::jsonc!([1, 2, 3]);
+    /// ```
     Array(Vec<JsoncValue<I, F>>),
 
     /// Represents any valid JSON with comments boolean.
+    /// ```
+    /// let v = json_with_comments::jsonc!(true);
+    /// ```
     Bool(bool),
 
     /// Represents any valid JSON with comments null.
+    /// ```
+    /// let v = json_with_comments::jsonc!(null);
+    /// ```
     Null,
 
     /// Represents any valid JSON with comments string.
+    /// ```
+    /// let v = json_with_comments::jsonc!("string");
+    /// ```
     String(String),
 
     /// Represents any valid JSON with comments number, whether integer or float.
+    /// ```
+    /// let v = json_with_comments::jsonc!(123.45);
+    /// ```
     Number(number::Number<I, F>),
 }
 
@@ -208,7 +226,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert_eq!(jsonc!([1, 2, 3]).value_type(), "Array");
     /// assert_eq!(jsonc!(true).value_type(), "Boolean");
     /// assert_eq!(jsonc!(null).value_type(), "Null");
-    /// assert_eq!(jsonc!("value").value_type(), "String");
+    /// assert_eq!(jsonc!("string").value_type(), "String");
     /// assert_eq!(jsonc!(123).value_type(), "Number");
     /// assert_eq!(jsonc!(123.45).value_type(), "Number");
     /// ```
