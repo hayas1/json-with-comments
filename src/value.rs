@@ -210,6 +210,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert_eq!(jsonc!(null).value_type(), "Null");
     /// assert_eq!(jsonc!("value").value_type(), "String");
     /// assert_eq!(jsonc!(123).value_type(), "Number");
+    /// assert_eq!(jsonc!(123.45).value_type(), "Number");
     /// ```
     pub fn value_type(&self) -> String {
         match self {

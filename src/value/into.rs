@@ -3,7 +3,19 @@ use crate::error::InvalidRepresentsValue;
 use super::{number::Number, JsoncValue, MapImpl};
 
 impl<I, F> JsoncValue<I, F> {
-    /// TODO doc
+    /// Returns true if the `Value` is an `Object`. Returns false otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert!(jsonc!({"key": "value"}).is_object());
+    /// assert!(!jsonc!([1, 2, 3]).is_object());
+    /// assert!(!jsonc!(true).is_object());
+    /// assert!(!jsonc!(null).is_object());
+    /// assert!(!jsonc!("value").is_object());
+    /// assert!(!jsonc!(123).is_object());
+    /// assert!(!jsonc!(123.45).is_object());
+    /// ```
     pub fn is_object(&self) -> bool {
         matches!(self, JsoncValue::Object(_))
     }
@@ -22,7 +34,19 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
-    /// TODO doc
+    /// Returns true if the `Value` is an `Array`. Returns false otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert!(!jsonc!({"key": "value"}).is_array());
+    /// assert!(jsonc!([1, 2, 3]).is_array());
+    /// assert!(!jsonc!(true).is_array());
+    /// assert!(!jsonc!(null).is_array());
+    /// assert!(!jsonc!("value").is_array());
+    /// assert!(!jsonc!(123).is_array());
+    /// assert!(!jsonc!(123.45).is_array());
+    /// ```
     pub fn is_array(&self) -> bool {
         matches!(self, JsoncValue::Array(_))
     }
@@ -41,8 +65,20 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
-    /// TODO doc
-    pub fn is_bool(&self) -> bool {
+    /// Returns true if the `Value` is an `Boolean`. Returns false otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert!(!jsonc!({"key": "value"}).is_boolean());
+    /// assert!(!jsonc!([1, 2, 3]).is_boolean());
+    /// assert!(jsonc!(true).is_boolean());
+    /// assert!(!jsonc!(null).is_boolean());
+    /// assert!(!jsonc!("value").is_boolean());
+    /// assert!(!jsonc!(123).is_boolean());
+    /// assert!(!jsonc!(123.45).is_boolean());
+    /// ```
+    pub fn is_boolean(&self) -> bool {
         matches!(self, JsoncValue::Bool(_))
     }
     /// TODO doc
@@ -60,7 +96,19 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
-    /// TODO doc
+    /// Returns true if the `Value` is an `Null`. Returns false otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert!(!jsonc!({"key": "value"}).is_null());
+    /// assert!(!jsonc!([1, 2, 3]).is_null());
+    /// assert!(!jsonc!(true).is_null());
+    /// assert!(jsonc!(null).is_null());
+    /// assert!(!jsonc!("value").is_null());
+    /// assert!(!jsonc!(123).is_null());
+    /// assert!(!jsonc!(123.45).is_null());
+    /// ```
     pub fn is_null(&self) -> bool {
         matches!(self, JsoncValue::Null)
     }
@@ -72,7 +120,19 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
-    /// TODO doc
+    /// Returns true if the `Value` is an `String`. Returns false otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert!(!jsonc!({"key": "value"}).is_string());
+    /// assert!(!jsonc!([1, 2, 3]).is_string());
+    /// assert!(!jsonc!(true).is_string());
+    /// assert!(!jsonc!(null).is_string());
+    /// assert!(jsonc!("value").is_string());
+    /// assert!(!jsonc!(123).is_string());
+    /// assert!(!jsonc!(123.45).is_string());
+    /// ```
     pub fn is_string(&self) -> bool {
         matches!(self, JsoncValue::String(_))
     }
@@ -91,7 +151,19 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
-    /// TODO doc
+    /// Returns true if the `Value` is an `Number`. Returns false otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert!(!jsonc!({"key": "value"}).is_number());
+    /// assert!(!jsonc!([1, 2, 3]).is_number());
+    /// assert!(!jsonc!(true).is_number());
+    /// assert!(!jsonc!(null).is_number());
+    /// assert!(!jsonc!("value").is_number());
+    /// assert!(jsonc!(123).is_number());
+    /// assert!(jsonc!(123.45).is_number());
+    /// ```
     pub fn is_number(&self) -> bool {
         matches!(self, JsoncValue::Number(_))
     }
@@ -110,7 +182,19 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
-    /// TODO doc
+    /// Returns true if the `Value` is an `Integer`. Returns false otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert!(!jsonc!({"key": "value"}).is_integer());
+    /// assert!(!jsonc!([1, 2, 3]).is_integer());
+    /// assert!(!jsonc!(true).is_integer());
+    /// assert!(!jsonc!(null).is_integer());
+    /// assert!(!jsonc!("value").is_integer());
+    /// assert!(jsonc!(123).is_integer());
+    /// assert!(!jsonc!(123.45).is_integer());
+    /// ```
     pub fn is_integer(&self) -> bool {
         matches!(self, JsoncValue::Number(Number::Integer(_)))
     }
@@ -129,7 +213,19 @@ impl<I, F> JsoncValue<I, F> {
         }
     }
 
-    /// TODO doc
+    /// Returns true if the `Value` is an `Float`. Returns false otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// use json_with_comments::jsonc;
+    /// assert!(!jsonc!({"key": "value"}).is_float());
+    /// assert!(!jsonc!([1, 2, 3]).is_float());
+    /// assert!(!jsonc!(true).is_float());
+    /// assert!(!jsonc!(null).is_float());
+    /// assert!(!jsonc!("value").is_float());
+    /// assert!(!jsonc!(123).is_float());
+    /// assert!(jsonc!(123.45).is_float());
+    /// ```
     pub fn is_float(&self) -> bool {
         matches!(self, JsoncValue::Number(Number::Float(_)))
     }
@@ -345,7 +441,7 @@ mod tests {
         assert!(
             v.is_object()
                 && !v.is_array()
-                && !v.is_bool()
+                && !v.is_boolean()
                 && !v.is_null()
                 && !v.is_string()
                 && !v.is_number()
@@ -388,7 +484,7 @@ mod tests {
         assert!(
             !v.is_object()
                 && v.is_array()
-                && !v.is_bool()
+                && !v.is_boolean()
                 && !v.is_null()
                 && !v.is_string()
                 && !v.is_number()
@@ -442,7 +538,7 @@ mod tests {
         assert!(
             !v.is_object()
                 && !v.is_array()
-                && v.is_bool()
+                && v.is_boolean()
                 && !v.is_null()
                 && !v.is_string()
                 && !v.is_number()
@@ -478,7 +574,7 @@ mod tests {
         assert!(
             !v.is_object()
                 && !v.is_array()
-                && !v.is_bool()
+                && !v.is_boolean()
                 && v.is_null()
                 && !v.is_string()
                 && !v.is_number()
@@ -507,7 +603,7 @@ mod tests {
         assert!(
             !v.is_object()
                 && !v.is_array()
-                && !v.is_bool()
+                && !v.is_boolean()
                 && !v.is_null()
                 && v.is_string()
                 && !v.is_number()
@@ -547,7 +643,7 @@ mod tests {
         assert!(
             !v.is_object()
                 && !v.is_array()
-                && !v.is_bool()
+                && !v.is_boolean()
                 && !v.is_null()
                 && !v.is_string()
                 && v.is_number()
@@ -579,7 +675,7 @@ mod tests {
         assert!(
             !v.is_object()
                 && !v.is_array()
-                && !v.is_bool()
+                && !v.is_boolean()
                 && !v.is_null()
                 && !v.is_string()
                 && v.is_number()
