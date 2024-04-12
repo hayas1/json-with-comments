@@ -12,7 +12,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert!(!jsonc!([1, 2, 3]).is_object());
     /// assert!(!jsonc!(true).is_object());
     /// assert!(!jsonc!(null).is_object());
-    /// assert!(!jsonc!("value").is_object());
+    /// assert!(!jsonc!("string").is_object());
     /// assert!(!jsonc!(123).is_object());
     /// assert!(!jsonc!(123.45).is_object());
     /// ```
@@ -28,7 +28,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert_eq!(jsonc!([1, 2, 3]).as_map(), None);
     /// assert_eq!(jsonc!(true).as_map(), None);
     /// assert_eq!(jsonc!(null).as_map(), None);
-    /// assert_eq!(jsonc!("value").as_map(), None);
+    /// assert_eq!(jsonc!("string").as_map(), None);
     /// assert_eq!(jsonc!(123).as_map(), None);
     /// assert_eq!(jsonc!(123.45).as_map(), None);
     /// ```
@@ -64,7 +64,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert!(jsonc!([1, 2, 3]).is_array());
     /// assert!(!jsonc!(true).is_array());
     /// assert!(!jsonc!(null).is_array());
-    /// assert!(!jsonc!("value").is_array());
+    /// assert!(!jsonc!("string").is_array());
     /// assert!(!jsonc!(123).is_array());
     /// assert!(!jsonc!(123.45).is_array());
     /// ```
@@ -80,7 +80,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert_eq!(jsonc!([1, 2, 3]).as_vec(), Some(&vec![1.into(), 2.into(), 3.into()]));
     /// assert_eq!(jsonc!(true).as_vec(), None);
     /// assert_eq!(jsonc!(null).as_vec(), None);
-    /// assert_eq!(jsonc!("value").as_vec(), None);
+    /// assert_eq!(jsonc!("string").as_vec(), None);
     /// assert_eq!(jsonc!(123).as_vec(), None);
     /// assert_eq!(jsonc!(123.45).as_vec(), None);
     /// ```
@@ -116,7 +116,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert!(!jsonc!([1, 2, 3]).is_boolean());
     /// assert!(jsonc!(true).is_boolean());
     /// assert!(!jsonc!(null).is_boolean());
-    /// assert!(!jsonc!("value").is_boolean());
+    /// assert!(!jsonc!("string").is_boolean());
     /// assert!(!jsonc!(123).is_boolean());
     /// assert!(!jsonc!(123.45).is_boolean());
     /// ```
@@ -132,7 +132,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert_eq!(jsonc!([1, 2, 3]).as_bool(), None);
     /// assert_eq!(jsonc!(true).as_bool(), Some(&true));
     /// assert_eq!(jsonc!(null).as_bool(), None);
-    /// assert_eq!(jsonc!("value").as_bool(), None);
+    /// assert_eq!(jsonc!("string").as_bool(), None);
     /// assert_eq!(jsonc!(123).as_bool(), None);
     /// assert_eq!(jsonc!(123.45).as_bool(), None);
     /// ```
@@ -168,7 +168,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert!(!jsonc!([1, 2, 3]).is_null());
     /// assert!(!jsonc!(true).is_null());
     /// assert!(jsonc!(null).is_null());
-    /// assert!(!jsonc!("value").is_null());
+    /// assert!(!jsonc!("string").is_null());
     /// assert!(!jsonc!(123).is_null());
     /// assert!(!jsonc!(123.45).is_null());
     /// ```
@@ -184,7 +184,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert_eq!(jsonc!([1, 2, 3]).as_unit(), None);
     /// assert_eq!(jsonc!(true).as_unit(), None);
     /// assert_eq!(jsonc!(null).as_unit(), Some(()));
-    /// assert_eq!(jsonc!("value").as_unit(), None);
+    /// assert_eq!(jsonc!("string").as_unit(), None);
     /// assert_eq!(jsonc!(123).as_unit(), None);
     /// assert_eq!(jsonc!(123.45).as_unit(), None);
     /// ```
@@ -204,7 +204,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert!(!jsonc!([1, 2, 3]).is_string());
     /// assert!(!jsonc!(true).is_string());
     /// assert!(!jsonc!(null).is_string());
-    /// assert!(jsonc!("value").is_string());
+    /// assert!(jsonc!("string").is_string());
     /// assert!(!jsonc!(123).is_string());
     /// assert!(!jsonc!(123.45).is_string());
     /// ```
@@ -220,7 +220,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert_eq!(jsonc!([1, 2, 3]).as_str(), None);
     /// assert_eq!(jsonc!(true).as_str(), None);
     /// assert_eq!(jsonc!(null).as_str(), None);
-    /// assert_eq!(jsonc!("value").as_str(), Some("value"));
+    /// assert_eq!(jsonc!("string").as_str(), Some("string"));
     /// assert_eq!(jsonc!(123).as_str(), None);
     /// assert_eq!(jsonc!(123.45).as_str(), None);
     /// ```
@@ -256,7 +256,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert!(!jsonc!([1, 2, 3]).is_number());
     /// assert!(!jsonc!(true).is_number());
     /// assert!(!jsonc!(null).is_number());
-    /// assert!(!jsonc!("value").is_number());
+    /// assert!(!jsonc!("string").is_number());
     /// assert!(jsonc!(123).is_number());
     /// assert!(jsonc!(123.45).is_number());
     /// ```
@@ -272,7 +272,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert_eq!(jsonc!([1, 2, 3]).as_number(), None);
     /// assert_eq!(jsonc!(true).as_number(), None);
     /// assert_eq!(jsonc!(null).as_number(), None);
-    /// assert_eq!(jsonc!("value").as_number(), None);
+    /// assert_eq!(jsonc!("string").as_number(), None);
     /// assert_eq!(jsonc!(123).as_number(), Some(&json_with_comments::value::number::Number::Integer(123)));
     /// assert_eq!(jsonc!(123.45).as_number(), Some(&json_with_comments::value::number::Number::Float(123.45)));
     /// ```
@@ -308,7 +308,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert!(!jsonc!([1, 2, 3]).is_integer());
     /// assert!(!jsonc!(true).is_integer());
     /// assert!(!jsonc!(null).is_integer());
-    /// assert!(!jsonc!("value").is_integer());
+    /// assert!(!jsonc!("string").is_integer());
     /// assert!(jsonc!(123).is_integer());
     /// assert!(!jsonc!(123.45).is_integer());
     /// ```
@@ -324,7 +324,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert_eq!(jsonc!([1, 2, 3]).as_integer(), None);
     /// assert_eq!(jsonc!(true).as_integer(), None);
     /// assert_eq!(jsonc!(null).as_integer(), None);
-    /// assert_eq!(jsonc!("value").as_integer(), None);
+    /// assert_eq!(jsonc!("string").as_integer(), None);
     /// assert_eq!(jsonc!(123).as_integer(), Some(&123i64));
     /// assert_eq!(jsonc!(123.45).as_integer(), None);
     /// ```
@@ -360,7 +360,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert!(!jsonc!([1, 2, 3]).is_float());
     /// assert!(!jsonc!(true).is_float());
     /// assert!(!jsonc!(null).is_float());
-    /// assert!(!jsonc!("value").is_float());
+    /// assert!(!jsonc!("string").is_float());
     /// assert!(!jsonc!(123).is_float());
     /// assert!(jsonc!(123.45).is_float());
     /// ```
@@ -376,7 +376,7 @@ impl<I, F> JsoncValue<I, F> {
     /// assert_eq!(jsonc!([1, 2, 3]).as_float(), None);
     /// assert_eq!(jsonc!(true).as_float(), None);
     /// assert_eq!(jsonc!(null).as_float(), None);
-    /// assert_eq!(jsonc!("value").as_float(), None);
+    /// assert_eq!(jsonc!("string").as_float(), None);
     /// assert_eq!(jsonc!(123).as_float(), None);
     /// assert_eq!(jsonc!(123.45).as_float(), Some(&123.45f64));
     /// ```
