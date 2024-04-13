@@ -45,8 +45,7 @@
 //! Any valid JSONC text can be parsed as [`Value`].
 //! See [`jsonc!`] macro also.
 //! ```
-//! use json_with_comments::{from_str, Value, jsonc};
-//! use json_with_comments::value::{JsoncValue, number::Number, MapImpl};
+//! use json_with_comments::{from_str, Value, jsonc, value::JsoncValue};
 //!
 //! let json = r#"{
 //!     "name": "John Doe", // John Doe is a fictional character
