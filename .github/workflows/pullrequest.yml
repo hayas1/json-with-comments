@@ -27,6 +27,7 @@ jobs:
 
     - run: cargo test --verbose
     - run: cargo test --verbose --features preserve_order --features serde_json/preserve_order
+    - run: cargo test --verbose --features float_map_key
     - run: cargo fmt --check
     - run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
     - run: cargo clippy --tests -- --deny warnings

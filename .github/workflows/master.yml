@@ -22,6 +22,8 @@ jobs:
       run: cargo test --release
     - name: Release test for preserve_order
       run: cargo test --release --features preserve_order --features serde_json/preserve_order
+    - name: Release test for float_map_key
+      run: cargo test --release --features float_map_key
     - name: Run doc
       run: cargo doc --no-deps
     - name: Coverage
