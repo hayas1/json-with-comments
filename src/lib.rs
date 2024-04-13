@@ -55,7 +55,7 @@
 //!     },
 //! }"#;
 //!
-//! let data: json_with_comments::Value = from_str(json).unwrap();
+//! let data: Value = from_str(json).unwrap();
 //! assert_eq!(data["name"], Value::String("John Doe".into()));
 //! assert_eq!(data["address"]["street"], Value::String("Main".into()));
 //! assert_eq!(data.query("address.number"), Some(&42.into()));
