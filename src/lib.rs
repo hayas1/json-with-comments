@@ -96,7 +96,7 @@
 //!     "number": 42,
 //!   },
 //! }"#;
-//! assert_eq!(json_with_comments::to_string_pretty(&person, Default::default()).unwrap(), pretty);
+//! assert_eq!(json_with_comments::to_string_pretty(&person).unwrap(), pretty);
 //! ```
 //!
 //! # Interconversion of `serde_json::Value` and `json_with_comments::Value`
@@ -134,11 +134,7 @@ pub use de::{from_file, from_path, from_read, from_str, from_str_raw, from_value
 pub use error::{JsonWithCommentsError as Error, Result};
 pub use ser::{to_file, to_file_pretty, to_path, to_path_pretty, to_string, to_string_pretty, to_value, to_write};
 
-pub use ser::formatter::{
-    minify::MinifyFormatter,
-    pretty::{PrettyFormatter, PrettySettings},
-    JsoncFormatter,
-};
+pub use ser::formatter::{minify::MinifyFormatter, pretty::PrettyFormatter, JsoncFormatter};
 
 /// [`Value`] is type alias for [`value::JsoncValue<i64, f64>`].
 pub type Value = value::JsoncValue<i64, f64>;

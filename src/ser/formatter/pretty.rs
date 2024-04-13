@@ -1,31 +1,20 @@
 use super::JsoncFormatter;
 
 /// TODO doc
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PrettySettings {
-    pub indent: Vec<u8>, // TODO &'a [u8]
-    pub trailing_comma: bool,
-    // pub max_width: Option<usize>, // TODO implement
-}
-impl Default for PrettySettings {
-    fn default() -> Self {
-        // Self { indent: b"  ".to_vec(), trailing_comma: true, max_width: None }
-        Self { indent: b"  ".to_vec(), trailing_comma: true }
-    }
-}
-
-/// TODO doc
 pub struct PrettyFormatter {
-    settings: PrettySettings,
     indent: usize,
 }
 impl PrettyFormatter {
-    pub fn new(settings: PrettySettings) -> Self {
-        Self { settings, indent: 0 }
+    pub fn new() -> Self {
+        Self { indent: 0 }
+    }
+
+    pub fn indent(&self) -> Vec<u8> {
+        b"  ".repeat(self.indent)
     }
 
     pub fn should_write_trailing_comma(&self, index: usize, len: Option<usize>) -> bool {
-        matches!(len.map(|l| index + 1 == l), Some(true)) && self.settings.trailing_comma
+        matches!(len.map(|l| index + 1 == l), Some(true))
     }
 }
 impl JsoncFormatter for PrettyFormatter {
@@ -42,7 +31,7 @@ impl JsoncFormatter for PrettyFormatter {
         index: usize,
         len: Option<usize>,
     ) -> crate::Result<()> {
-        write.write_all(&self.settings.indent.repeat(self.indent))?;
+        write.write_all(&self.indent())?;
         let sup = self.write_array_value_start_super(write, index, len)?;
         Ok(sup)
     }
@@ -64,7 +53,7 @@ impl JsoncFormatter for PrettyFormatter {
 
     fn write_array_end<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         self.indent -= 1;
-        write.write_all(&self.settings.indent.repeat(self.indent))?;
+        write.write_all(&self.indent())?;
         let sup = self.write_array_end_super(write)?;
         Ok(sup)
     }
@@ -82,7 +71,7 @@ impl JsoncFormatter for PrettyFormatter {
         index: usize,
         len: Option<usize>,
     ) -> crate::Result<()> {
-        write.write_all(&self.settings.indent.repeat(self.indent))?;
+        write.write_all(&self.indent())?;
         let sup = self.write_object_key_start_super(write, index, len)?;
         Ok(sup)
     }
@@ -115,7 +104,7 @@ impl JsoncFormatter for PrettyFormatter {
 
     fn write_object_end<W: std::io::Write>(&mut self, write: &mut W) -> crate::Result<()> {
         self.indent -= 1;
-        write.write_all(&self.settings.indent.repeat(self.indent))?;
+        write.write_all(&self.indent())?;
         let sup = self.write_object_end_super(write)?;
         Ok(sup)
     }

@@ -140,8 +140,7 @@ mod tests {
     #[test]
     fn test_serialize_pretty() {
         assert_eq!(
-            to_string_pretty(vec!["string", "string", "string", "string", "string", "string"], Default::default())
-                .unwrap(),
+            to_string_pretty(vec!["string", "string", "string", "string", "string", "string"]).unwrap(),
             [
                 r#"["#,
                 r#"  "string","#,
@@ -156,10 +155,13 @@ mod tests {
         );
 
         assert_eq!(
-            to_string_pretty(
-                ((), 1, "two", HashMap::from([("hoge", HashMap::from([("fuga", "piyo")]))]), vec![true, false]),
-                Default::default()
-            )
+            to_string_pretty((
+                (),
+                1,
+                "two",
+                HashMap::from([("hoge", HashMap::from([("fuga", "piyo")]))]),
+                vec![true, false]
+            ),)
             .unwrap(),
             [
                 r#"["#,
