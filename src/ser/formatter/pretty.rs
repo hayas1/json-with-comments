@@ -1,6 +1,5 @@
 use super::JsoncFormatter;
 
-/// TODO doc
 pub struct PrettyFormatter {
     indent: usize,
 }

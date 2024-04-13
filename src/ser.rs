@@ -217,7 +217,7 @@ pub fn to_file_pretty(value: impl ser::Serialize, file: &mut File) -> crate::Res
 /// }
 /// let mut write = Vec::new();
 /// let product = Product { name: "candy".to_string(), price: 100 };
-/// json_with_comments::to_write(product, &mut write, json_with_comments::MinifyFormatter).unwrap();
+/// json_with_comments::to_write(product, &mut write, json_with_comments::ser::formatter::minify::MinifyFormatter).unwrap();
 /// assert_eq!(String::from_utf8(write).unwrap(), r#"{"name":"candy","price":100}"#);
 /// ```
 pub fn to_write<W, F, S>(value: S, write: W, formatter: F) -> crate::Result<()>
