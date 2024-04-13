@@ -205,7 +205,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self.value.as_null() {
+        match self.value.as_unit() {
             Some(()) => visitor.visit_none(),
             None => visitor.visit_some(self),
         }
@@ -215,7 +215,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self.value.as_null() {
+        match self.value.as_unit() {
             Some(()) => visitor.visit_unit(),
             None => Err(self.invalid_type(&visitor)),
         }
@@ -239,7 +239,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self.value.as_array() {
+        match self.value.as_vec() {
             Some(v) => visitor.visit_seq(ValueSeqDeserializer::new(v)),
             None => Err(self.invalid_type(&visitor)),
         }
@@ -263,7 +263,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self.value.as_object() {
+        match self.value.as_map() {
             Some(m) => visitor.visit_map(ValueMapDeserializer::new(m)),
             None => Err(self.invalid_type(&visitor)),
         }

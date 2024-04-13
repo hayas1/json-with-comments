@@ -236,7 +236,7 @@ where
 
 /// Serialize `T` to [`crate::value::JsoncValue`]
 ///
-/// # Example
+/// # Examples
 /// ```
 /// use serde::Serialize;
 /// #[derive(Serialize)]
