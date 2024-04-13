@@ -2,10 +2,11 @@
 name = "json-with-comments"
 authors = ["hayas1 <h4ystack@gmail.com>"]
 version = "0.1.5"
+categories = ["parsing", "encoding"]
+description = "JSONC library for Rust"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/hayas1/json-with-comments"
-homepage = "https://hayas1.github.io/json-with-comments/json_with_comments/"
 readme = "README.md"
 
 [dependencies]
