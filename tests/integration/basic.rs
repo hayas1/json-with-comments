@@ -22,7 +22,7 @@ fn test_basic_object() {
     assert_eq!(data.trailing_comma, true);
 
     // serialize
-    let jsonc = to_string_pretty(data, Default::default()).unwrap();
+    let jsonc = to_string_pretty(data).unwrap();
     for (tl, jl) in target.lines().zip(jsonc.lines()) {
         assert_eq!(tl.trim(), jl.trim());
     }
@@ -145,7 +145,7 @@ fn test_json_with_comment() {
     ));
 
     // serialize
-    let jsonc = to_string_pretty(setting, Default::default()).unwrap();
+    let jsonc = to_string_pretty(setting).unwrap();
     for (jl, tl) in target.lines().zip(jsonc.lines()) {
         assert_eq!(jl.trim(), tl.trim());
     }

@@ -100,7 +100,7 @@ let pretty = r#"{
     "number": 42,
   },
 }"#;
-assert_eq!(json_with_comments::to_string_pretty(&person, Default::default()).unwrap(), pretty);
+assert_eq!(json_with_comments::to_string_pretty(&person).unwrap(), pretty);
 ```
 
 ## Interconversion of `serde_json::Value` and `json_with_comments::Value`

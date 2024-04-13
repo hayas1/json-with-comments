@@ -49,7 +49,7 @@ fn test_not_string_map_key() {
     }"#;
     let map: BTreeMap<bool, i32> = from_str(target_bool).unwrap();
     assert_eq!(map, BTreeMap::from([(true, 1), (false, 0)]));
-    let jsonc = to_string_pretty(&map, Default::default()).unwrap();
+    let jsonc = to_string_pretty(&map).unwrap();
     for (tl, jl) in target_bool.lines().zip(jsonc.lines()) {
         assert_eq!(tl.trim(), jl.trim());
     }
@@ -63,7 +63,7 @@ fn test_not_string_map_key() {
     }"#;
     let map: BTreeMap<u64, bool> = from_str(target_number_key).unwrap();
     assert_eq!(map, BTreeMap::from([(1, false), (2, true), (3, true), (4, false), (5, true)]));
-    let jsonc = to_string_pretty(&map, Default::default()).unwrap();
+    let jsonc = to_string_pretty(&map).unwrap();
     for (tl, jl) in target_number_key.lines().zip(jsonc.lines()) {
         assert_eq!(tl.trim(), jl.trim());
     }
@@ -73,7 +73,7 @@ fn test_not_string_map_key() {
     }"#;
     let map: HashMap<(), bool> = from_str(target_unit_key).unwrap();
     assert_eq!(map, HashMap::from([((), false)]));
-    let jsonc = to_string_pretty(&map, Default::default()).unwrap();
+    let jsonc = to_string_pretty(&map).unwrap();
     for (tl, jl) in target_unit_key.lines().zip(jsonc.lines()) {
         assert_eq!(tl.trim(), jl.trim());
     }

@@ -54,7 +54,7 @@ where
 ///     code: 81,
 ///     regions: vec!["Hokkaido", "Kanto", "Kyushu-Okinawa"],
 /// };
-/// let jp = json_with_comments::to_string_pretty(japan, Default::default()).unwrap();
+/// let jp = json_with_comments::to_string_pretty(japan).unwrap();
 /// let pretty = r#"{
 ///   "name": "Japan",
 ///   "code": 81,
@@ -66,12 +66,12 @@ where
 /// }"#;
 /// assert_eq!(jp, pretty);
 /// ```
-pub fn to_string_pretty<S>(value: S, settings: formatter::pretty::PrettySettings) -> crate::Result<String>
+pub fn to_string_pretty<S>(value: S) -> crate::Result<String>
 where
     S: ser::Serialize,
 {
     let mut write = Vec::new();
-    to_write(value, &mut write, formatter::pretty::PrettyFormatter::new(settings))?;
+    to_write(value, &mut write, formatter::pretty::PrettyFormatter::new())?;
     Ok(unsafe { String::from_utf8_unchecked(write) }) // TODO maybe safe
 }
 
@@ -138,16 +138,16 @@ where
 ///     name: "candy".to_string(),
 ///     price: 100,
 /// };
-/// json_with_comments::to_path_pretty(product, path, Default::default()).unwrap();
+/// json_with_comments::to_path_pretty(product, path).unwrap();
 /// let after = std::fs::read_to_string(path).unwrap();
 /// assert_eq!(before, after);
 /// ```
-pub fn to_path_pretty<S>(value: S, path: &Path, settings: formatter::pretty::PrettySettings) -> crate::Result<()>
+pub fn to_path_pretty<S>(value: S, path: &Path) -> crate::Result<()>
 where
     S: ser::Serialize,
 {
     let mut file = File::create(path)?;
-    to_file_pretty(value, &mut file, settings)
+    to_file_pretty(value, &mut file)
 }
 
 /// Serialize struct `S` as a minified JSON with comments text of the given file.
@@ -194,19 +194,15 @@ where
 /// }
 /// let mut file = std::fs::File::create(path).unwrap();
 /// let product = Product { name: "candy".to_string(), price: 100 };
-/// json_with_comments::to_file_pretty(product, &mut file, Default::default()).unwrap();
+/// json_with_comments::to_file_pretty(product, &mut file).unwrap();
 /// let pretty = r#"{
 ///   "name": "candy",
 ///   "price": 100,
 /// }"#;
 /// assert_eq!(std::fs::read_to_string(path).unwrap(), pretty);
 /// ```
-pub fn to_file_pretty(
-    value: impl ser::Serialize,
-    file: &mut File,
-    settings: formatter::pretty::PrettySettings,
-) -> crate::Result<()> {
-    to_write(value, file, formatter::pretty::PrettyFormatter::new(settings))
+pub fn to_file_pretty(value: impl ser::Serialize, file: &mut File) -> crate::Result<()> {
+    to_write(value, file, formatter::pretty::PrettyFormatter::new())
 }
 
 /// Serialize struct `S` as a JSON with comments text of the given writer.
@@ -221,7 +217,7 @@ pub fn to_file_pretty(
 /// }
 /// let mut write = Vec::new();
 /// let product = Product { name: "candy".to_string(), price: 100 };
-/// json_with_comments::to_write(product, &mut write, json_with_comments::MinifyFormatter).unwrap();
+/// json_with_comments::to_write(product, &mut write, json_with_comments::ser::formatter::minify::MinifyFormatter).unwrap();
 /// assert_eq!(String::from_utf8(write).unwrap(), r#"{"name":"candy","price":100}"#);
 /// ```
 pub fn to_write<W, F, S>(value: S, write: W, formatter: F) -> crate::Result<()>
