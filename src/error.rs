@@ -256,6 +256,10 @@ pub enum SemanticError {
     #[error("map key of JSON with comments must be string")]
     AnyMapKey,
 
+    #[cfg(not(feature = "float_map_key"))]
+    #[error("float value cannot be compared")]
+    FloatMapKey,
+
     #[error("JSON with comments must not be empty")]
     EmptyJsonWithComment,
 

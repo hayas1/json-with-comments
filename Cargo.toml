@@ -40,4 +40,5 @@ disallowed_names = "allow"
 github = { repository = "hayas1/json-with-comments", workflow = "Master" }
 
 [features]
-preserve_order = ["indexmap"]
+preserve_order = ["indexmap"] # cannot be used with float_map_key
+float_map_key = []            # cannot be used with preserve_order

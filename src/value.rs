@@ -6,10 +6,12 @@ pub mod macros;
 pub mod number;
 pub mod ser;
 
-#[cfg(not(feature = "preserve_order"))]
+#[cfg(not(any(feature = "preserve_order", feature = "float_map_key")))]
 pub type MapImpl<K, V> = std::collections::HashMap<K, V>;
-#[cfg(feature = "preserve_order")]
+#[cfg(all(feature = "preserve_order", not(feature = "float_map_key")))]
 pub type MapImpl<K, V> = indexmap::IndexMap<K, V>;
+#[cfg(all(not(feature = "preserve_order"), feature = "float_map_key"))]
+pub type MapImpl<K, V> = std::collections::BTreeMap<K, V>;
 
 /// Represents any valid JSON with comments value.
 ///

@@ -139,14 +139,32 @@ impl<'de> de::Deserializer<'de> for ValueMapKeyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_f32(from_str(self.key)?)
+        #[cfg(not(feature = "float_map_key"))]
+        {
+            let _ = visitor;
+            Err(SemanticError::FloatMapKey)?
+        }
+
+        #[cfg(feature = "float_map_key")]
+        {
+            visitor.visit_f32(from_str(self.key)?)
+        }
     }
 
     fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_f64(from_str(self.key)?)
+        #[cfg(not(feature = "float_map_key"))]
+        {
+            let _ = visitor;
+            Err(SemanticError::FloatMapKey)?
+        }
+
+        #[cfg(feature = "float_map_key")]
+        {
+            visitor.visit_f64(from_str(self.key)?)
+        }
     }
 
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>

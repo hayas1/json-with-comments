@@ -15,7 +15,15 @@ pub struct ValueMapSerializer<I, F> {
 
 impl<I, F> ValueMapSerializer<I, F> {
     pub fn start(len: Option<usize>) -> crate::Result<Self> {
-        Ok(Self { object: len.map(MapImpl::with_capacity).unwrap_or_default(), key: None })
+        Ok(
+            #[cfg(not(feature = "float_map_key"))]
+            Self { object: len.map(MapImpl::with_capacity).unwrap_or_default(), key: None },
+            #[cfg(feature = "float_map_key")]
+            {
+                let _ = len;
+                Self { object: MapImpl::new(), key: None }
+            },
+        )
     }
 }
 
@@ -119,13 +127,31 @@ impl ser::Serializer for ValueMapKeySerializer {
     }
 
     fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
-        // TODO check inf
-        to_string(v)
+        #[cfg(not(feature = "float_map_key"))]
+        {
+            let _ = v;
+            Err(SemanticError::FloatMapKey)?
+        }
+
+        #[cfg(feature = "float_map_key")]
+        {
+            // TODO check inf
+            to_string(v)
+        }
     }
 
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
-        // TODO check inf
-        to_string(v)
+        #[cfg(not(feature = "float_map_key"))]
+        {
+            let _ = v;
+            Err(SemanticError::FloatMapKey)?
+        }
+
+        #[cfg(feature = "float_map_key")]
+        {
+            // TODO check inf
+            to_string(v)
+        }
     }
 
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
