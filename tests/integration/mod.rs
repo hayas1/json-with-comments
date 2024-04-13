@@ -6,3 +6,6 @@ pub mod value;
 
 #[cfg(feature = "preserve_order")]
 pub mod preserve_order;
+
+#[cfg(not(feature = "preserve_order"))]
+pub mod float_map_key;
