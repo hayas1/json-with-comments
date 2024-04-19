@@ -61,8 +61,6 @@ macro_rules! jsonc {
 /// ```
 #[macro_export]
 macro_rules! jsonc_generics {
-    // TODO comments
-
     ([$($array:tt)*]) => {
         $crate::array!([] [$($array)*])
     };
