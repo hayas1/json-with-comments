@@ -5,7 +5,7 @@
 //! in `Cargo.toml`
 //! ```toml
 //! [dependencies]
-//! json_with_comments = { git = "https://github.com/hayas1/json-with-comments" }
+//! json-with-comments = { git = "https://github.com/hayas1/json-with-comments" }
 //! ```
 //!
 //! # Parse JSONC as typed struct
